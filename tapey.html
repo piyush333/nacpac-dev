@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NacPac – Tapey Mascot Preview</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #dccee6 0%, #f0eaf8 60%, #fee17a22 100%);
+      font-family: 'Arial Rounded MT Bold', 'Arial Black', Arial, sans-serif;
+    }
+    .page-content { padding: 60px 50px; }
+    .page-content h1 { font-size: 5rem; font-weight: 900; color: #5a3493; line-height: 1; letter-spacing: -2px; }
+    .page-content h1 span { color: #f5b11b; }
+    .page-content p { margin-top: 16px; font-size: 1.2rem; color: #29266c; font-weight: 600; }
+
+    #nacpac-widget {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+    }
+    .bubble {
+      background: #fff;
+      border: 2.5px solid #29266c;
+      border-radius: 16px;
+      padding: 14px 38px 14px 16px;
+      max-width: 230px;
+      font-size: 13px;
+      color: #29266c;
+      font-weight: 700;
+      box-shadow: 4px 4px 0 #29266c;
+      position: relative;
+      animation: popIn .3s cubic-bezier(.34,1.56,.64,1);
+      line-height: 1.5;
+    }
+    .bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -10px; right: 54px;
+      border: 9px solid transparent;
+      border-top-color: #fff;
+      border-bottom: 0;
+    }
+    .bubble::before {
+      content: '';
+      position: absolute;
+      bottom: -13px; right: 52px;
+      border: 11px solid transparent;
+      border-top-color: #29266c;
+      border-bottom: 0;
+    }
+    .bubble .x {
+      position: absolute; top: 7px; right: 10px;
+      background: none; border: none; cursor: pointer;
+      font-size: 13px; color: #5a3493; font-weight: 900; line-height: 1;
+    }
+    .bubble.hidden { display: none; }
+    .mascot-wrap { cursor: pointer; }
+    .mascot-wrap:active { transform: scale(.94); }
+
+    @keyframes bob {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-12px); }
+    }
+    @keyframes blink {
+      0%,86%,100% { transform: scaleY(1); }
+      91%          { transform: scaleY(0.05); }
+      95%          { transform: scaleY(1); }
+    }
+    @keyframes wave {
+      0%,100% { transform: rotate(0deg); }
+      30%      { transform: rotate(-22deg); }
+      70%      { transform: rotate(16deg); }
+    }
+    @keyframes stepL {
+      0%,100% { transform: rotate(-12deg); }
+      50%      { transform: rotate(12deg); }
+    }
+    @keyframes stepR {
+      0%,100% { transform: rotate(12deg); }
+      50%      { transform: rotate(-12deg); }
+    }
+    @keyframes popIn {
+      from { opacity:0; transform: scale(.7) translateY(10px); }
+      to   { opacity:1; transform: scale(1) translateY(0); }
+    }
+
+    #tapey-svg {
+      animation: bob 2.5s ease-in-out infinite;
+      filter: drop-shadow(3px 10px 16px rgba(41,38,108,.4));
+      overflow: visible;
+    }
+    .eye-l { animation: blink 4.2s ease-in-out infinite;       transform-box: fill-box; transform-origin: center; }
+    .eye-r { animation: blink 4.2s ease-in-out infinite .13s;  transform-box: fill-box; transform-origin: center; }
+    .arm-r { transform-box: fill-box; transform-origin: 0% 88%; animation: wave 1.7s ease-in-out infinite; }
+    .leg-l { transform-box: fill-box; transform-origin: 50% 2%; animation: stepL 1.1s ease-in-out infinite; }
+    .leg-r { transform-box: fill-box; transform-origin: 50% 2%; animation: stepR 1.1s ease-in-out infinite; }
+  </style>
+</head>
+<body>
+
+<div class="page-content">
+  <h1>nac<br><span>pac</span></h1>
+  <p>Your trusted packaging partner.</p>
+</div>
+
+<div id="nacpac-widget">
+  <div class="bubble" id="bubble">
+    <button class="x" onclick="hideBubble()">✕</button>
+    👋 Hi! I'm Tapey — click me!
+  </div>
+
+  <div class="mascot-wrap" onclick="nextMessage()" title="Click Tapey!">
+    <!--
+      ViewBox : 0 0 560 545
+      Roll    : center (270,200)  outer-r=172
+      Purple  : rx=96  ry=104
+      Content : rx=78  ry=84
+      Eyes    : left(245,90)  right(295,86)  — on yellow ring, above purple border
+    -->
+    <svg id="tapey-svg" width="200" height="195" viewBox="0 0 560 545">
+      <defs>
+        <!-- ── Diagonal stripe pattern for tape ring ── -->
+        <pattern id="ts" patternUnits="userSpaceOnUse" width="22" height="22"
+                 patternTransform="rotate(-38 0 0)">
+          <rect width="22" height="22" fill="#fdd223"/>
+          <rect width="11" height="22" fill="#f0a500" opacity="0.38"/>
+        </pattern>
+
+        <!-- ── Cross-hatch for upper hole (cardboard texture) ── -->
+        <pattern id="xh" patternUnits="userSpaceOnUse" width="10" height="10">
+          <path d="M-1,1 l2,-2 M0,10 l10,-10 M9,11 l2,-2"
+                stroke="#aaa" stroke-width="1.3" fill="none"/>
+          <path d="M11,1 l-2,-2 M10,10 l-10,-10 M1,11 l-2,-2"
+                stroke="#aaa" stroke-width="1.3" fill="none"/>
+        </pattern>
+
+        <!-- ── Ring clip (outer circle MINUS inner purple ellipse) ── -->
+        <clipPath id="rc">
+          <path fill-rule="evenodd"
+            d="M270,28  a172,172 0 1,1 0,344 a172,172 0 1,1 0,-344
+               M270,96  a104,104 0 1,0 0,208 a104,104 0 1,0 0,-208"/>
+        </clipPath>
+
+        <!-- ── Clip inner content ellipse ── -->
+        <clipPath id="hc">
+          <ellipse cx="270" cy="200" rx="78" ry="84"/>
+        </clipPath>
+
+        <!-- ── Clip upper half of inner hole ── -->
+        <clipPath id="uh">
+          <rect x="190" y="116" width="160" height="84"/>
+        </clipPath>
+      </defs>
+
+      <!-- ════════════════════════════════════════
+           LAYER 1: TAPE PEEL STRIP
+           Peels off lower-left of roll, wide strip with serrated edge
+           ════════════════════════════════════════ -->
+      <!-- Main strip body -->
+      <path d="M 158,332
+               Q 124,322 86,328
+               L 44,336
+               Q 30,340 28,356
+               Q 28,370 42,374
+               L 160,376
+               Q 168,358 164,336
+               Z"
+            fill="#f5b11b" stroke="#111" stroke-width="2.5" stroke-linejoin="round"/>
+      <!-- Lighter diagonal stripe on peel -->
+      <path d="M 158,338 Q 122,330 84,336 L 46,344 Q 34,348 34,360
+               Q 36,370 52,372 L 158,370 Q 164,355 158,338 Z"
+            fill="#fdd223" opacity="0.65"/>
+      <!-- Serrated / jagged bottom edge of peel -->
+      <polyline
+        points="38,374 46,360 54,374 62,360 70,374 78,360 86,374 94,360 102,374 110,360 118,374 126,360 134,374 142,362 150,374 158,368"
+        stroke="#111" stroke-width="2.5" fill="none"
+        stroke-linejoin="round" stroke-linecap="round"/>
+
+      <!-- ════════════════════════════════════════
+           LAYER 2: LEFT ARM  (behind body)
+           Wraps around left side, gloved fist rests on tape peel
+           ════════════════════════════════════════ -->
+      <path d="M 100,218 C 70,252 62,308 88,378"
+            stroke="#111" stroke-width="18" stroke-linecap="round" fill="none"/>
+      <!-- Left glove – closed fist, resting on peel -->
+      <circle cx="92" cy="386" r="26" fill="white" stroke="#111" stroke-width="3"/>
+      <!-- Knuckle / finger crease lines -->
+      <path d="M 76,378 Q 92,372 108,378" stroke="#ccc" stroke-width="2.5"
+            fill="none" stroke-linecap="round"/>
+      <path d="M 78,388 Q 92,382 106,388" stroke="#ccc" stroke-width="2.5"
+            fill="none" stroke-linecap="round"/>
+      <!-- Wrist crease -->
+      <path d="M 80,400 Q 92,404 104,400" stroke="#ddd" stroke-width="2"
+            fill="none" stroke-linecap="round"/>
+      <!-- Speed / motion lines left of glove -->
+      <path d="M 60,372 L 46,368  M 58,382 L 44,382"
+            stroke="#111" stroke-width="2.5" stroke-linecap="round"/>
+
+      <!-- ════════════════════════════════════════
+           LAYER 3: LEGS
+           Wide walking stance, bent, white cartoon shoes
+           ════════════════════════════════════════ -->
+      <!-- LEFT LEG – forward/left -->
+      <g class="leg-l" style="transform-origin:226px 378px">
+        <path d="M 226,378 C 214,408 198,432 174,460"
+              stroke="#111" stroke-width="18" stroke-linecap="round" fill="none"/>
+        <!-- Shoe -->
+        <ellipse cx="163" cy="466" rx="36" ry="20"
+                 fill="white" stroke="#111" stroke-width="3"/>
+        <!-- Sole shadow -->
+        <ellipse cx="161" cy="474" rx="32" ry="11" fill="#ccc" opacity="0.55"/>
+        <!-- Speed lines near shoe -->
+        <path d="M 140,462 L 125,458  M 138,471 L 122,471"
+              stroke="#111" stroke-width="2.5" stroke-linecap="round"/>
+      </g>
+
+      <!-- RIGHT LEG – back/right -->
+      <g class="leg-r" style="transform-origin:316px 378px">
+        <path d="M 316,378 C 328,408 344,432 368,460"
+              stroke="#111" stroke-width="18" stroke-linecap="round" fill="none"/>
+        <!-- Shoe -->
+        <ellipse cx="380" cy="466" rx="36" ry="20"
+                 fill="white" stroke="#111" stroke-width="3"/>
+        <!-- Sole shadow -->
+        <ellipse cx="382" cy="474" rx="32" ry="11" fill="#ccc" opacity="0.55"/>
+        <!-- Speed lines near shoe -->
+        <path d="M 404,462 L 418,458  M 406,471 L 420,471"
+              stroke="#111" stroke-width="2.5" stroke-linecap="round"/>
+      </g>
+
+      <!-- ════════════════════════════════════════
+           LAYER 4: TAPE ROLL BODY
+           Large circle, diagonal stripe ring, purple inner border,
+           cross-hatch upper interior, white lower interior
+           ════════════════════════════════════════ -->
+      <!-- Base yellow disk -->
+      <circle cx="270" cy="200" r="172" fill="#f5b11b" stroke="#111" stroke-width="3.5"/>
+
+      <!-- Diagonal stripes on ring only (outer minus inner purple) -->
+      <circle cx="270" cy="200" r="172" fill="url(#ts)" clip-path="url(#rc)"/>
+
+      <!-- Ring outer stroke -->
+      <circle cx="270" cy="200" r="172" fill="none" stroke="#111" stroke-width="3.5"/>
+
+      <!-- ── Purple inner ring border ── -->
+      <ellipse cx="270" cy="200" rx="96" ry="104"
+               fill="#5a3493" stroke="#111" stroke-width="2.5"/>
+
+      <!-- ── Inner content area (white base) ── -->
+      <ellipse cx="270" cy="200" rx="78" ry="84" fill="white"/>
+
+      <!-- ── Cross-hatch texture (upper half only) ── -->
+      <ellipse cx="270" cy="200" rx="78" ry="84"
+               fill="url(#xh)" clip-path="url(#uh)"/>
+
+      <!-- ── Divider between cross-hatch and white lower ── -->
+      <path d="M 193,200 Q 270,214 347,200"
+            stroke="#bbb" stroke-width="1.5" fill="none"/>
+
+      <!-- ── Inner hole border ── -->
+      <ellipse cx="270" cy="200" rx="78" ry="84"
+               fill="none" stroke="#111" stroke-width="2"/>
+
+      <!-- ════════════════════════════════════════
+           LAYER 5: EYES
+           On yellow ring, above purple border top (y < 96+200=296 but above 200-104=96)
+           Left eye (245,90)  Right eye (295,86)
+           Both verified outside purple ellipse, inside outer circle ✓
+           ════════════════════════════════════════ -->
+      <!-- Left sclera -->
+      <ellipse cx="245" cy="90" rx="14" ry="16"
+               fill="white" stroke="#111" stroke-width="2.5"/>
+      <!-- Right sclera -->
+      <ellipse cx="295" cy="86" rx="14" ry="16"
+               fill="white" stroke="#111" stroke-width="2.5"/>
+
+      <!-- Left pupil -->
+      <g class="eye-l">
+        <circle cx="248" cy="93"  r="9"   fill="#111"/>
+        <circle cx="252" cy="89"  r="3.5" fill="white"/>
+        <circle cx="245" cy="97"  r="1.5" fill="white" opacity=".4"/>
+      </g>
+      <!-- Right pupil -->
+      <g class="eye-r">
+        <circle cx="298" cy="89"  r="9"   fill="#111"/>
+        <circle cx="302" cy="85"  r="3.5" fill="white"/>
+        <circle cx="295" cy="93"  r="1.5" fill="white" opacity=".4"/>
+      </g>
+
+      <!-- ── Smile (in lower white portion of hole) ── -->
+      <path d="M 242,268 Q 270,285 298,268"
+            stroke="#111" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+      <!-- ════════════════════════════════════════
+           LAYER 6: RIGHT ARM (in front, pointing up)
+           From right edge of roll, curves up-right, pointing index finger
+           ════════════════════════════════════════ -->
+      <g class="arm-r" style="transform-origin:442px 196px">
+        <path d="M 442,196 C 468,166 488,120 498,82"
+              stroke="#111" stroke-width="18" stroke-linecap="round" fill="none"/>
+        <!-- Right glove -->
+        <circle cx="500" cy="74" r="26" fill="white" stroke="#111" stroke-width="3"/>
+        <!-- Index finger pointing up -->
+        <rect x="493" y="43" width="14" height="34" rx="7"
+              fill="white" stroke="#111" stroke-width="2.5"/>
+        <!-- Glove crease/knuckle lines -->
+        <path d="M 480,66 Q 500,60 520,66"
+              stroke="#ccc" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <!-- Thumb hint -->
+        <ellipse cx="476" cy="76" rx="8" ry="12"
+                 fill="white" stroke="#111" stroke-width="2" transform="rotate(-30 476 76)"/>
+        <!-- Speed / motion lines near right glove -->
+        <path d="M 522,70 L 537,64  M 524,80 L 539,80"
+              stroke="#111" stroke-width="2.5" stroke-linecap="round"/>
+      </g>
+
+    </svg>
+  </div>
+</div>
+
+<script>
+  const messages = [
+    "👋 Hi! I'm <b>Tapey</b> — your packaging pal!",
+    "📦 nacpac keeps your packages tight & right!",
+    "🎯 Quality tape for every surface & need.",
+    "💡 Stuck on something? I've got you covered!",
+    "✨ Strong hold. Every time. nacpac.",
+    "🚀 Click around and explore nacpac!"
+  ];
+  let idx = 0;
+  function hideBubble() { document.getElementById('bubble').classList.add('hidden'); }
+  function showBubble(msg) {
+    const b = document.getElementById('bubble');
+    b.classList.remove('hidden');
+    b.innerHTML = `<button class="x" onclick="hideBubble()">✕</button>${msg}`;
+  }
+  function nextMessage() { idx = (idx + 1) % messages.length; showBubble(messages[idx]); }
+  setInterval(() => {
+    const b = document.getElementById('bubble');
+    if (!b.classList.contains('hidden')) nextMessage();
+  }, 5000);
+</script>
+</body>
+</html>

@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NacPac — Custom stickers for small businesses. Printed in India.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Jost = open-source Futura alternative. Falls back to real Futura if installed. -->
+<link href="https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,500;1,600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --purple:#5a3493;
+    --purple-d:#29266c;
+    --purple-l:#f5f1fb;
+    --yellow:#f5b11b;
+    --yellow-s:#fdd223;
+    --lav:#dccee6;
+    --lav-l:#f0eaf8;
+    --ink:#1b1740;
+    --muted:#5a5570;
+    --paper:#fafafa;
+    --line:#e8e6ee;
+    --shadow-sm:3px 3px 0 var(--purple-d);
+    --shadow-lg:5px 5px 0 var(--purple-d);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Futura PT','Futura','Jost','Century Gothic','Avenir Next',system-ui,sans-serif;
+    background:#fff;color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    font-feature-settings:"ss01","kern";
+    letter-spacing:-0.005em;
+  }
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1240px;margin:0 auto;padding:0 32px}
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+  }
+
+  /* ============ BUTTONS (2 variants only) ============ */
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:inherit;font-size:.95rem;font-weight:700;
+    padding:13px 22px;border-radius:10px;
+    transition:all .18s;cursor:pointer;
+    letter-spacing:0.02em;text-transform:none;
+    border:2px solid var(--purple-d);
+  }
+  .btn-primary{background:var(--purple);color:#fff;box-shadow:var(--shadow-sm)}
+  .btn-primary:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow-lg);background:var(--purple-d)}
+  .btn-yellow{background:var(--yellow);color:var(--purple-d);box-shadow:var(--shadow-sm)}
+  .btn-yellow:hover{transform:translate(-1px,-1px);box-shadow:var(--shadow-lg)}
+  .btn-lg{padding:16px 28px;font-size:1rem}
+
+  /* ============ NAV ============ */
+  nav{position:sticky;top:0;background:rgba(255,255,255,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--line);z-index:50}
+  .nav-in{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;max-width:1240px;margin:0 auto}
+  .logo{display:inline-flex;align-items:center}
+  .logo-mark{
+    display:inline-block;background:var(--yellow);color:var(--purple-d);
+    padding:7px 14px 5px;border-radius:7px;font-weight:800;font-size:1.4rem;
+    letter-spacing:-0.045em;text-transform:lowercase;line-height:1;
+    border:2px solid var(--purple-d);box-shadow:2px 2px 0 var(--purple-d)
+  }
+  .nav-links{display:flex;gap:30px;font-size:.94rem;font-weight:500}
+  .nav-links a{opacity:.72;transition:opacity .15s}
+  .nav-links a:hover{opacity:1;color:var(--purple)}
+
+  /* ============ HERO ============ */
+  .hero{padding:72px 0 100px;position:relative;overflow:hidden;background:linear-gradient(180deg,#fff 0%,var(--lav-l) 100%)}
+  .hero::before{content:"";position:absolute;top:-140px;right:-140px;width:460px;height:460px;background:var(--yellow);border-radius:50%;opacity:.22;filter:blur(70px)}
+  .hero::after{content:"";position:absolute;bottom:-100px;left:-100px;width:320px;height:320px;background:var(--purple);border-radius:50%;opacity:.1;filter:blur(70px)}
+  .hero-in{position:relative;z-index:1}
+  .hero-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:56px;align-items:center}
+  .hero-eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:.78rem;font-weight:600;color:var(--purple);
+    background:#fff;padding:8px 14px;border-radius:999px;
+    margin-bottom:26px;letter-spacing:0.08em;text-transform:uppercase;
+    border:1.5px solid var(--purple);box-shadow:var(--shadow-sm)
+  }
+  .hero-eyebrow::before{content:"";width:6px;height:6px;background:var(--yellow);border-radius:50%;border:1.5px solid var(--purple-d)}
+  .hero h1{
+    font-size:5.4rem;line-height:0.92;letter-spacing:-0.045em;
+    font-weight:800;color:var(--ink);text-transform:uppercase
+  }
+  .hero h1 em{
+    font-style:normal;color:var(--purple);position:relative;display:inline-block
+  }
+  .hero h1 em::after{
+    content:"";position:absolute;left:-4px;right:-4px;bottom:8px;height:14px;
+    background:var(--yellow);z-index:-1;opacity:.7;transform:skew(-3deg)
+  }
+  .hero .lede{
+    margin-top:28px;font-size:1.15rem;color:var(--muted);
+    max-width:520px;line-height:1.55;font-weight:400
+  }
+  .hero-cta{margin-top:32px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+
+  /* Google Review Badge */
+  .review-badge{
+    margin-top:30px;display:inline-flex;align-items:center;gap:14px;
+    background:#fff;padding:12px 18px;border-radius:14px;
+    border:1.5px solid var(--line);box-shadow:var(--shadow-sm)
+  }
+  .g-logo{
+    width:34px;height:34px;border-radius:50%;
+    background:conic-gradient(from 0deg,#4285f4 0 25%,#ea4335 25% 50%,#fbbc04 50% 75%,#34a853 75% 100%);
+    display:grid;place-items:center;color:#fff;font-weight:800;font-size:1.1rem;font-family:sans-serif
+  }
+  .review-badge .rev-text b{font-size:.95rem;letter-spacing:0.02em}
+  .review-badge .rev-text span{font-size:.78rem;color:var(--muted);display:block}
+  .review-badge .rev-stars{color:var(--yellow);-webkit-text-stroke:0.5px var(--purple-d);font-size:.88rem;letter-spacing:1px}
+
+  /* HERO RIGHT — Tapey + Price Calculator */
+  .hero-right{position:relative}
+  .tapey-float{position:absolute;top:-30px;right:-20px;width:165px;z-index:3}
+  .tapey-float svg{width:100%;height:auto;filter:drop-shadow(4px 10px 16px rgba(41,38,108,.3));animation:bob 2.8s ease-in-out infinite}
+  .tapey-bubble{
+    position:absolute;top:40px;right:140px;
+    background:#fff;border:2.5px solid var(--purple-d);border-radius:16px;
+    padding:12px 16px;font-size:.88rem;font-weight:600;color:var(--purple-d);
+    max-width:200px;box-shadow:var(--shadow-sm);z-index:4;line-height:1.35
+  }
+  .tapey-bubble::after{
+    content:"";position:absolute;bottom:14px;right:-9px;
+    border:8px solid transparent;border-left-color:#fff;border-right:0
+  }
+  .tapey-bubble::before{
+    content:"";position:absolute;bottom:12px;right:-12px;
+    border:10px solid transparent;border-left-color:var(--purple-d);border-right:0;z-index:-1
+  }
+
+  /* Price Calculator */
+  .calc{
+    background:#fff;border:2.5px solid var(--purple-d);border-radius:24px;
+    padding:32px 28px;box-shadow:var(--shadow-lg);margin-top:80px
+  }
+  .calc-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:20px}
+  .calc-title{font-size:1.15rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:var(--purple-d)}
+  .calc-badge{font-size:.7rem;background:var(--yellow);color:var(--purple-d);padding:4px 10px;border-radius:6px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;border:1.5px solid var(--purple-d)}
+  .calc-row{margin-bottom:16px}
+  .calc-row label{display:block;font-size:.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px}
+  .calc-input,.calc-select{
+    width:100%;padding:12px 14px;border:2px solid var(--line);border-radius:10px;
+    font-family:inherit;font-size:.95rem;font-weight:600;color:var(--ink);
+    background:#fff;cursor:pointer;transition:border-color .15s
+  }
+  .calc-input:focus,.calc-select:focus{outline:none;border-color:var(--purple)}
+  .calc-size{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .calc-qty-opts{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .qty-btn{
+    padding:10px 4px;border:2px solid var(--line);border-radius:8px;background:#fff;
+    font-family:inherit;font-size:.88rem;font-weight:700;cursor:pointer;
+    color:var(--ink);transition:all .15s
+  }
+  .qty-btn.active,.qty-btn:hover{border-color:var(--purple-d);background:var(--purple-l);color:var(--purple-d)}
+  .calc-output{
+    margin-top:22px;padding:18px 20px;background:var(--purple-d);color:#fff;
+    border-radius:14px;display:flex;align-items:center;justify-content:space-between
+  }
+  .calc-price-label{font-size:.72rem;text-transform:uppercase;letter-spacing:0.12em;opacity:.7;margin-bottom:2px}
+  .calc-price{font-size:2rem;font-weight:800;letter-spacing:-0.02em;color:var(--yellow)}
+  .calc-unit{font-size:.78rem;opacity:.75;margin-left:4px}
+  .calc-cta{margin-top:14px;width:100%;justify-content:center}
+
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+  @keyframes wiggle{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+
+  /* Reusable Tapey placements */
+  .tapey-use{display:inline-block;filter:drop-shadow(3px 7px 10px rgba(41,38,108,.25))}
+  .tapey-use svg{width:100%;height:auto;overflow:visible}
+  .tapey-sample{width:140px;animation:bob 3s ease-in-out infinite;transform:rotate(-6deg)}
+  .tapey-faq{width:110px;position:absolute;top:-40px;right:20px;animation:wiggle 3.5s ease-in-out infinite;transform-origin:bottom center}
+  .tapey-cta{width:130px;position:absolute;bottom:-10px;left:6%;animation:bob 2.6s ease-in-out infinite;z-index:2;transform:scaleX(-1)}
+
+  /* ============ TRUST STRIP ============ */
+  .trust-strip{background:var(--purple-d);color:#fff;padding:22px 0;border-bottom:2.5px solid var(--purple-d)}
+  .trust-in{display:flex;align-items:center;justify-content:space-around;gap:24px;flex-wrap:wrap;font-size:.88rem;font-weight:600}
+  .trust-item{display:flex;align-items:center;gap:10px;opacity:.92}
+  .trust-ico{width:28px;height:28px;background:var(--yellow);color:var(--purple-d);border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:.78rem;border:2px solid #fff;flex-shrink:0}
+
+  /* ============ SECTIONS ============ */
+  section{padding:100px 0}
+  .sec-head{max-width:720px;margin:0 auto 60px;text-align:center}
+  .sec-eyebrow{font-size:.78rem;font-weight:700;color:var(--purple);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:16px}
+  .sec-title{font-size:3rem;line-height:1;letter-spacing:-0.035em;font-weight:800;color:var(--ink);text-transform:uppercase}
+  .sec-title em{font-style:normal;color:var(--purple)}
+  .sec-sub{margin-top:18px;font-size:1.08rem;color:var(--muted);line-height:1.55;font-weight:400}
+
+  /* ============ PRODUCTS ============ */
+  .prods{background:var(--paper);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .prod-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:18px}
+  .prod{
+    background:#fff;border:2px solid var(--purple-d);border-radius:18px;
+    padding:22px;transition:all .2s;box-shadow:var(--shadow-sm);
+    grid-column:span 3;display:flex;flex-direction:column
+  }
+  .prod:hover{transform:translate(-2px,-2px);box-shadow:var(--shadow-lg)}
+  .prod.champion{grid-column:span 6;grid-row:span 2;background:linear-gradient(135deg,var(--purple),var(--purple-d));color:#fff;border-color:var(--purple-d)}
+  .prod.champion .prod-title{color:#fff}
+  .prod.champion .prod-desc{color:rgba(255,255,255,.82)}
+  .prod.champion .prod-price{color:var(--yellow)}
+  .prod.champion .prod-price small{color:rgba(255,255,255,.7)}
+  .prod.champion .prod-footer{border-top-color:rgba(255,255,255,.2)}
+
+  .prod-viz{aspect-ratio:1.5/1;border-radius:14px;margin-bottom:16px;position:relative;overflow:hidden;display:grid;place-items:center;border:1.5px solid var(--purple-d);background:var(--lav-l)}
+  .prod.champion .prod-viz{aspect-ratio:2/1}
+  .sticker-demo{position:relative;width:62%;aspect-ratio:1;display:grid;place-items:center;filter:drop-shadow(3px 5px 0 rgba(41,38,108,.5))}
+  .sticker-demo::before{content:attr(data-label);position:absolute;inset:0;display:grid;place-items:center;font-weight:800;letter-spacing:-0.02em;text-transform:uppercase;font-size:.88rem;z-index:2;text-align:center;padding:8px}
+
+  /* Sticker shapes */
+  .sd-diecut{background:var(--yellow);clip-path:polygon(15% 5%,85% 0%,100% 35%,95% 85%,70% 100%,25% 95%,0 60%,5% 25%);color:var(--purple-d);border:3px solid var(--purple-d)}
+  .sd-kiss{background:#fff;border-radius:50%;border:3px solid var(--purple-d);color:var(--purple-d)}
+  .sd-holo{background:linear-gradient(135deg,#ff7eb9,#5a3493,#2ec69c,#f5b11b);background-size:300% 300%;animation:holoShift 4s ease-in-out infinite;border-radius:20px;color:#fff;border:3px solid var(--purple-d);text-shadow:1px 1px 0 rgba(0,0,0,.3)}
+  .sd-transparent{background:repeating-linear-gradient(45deg,rgba(90,52,147,.1) 0 8px,transparent 8px 16px);border:3px dashed var(--purple-d);border-radius:16px;color:var(--purple-d)}
+  .sd-paper{background:#f8f3e8;color:#29266c;border:3px solid var(--purple-d);border-radius:4px}
+  .sd-sheet{background:#fff;color:var(--purple-d);border:3px solid var(--purple-d);border-radius:4px;background-image:repeating-linear-gradient(90deg,transparent 0 20%,rgba(90,52,147,.15) 20% 20.3%),repeating-linear-gradient(0deg,transparent 0 33%,rgba(90,52,147,.15) 33% 33.3%)}
+  .sd-circle{background:var(--purple);color:var(--yellow);border-radius:50%;border:3px solid var(--purple-d)}
+  .sd-custom{background:var(--lav);clip-path:polygon(50% 0,90% 20%,100% 60%,75% 100%,25% 100%,0 60%,10% 20%);border:3px solid var(--purple-d);color:var(--purple-d)}
+  .sd-champion{width:50%;background:var(--yellow);clip-path:polygon(10% 5%,90% 0%,100% 30%,98% 75%,80% 100%,20% 95%,0 65%,5% 20%);color:var(--purple-d);border:4px solid var(--purple-d)}
+  .sd-champion::before{font-size:1.4rem}
+
+  @keyframes holoShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+
+  .prod-meta{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
+  .prod-title{font-size:1.05rem;font-weight:700;color:var(--ink);letter-spacing:-0.015em;text-transform:uppercase}
+  .prod.champion .prod-title{font-size:1.7rem;letter-spacing:-0.025em}
+  .prod-tag{
+    font-size:.68rem;font-weight:700;color:var(--purple);background:var(--purple-l);
+    padding:3px 8px;border-radius:5px;letter-spacing:0.08em;text-transform:uppercase;flex-shrink:0
+  }
+  .prod.champion .prod-tag{background:var(--yellow);color:var(--purple-d)}
+  .prod-desc{font-size:.86rem;color:var(--muted);line-height:1.45;margin-bottom:14px;font-weight:400;flex:1}
+  .prod.champion .prod-desc{font-size:.98rem}
+  .prod-footer{display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid var(--line);margin-top:auto}
+  .prod-price{font-size:.98rem;font-weight:800;color:var(--ink);letter-spacing:-0.01em}
+  .prod.champion .prod-price{font-size:1.3rem}
+  .prod-price small{font-weight:500;color:var(--muted);font-size:.76rem;letter-spacing:0}
+  .prod-arrow{
+    width:34px;height:34px;border-radius:50%;background:var(--yellow);color:var(--purple-d);
+    display:grid;place-items:center;font-size:.95rem;font-weight:800;border:2px solid var(--purple-d);
+    transition:transform .15s
+  }
+  .prod:hover .prod-arrow{transform:translateX(3px)}
+
+  /* ============ SAMPLE PACK ============ */
+  .sample-wrap{padding:72px 0;background:linear-gradient(135deg,var(--yellow-s) 0%,var(--yellow) 100%);border-top:2.5px solid var(--purple-d);border-bottom:2.5px solid var(--purple-d)}
+  .sample-card{
+    background:#fff;border:2.5px solid var(--purple-d);border-radius:24px;
+    padding:36px 40px;box-shadow:var(--shadow-lg);
+    display:grid;grid-template-columns:auto 1fr auto;gap:36px;align-items:center
+  }
+  .sample-viz{
+    width:120px;height:120px;background:var(--purple);border:3px solid var(--purple-d);border-radius:20px;
+    display:grid;place-items:center;color:var(--yellow);font-weight:800;
+    font-size:2rem;letter-spacing:-0.02em;flex-shrink:0;text-transform:uppercase;
+    transform:rotate(-5deg);box-shadow:var(--shadow-sm)
+  }
+  .sample-body h3{font-size:1.8rem;font-weight:800;color:var(--purple-d);letter-spacing:-0.025em;text-transform:uppercase;margin-bottom:8px}
+  .sample-body p{color:var(--muted);line-height:1.5;max-width:520px;font-weight:500}
+  .sample-body .price-tag{color:var(--purple);font-weight:800;font-size:1.05rem}
+
+  /* ============ HOW ============ */
+  .how{background:#fff}
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+  .step{
+    background:var(--paper);border:2px solid var(--purple-d);border-radius:18px;
+    padding:28px;box-shadow:var(--shadow-sm);transition:all .2s
+  }
+  .step:hover{transform:translate(-2px,-2px);box-shadow:var(--shadow-lg)}
+  .step-n{
+    width:44px;height:44px;background:var(--purple);color:#fff;border:2px solid var(--purple-d);
+    border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:1.05rem;
+    margin-bottom:16px;letter-spacing:-0.02em
+  }
+  .step h4{font-size:1.15rem;font-weight:700;letter-spacing:-0.02em;margin-bottom:8px;color:var(--ink);text-transform:uppercase}
+  .step p{font-size:.93rem;color:var(--muted);line-height:1.55}
+
+  /* ============ TESTIMONIALS ============ */
+  .test{background:var(--paper);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .test-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+  .t-card{
+    background:#fff;border:2px solid var(--purple-d);border-radius:18px;
+    padding:28px;box-shadow:var(--shadow-sm);transition:all .2s
+  }
+  .t-card:hover{transform:translate(-2px,-2px);box-shadow:var(--shadow-lg)}
+  .t-stars{color:var(--yellow);font-size:1rem;margin-bottom:14px;letter-spacing:2px;-webkit-text-stroke:0.5px var(--purple-d)}
+  .t-card q{color:var(--ink);font-size:1.02rem;line-height:1.55;display:block;margin-bottom:22px;font-weight:500}
+  .t-who{display:flex;align-items:center;gap:12px;padding-top:18px;border-top:1px solid var(--line)}
+  .t-photo{
+    width:44px;height:44px;border-radius:50%;flex-shrink:0;
+    display:grid;place-items:center;font-weight:800;font-size:.9rem;
+    border:2px solid var(--purple-d);color:#fff;letter-spacing:-0.01em
+  }
+  .ph-1{background:linear-gradient(135deg,#ff7eb9,#5a3493)}
+  .ph-2{background:linear-gradient(135deg,#f5b11b,#ff6b35)}
+  .ph-3{background:linear-gradient(135deg,#2ec69c,#29266c)}
+  .t-who b{font-size:.92rem;display:block;color:var(--ink);letter-spacing:-0.01em}
+  .t-who span{font-size:.8rem;color:var(--muted);font-weight:500}
+
+  /* ============ FAQ ============ */
+  .faq{background:#fff}
+  .faq-list{max-width:760px;margin:0 auto}
+  .faq-item{border:2px solid var(--purple-d);border-radius:14px;margin-bottom:12px;overflow:hidden;background:#fff;box-shadow:var(--shadow-sm)}
+  .faq-item summary{
+    padding:18px 22px;font-size:1.02rem;font-weight:700;color:var(--ink);
+    cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;
+    letter-spacing:-0.01em;user-select:none
+  }
+  .faq-item summary::-webkit-details-marker{display:none}
+  .faq-item summary::after{
+    content:"+";font-size:1.5rem;color:var(--purple);font-weight:400;
+    transition:transform .2s;line-height:1
+  }
+  .faq-item[open] summary::after{transform:rotate(45deg)}
+  .faq-item[open]{background:var(--purple-l)}
+  .faq-item p{padding:0 22px 20px;color:var(--muted);line-height:1.6;font-size:.96rem}
+
+  /* ============ EMAIL CAPTURE ============ */
+  .signup{background:linear-gradient(135deg,var(--lav-l) 0%,var(--lav) 100%);padding:90px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .signup-card{
+    max-width:640px;margin:0 auto;text-align:center;
+    background:#fff;border:2.5px solid var(--purple-d);border-radius:24px;
+    padding:48px 40px;box-shadow:var(--shadow-lg)
+  }
+  .signup-card h3{font-size:2.2rem;font-weight:800;letter-spacing:-0.03em;color:var(--purple-d);margin-bottom:10px;text-transform:uppercase}
+  .signup-card h3 em{font-style:normal;color:var(--purple)}
+  .signup-card p{color:var(--muted);margin-bottom:24px;line-height:1.5}
+  .signup-form{display:flex;gap:8px;max-width:440px;margin:0 auto}
+  .signup-form input{
+    flex:1;padding:14px 18px;border:2px solid var(--purple-d);border-radius:10px;
+    font-family:inherit;font-size:.95rem;font-weight:500;color:var(--ink);
+    background:#fff;box-shadow:var(--shadow-sm)
+  }
+  .signup-form input:focus{outline:none;border-color:var(--purple)}
+
+  /* ============ BIG CTA ============ */
+  .bigcta{
+    background:var(--purple-d);color:#fff;padding:120px 32px;text-align:center;
+    position:relative;overflow:hidden
+  }
+  .bigcta::before{content:"";position:absolute;top:-50%;right:-15%;width:60%;height:200%;background:radial-gradient(ellipse,rgba(245,177,27,.25) 0%,transparent 60%);transform:rotate(-12deg)}
+  .bigcta::after{content:"";position:absolute;bottom:-30%;left:-10%;width:50%;height:150%;background:radial-gradient(ellipse,rgba(220,206,230,.12) 0%,transparent 60%)}
+  .bigcta-in{position:relative;z-index:1;max-width:780px;margin:0 auto}
+  .bigcta h2{font-size:4rem;letter-spacing:-0.04em;line-height:0.95;font-weight:800;margin-bottom:20px;text-transform:uppercase}
+  .bigcta h2 em{font-style:normal;color:var(--yellow)}
+  .bigcta p{font-size:1.12rem;opacity:.82;margin-bottom:32px;line-height:1.55;max-width:540px;margin-left:auto;margin-right:auto;font-weight:400}
+
+  /* ============ FOOTER ============ */
+  footer{background:#fff;padding:56px 0 28px;border-top:1px solid var(--line)}
+  .foot{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px}
+  .foot h5{font-size:.76rem;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:14px;font-weight:700}
+  .foot a,.foot p{font-size:.92rem;color:var(--ink);display:block;margin-bottom:9px;font-weight:500}
+  .foot a:hover{color:var(--purple)}
+  .pay-row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+  .pay{font-size:.7rem;padding:4px 8px;border:1.5px solid var(--line);border-radius:5px;color:var(--muted);font-weight:700;letter-spacing:0.03em}
+  .copy{border-top:1px solid var(--line);padding-top:22px;display:flex;justify-content:space-between;font-size:.82rem;color:var(--muted);flex-wrap:wrap;gap:12px;font-weight:500}
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width:1000px){
+    .hero-grid{grid-template-columns:1fr;gap:60px}
+    .tapey-float{position:relative;top:auto;right:auto;margin:0 auto 20px}
+    .tapey-bubble{position:relative;top:auto;right:auto;margin:0 auto 20px;max-width:240px}
+    .calc{margin-top:0}
+  }
+  @media (max-width:900px){
+    .tapey-faq,.tapey-cta{display:none}
+    .hero h1,.bigcta h2{font-size:2.7rem;letter-spacing:-0.03em}
+    .sec-title{font-size:2rem}
+    .prod-grid{grid-template-columns:repeat(2,1fr)}
+    .prod,.prod.champion{grid-column:span 1}
+    .steps,.test-grid,.foot{grid-template-columns:1fr;gap:14px}
+    .nav-links{display:none}
+    section,.sample-wrap{padding:72px 0}
+    .sample-card{grid-template-columns:1fr;text-align:center;padding:32px 24px;gap:20px}
+    .sample-viz{margin:0 auto}
+    .signup-form{flex-direction:column}
+    .calc-qty-opts{grid-template-columns:repeat(2,1fr)}
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== REUSABLE TAPEY SYMBOL ===== -->
+<svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+  <symbol id="tapey" viewBox="0 0 560 545">
+    <defs>
+      <pattern id="tapeStripe" patternUnits="userSpaceOnUse" width="22" height="22" patternTransform="rotate(-38 0 0)">
+        <rect width="22" height="22" fill="#fdd223"/>
+        <rect width="11" height="22" fill="#f0a500" opacity="0.38"/>
+      </pattern>
+      <pattern id="xhatch" patternUnits="userSpaceOnUse" width="10" height="10">
+        <path d="M-1,1 l2,-2 M0,10 l10,-10 M9,11 l2,-2" stroke="#aaa" stroke-width="1.3" fill="none"/>
+        <path d="M11,1 l-2,-2 M10,10 l-10,-10 M1,11 l-2,-2" stroke="#aaa" stroke-width="1.3" fill="none"/>
+      </pattern>
+      <clipPath id="ringClip">
+        <path fill-rule="evenodd" d="M270,28 a172,172 0 1,1 0,344 a172,172 0 1,1 0,-344 M270,96 a104,104 0 1,0 0,208 a104,104 0 1,0 0,-208"/>
+      </clipPath>
+      <clipPath id="upperHole"><rect x="190" y="116" width="160" height="84"/></clipPath>
+    </defs>
+    <!-- tape peel -->
+    <path d="M 158,332 Q 124,322 86,328 L 44,336 Q 30,340 28,356 Q 28,370 42,374 L 160,376 Q 168,358 164,336 Z" fill="#f5b11b" stroke="#111" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M 158,338 Q 122,330 84,336 L 46,344 Q 34,348 34,360 Q 36,370 52,372 L 158,370 Q 164,355 158,338 Z" fill="#fdd223" opacity="0.65"/>
+    <polyline points="38,374 46,360 54,374 62,360 70,374 78,360 86,374 94,360 102,374 110,360 118,374 126,360 134,374 142,362 150,374 158,368" stroke="#111" stroke-width="2.5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+    <!-- left arm -->
+    <path d="M 100,218 C 70,252 62,308 88,378" stroke="#111" stroke-width="18" stroke-linecap="round" fill="none"/>
+    <circle cx="92" cy="386" r="26" fill="white" stroke="#111" stroke-width="3"/>
+    <path d="M 76,378 Q 92,372 108,378" stroke="#ccc" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M 78,388 Q 92,382 106,388" stroke="#ccc" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M 80,400 Q 92,404 104,400" stroke="#ddd" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <!-- legs -->
+    <g>
+      <path d="M 226,378 C 214,408 198,432 174,460" stroke="#111" stroke-width="18" stroke-linecap="round" fill="none"/>
+      <ellipse cx="163" cy="466" rx="36" ry="20" fill="white" stroke="#111" stroke-width="3"/>
+      <ellipse cx="161" cy="474" rx="32" ry="11" fill="#ccc" opacity="0.55"/>
+    </g>
+    <g>
+      <path d="M 316,378 C 328,408 344,432 368,460" stroke="#111" stroke-width="18" stroke-linecap="round" fill="none"/>
+      <ellipse cx="380" cy="466" rx="36" ry="20" fill="white" stroke="#111" stroke-width="3"/>
+      <ellipse cx="382" cy="474" rx="32" ry="11" fill="#ccc" opacity="0.55"/>
+    </g>
+    <!-- body -->
+    <circle cx="270" cy="200" r="172" fill="#f5b11b" stroke="#111" stroke-width="3.5"/>
+    <circle cx="270" cy="200" r="172" fill="url(#tapeStripe)" clip-path="url(#ringClip)"/>
+    <circle cx="270" cy="200" r="172" fill="none" stroke="#111" stroke-width="3.5"/>
+    <ellipse cx="270" cy="200" rx="96" ry="104" fill="#5a3493" stroke="#111" stroke-width="2.5"/>
+    <ellipse cx="270" cy="200" rx="78" ry="84" fill="white"/>
+    <ellipse cx="270" cy="200" rx="78" ry="84" fill="url(#xhatch)" clip-path="url(#upperHole)"/>
+    <path d="M 193,200 Q 270,214 347,200" stroke="#bbb" stroke-width="1.5" fill="none"/>
+    <ellipse cx="270" cy="200" rx="78" ry="84" fill="none" stroke="#111" stroke-width="2"/>
+    <!-- eyes -->
+    <ellipse cx="245" cy="90" rx="14" ry="16" fill="white" stroke="#111" stroke-width="2.5"/>
+    <ellipse cx="295" cy="86" rx="14" ry="16" fill="white" stroke="#111" stroke-width="2.5"/>
+    <circle cx="248" cy="93" r="9" fill="#111"/>
+    <circle cx="252" cy="89" r="3.5" fill="white"/>
+    <circle cx="298" cy="89" r="9" fill="#111"/>
+    <circle cx="302" cy="85" r="3.5" fill="white"/>
+    <path d="M 242,268 Q 270,285 298,268" stroke="#111" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <!-- right arm pointing -->
+    <path d="M 442,196 C 468,166 488,120 498,82" stroke="#111" stroke-width="18" stroke-linecap="round" fill="none"/>
+    <circle cx="500" cy="74" r="26" fill="white" stroke="#111" stroke-width="3"/>
+    <rect x="493" y="43" width="14" height="34" rx="7" fill="white" stroke="#111" stroke-width="2.5"/>
+    <path d="M 480,66 Q 500,60 520,66" stroke="#ccc" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <ellipse cx="476" cy="76" rx="8" ry="12" fill="white" stroke="#111" stroke-width="2" transform="rotate(-30 476 76)"/>
+    <path d="M 522,70 L 537,64 M 524,80 L 539,80" stroke="#111" stroke-width="2.5" stroke-linecap="round"/>
+  </symbol>
+</svg>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-in">
+    <a href="#" class="logo"><span class="logo-mark">nacpac</span></a>
+    <div class="nav-links">
+      <a href="#products">Stickers</a>
+      <a href="#how">How it works</a>
+      <a href="#reviews">Reviews</a>
+      <a href="#faq">FAQ</a>
+      <a href="#">Samples</a>
+    </div>
+    <a href="#calc" class="btn btn-primary">Get instant quote →</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="wrap hero-in hero-grid">
+    <div>
+      <div class="hero-eyebrow">Custom sticker printing · India</div>
+      <h1>Stickers that<br>make your<br><em>brand stick.</em></h1>
+      <p class="lede">Custom vinyl, paper, holographic and die-cut stickers for small businesses. Upload your art, get a proof in 24 hours, we print and ship across India.</p>
+      <div class="hero-cta">
+        <a href="#calc" class="btn btn-primary btn-lg">Get instant quote →</a>
+        <a href="#products" class="btn btn-yellow btn-lg">Browse stickers</a>
+      </div>
+      <div class="review-badge">
+        <div class="g-logo">G</div>
+        <div class="rev-text">
+          <div class="rev-stars">★★★★★</div>
+          <b>4.9 on Google Reviews</b>
+          <span>from 1,247 small-business owners</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-right">
+      <!-- Tapey mascot floating -->
+      <div class="tapey-bubble">Hi! I'm Tapey. Let me quote your stickers ✨</div>
+      <div class="tapey-float" aria-hidden="true">
+        <svg viewBox="0 0 560 545"><use href="#tapey"/></svg>
+      </div>
+
+      <!-- Live Price Calculator -->
+      <form class="calc" id="calc" onsubmit="event.preventDefault()">
+        <div class="calc-head">
+          <div class="calc-title">Instant Price</div>
+          <span class="calc-badge">Live</span>
+        </div>
+
+        <div class="calc-row">
+          <label>Sticker type</label>
+          <select class="calc-select" id="mat">
+            <option value="4">Die-Cut Vinyl — ₹4/pc base</option>
+            <option value="3">Kiss-Cut — ₹3/pc base</option>
+            <option value="7">Holographic — ₹7/pc base</option>
+            <option value="5">Transparent — ₹5/pc base</option>
+            <option value="2">Paper Label — ₹2/pc base</option>
+            <option value="6">Custom Shape — ₹6/pc base</option>
+          </select>
+        </div>
+
+        <div class="calc-row">
+          <label>Size (inches)</label>
+          <div class="calc-size">
+            <select class="calc-select" id="size">
+              <option value="1">2" × 2"</option>
+              <option value="1.3">3" × 3"</option>
+              <option value="1.7" selected>4" × 4"</option>
+              <option value="2.2">5" × 5"</option>
+              <option value="3">6" × 6"</option>
+            </select>
+            <select class="calc-select" id="finish">
+              <option value="1">Gloss finish</option>
+              <option value="1">Matte finish</option>
+              <option value="1.2">Premium laminate</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="calc-row">
+          <label>Quantity</label>
+          <div class="calc-qty-opts" id="qtyOpts">
+            <button type="button" class="qty-btn" data-qty="50">50</button>
+            <button type="button" class="qty-btn active" data-qty="100">100</button>
+            <button type="button" class="qty-btn" data-qty="250">250</button>
+            <button type="button" class="qty-btn" data-qty="500">500</button>
+          </div>
+        </div>
+
+        <div class="calc-output">
+          <div>
+            <div class="calc-price-label">Your price</div>
+            <div><span class="calc-price" id="price">₹680</span><span class="calc-unit" id="unit">for 100 stickers</span></div>
+          </div>
+          <div style="text-align:right;font-size:.78rem;opacity:.75">Free shipping<br>over ₹999</div>
+        </div>
+
+        <button type="button" class="btn btn-yellow btn-lg calc-cta">Upload design & continue →</button>
+      </form>
+    </div>
+  </div>
+</header>
+
+<!-- TRUST STRIP -->
+<div class="trust-strip">
+  <div class="wrap trust-in">
+    <div class="trust-item"><span class="trust-ico">✓</span>Made in India 🇮🇳</div>
+    <div class="trust-item"><span class="trust-ico">📄</span>GST invoice provided</div>
+    <div class="trust-item"><span class="trust-ico">🔒</span>Razorpay secure checkout</div>
+    <div class="trust-item"><span class="trust-ico">24</span>Proof within 24 hours</div>
+    <div class="trust-item"><span class="trust-ico">🚚</span>Ships pan-India in 4–7 days</div>
+  </div>
+</div>
+
+<!-- PRODUCTS -->
+<section class="prods" id="products">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-eyebrow">01 — Materials</div>
+      <h2 class="sec-title">Eight <em>sticker formats.</em></h2>
+      <p class="sec-sub">Waterproof vinyl, holographic foil, transparent and paper finishes. Cut to shape, sheeted or rolled.</p>
+    </div>
+
+    <div class="prod-grid">
+      <!-- CHAMPION -->
+      <div class="prod champion">
+        <div class="prod-viz" style="background:linear-gradient(135deg,#fee17a,#f5b11b)">
+          <div class="sticker-demo sd-champion" data-label="NacPac 4×4"></div>
+        </div>
+        <div class="prod-meta">
+          <h3 class="prod-title">Die-Cut Vinyl</h3>
+          <span class="prod-tag">Bestseller</span>
+        </div>
+        <p class="prod-desc">Our signature sticker. Cut to your exact outline, waterproof, UV-stable, scratch-resistant. Perfect for bottles, boxes and bumpers. Starts at just 50 units.</p>
+        <div class="prod-footer">
+          <div class="prod-price">From ₹4 <small>/ pc</small></div>
+          <div class="prod-arrow">→</div>
+        </div>
+      </div>
+
+      <div class="prod">
+        <div class="prod-viz"><div class="sticker-demo sd-kiss" data-label="Kiss"></div></div>
+        <div class="prod-meta"><h3 class="prod-title">Kiss-Cut</h3><span class="prod-tag">Easy peel</span></div>
+        <p class="prod-desc">Cut through sticker only. Backing stays flat.</p>
+        <div class="prod-footer"><div class="prod-price">From ₹3 <small>/ pc</small></div><div class="prod-arrow">→</div></div>
+      </div>
+
+      <div class="prod">
+        <div class="prod-viz" style="background:#fff"><div class="sticker-demo sd-holo" data-label="Holo"></div></div>
+        <div class="prod-meta"><h3 class="prod-title">Holographic</h3><span class="prod-tag">Premium</span></div>
+        <p class="prod-desc">Rainbow-shift foil for maximum shelf impact.</p>
+        <div class="prod-footer"><div class="prod-price">From ₹7 <small>/ pc</small></div><div class="prod-arrow">→</div></div>
+      </div>
+
+      <div class="prod">
+        <div class="prod-viz"><div class="sticker-demo sd-transparent" data-label="Clear"></div></div>
+        <div class="prod-meta"><h3 class="prod-title">Transparent</h3><span class="prod-tag">Clear</span></div>
+        <p class="prod-desc">No background. Ideal on glass and packaging.</p>
+        <div class="prod-footer"><div class="prod-price">From ₹5 <small>/ pc</small></div><div class="prod-arrow">→</div></div>
+      </div>
+
+      <div class="prod">
+        <div class="prod-viz"><div class="sticker-demo sd-paper" data-label="Paper"></div></div>
+        <div class="prod-meta"><h3 class="prod-title">Paper Labels</h3><span class="prod-tag">Matte</span></div>
+        <p class="prod-desc">Warm, tactile finish for artisanal packaging.</p>
+        <div class="prod-footer"><div class="prod-price">From ₹2 <small>/ pc</small></div><div class="prod-arrow">→</div></div>
+      </div>
+
+      <div class="prod">
+        <div class="prod-viz"><div class="sticker-demo sd-sheet" data-label="Sheet"></div></div>
+        <div class="prod-meta"><h3 class="prod-title">Sheets</h3><span class="prod-tag">Multi-pack</span></div>
+        <p class="prod-desc">Multiple designs per A4 sheet.</p>
+        <div class="prod-footer"><div class="prod-price">From ₹60 <small>/ sheet</small></div><div class="prod-arrow">→</div></div>
+      </div>
+
+      <div class="prod">
+        <div class="prod-viz"><div class="sticker-demo sd-circle" data-label="Circle"></div></div>
+        <div class="prod-meta"><h3 class="prod-title">Circle Rolls</h3><span class="prod-tag">Roll pack</span></div>
+        <p class="prod-desc">Perfectly round. Supplied on a roll.</p>
+        <div class="prod-footer"><div class="prod-price">From ₹3 <small>/ pc</small></div><div class="prod-arrow">→</div></div>
+      </div>
+
+      <div class="prod">
+        <div class="prod-viz"><div class="sticker-demo sd-custom" data-label="Shape"></div></div>
+        <div class="prod-meta"><h3 class="prod-title">Custom Shape</h3><span class="prod-tag">Bespoke</span></div>
+        <p class="prod-desc">Send an outline. We die-line and cut.</p>
+        <div class="prod-footer"><div class="prod-price">From ₹6 <small>/ pc</small></div><div class="prod-arrow">→</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SAMPLE PACK -->
+<div class="sample-wrap">
+  <div class="wrap">
+    <div class="sample-card">
+      <div class="tapey-use tapey-sample" aria-hidden="true">
+        <svg viewBox="0 0 560 545"><use href="#tapey"/></svg>
+      </div>
+      <div class="sample-body">
+        <h3>Try before you buy.<br>₹99 sample pack.</h3>
+        <p>One of each material, printed on NacPac stock — feel the finish, test the adhesive, pick what fits your brand. <b class="price-tag">Delivered free across India.</b></p>
+      </div>
+      <a href="#" class="btn btn-primary btn-lg">Order sample pack →</a>
+    </div>
+  </div>
+</div>
+
+<!-- HOW -->
+<section class="how" id="how">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-eyebrow">02 — Process</div>
+      <h2 class="sec-title">From file to doorstep,<br>in <em>four steps.</em></h2>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-n">01</div>
+        <h4>Quote + material</h4>
+        <p>Use our live calculator. Pick material, size, quantity — see price instantly. Minimums start at 50.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">02</div>
+        <h4>Upload artwork</h4>
+        <p>PDF, AI, PNG or JPG. Prepress checks bleed, resolution and cut-lines — free of charge.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">03</div>
+        <h4>Approve proof</h4>
+        <p>Digital proof within 24 hours. We print only after you say go.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">04</div>
+        <h4>Printed &amp; shipped</h4>
+        <p>Colour-calibrated, quality-checked, tracked delivery nationwide.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="test" id="reviews">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-eyebrow">03 — Clients</div>
+      <h2 class="sec-title">Small businesses <em>love us.</em></h2>
+      <p class="sec-sub">1,200+ small shops across India trust NacPac for their labels, packaging and brand stickers.</p>
+    </div>
+    <div class="test-grid">
+      <div class="t-card">
+        <div class="t-stars">★★★★★</div>
+        <q>Ordered 200 die-cut stickers for our candle boxes. Proof arrived next day, delivered in 5. We've reordered four times since — quality hasn't dropped once.</q>
+        <div class="t-who"><div class="t-photo ph-1">PR</div><div><b>Priya Raj</b><span>Luna Candle Co., Mumbai</span></div></div>
+      </div>
+      <div class="t-card">
+        <div class="t-stars">★★★★★</div>
+        <q>Switched to NacPac holographic labels and our unboxing videos started going viral on Reels. Our subscribers literally comment on the stickers.</q>
+        <div class="t-who"><div class="t-photo ph-2">AK</div><div><b>Arjun Kapoor</b><span>Wildcraft Coffee, Bangalore</span></div></div>
+      </div>
+      <div class="t-card">
+        <div class="t-stars">★★★★★</div>
+        <q>Everyone else wanted 1,000 minimum. NacPac printed my first 50 in the same week. Now I'm at 2,000/month and they still feel like a partner.</q>
+        <div class="t-who"><div class="t-photo ph-3">SM</div><div><b>Sana Mehta</b><span>Tiny Seed Stationery, Delhi</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq" id="faq">
+  <div class="wrap">
+    <div class="sec-head" style="position:relative">
+      <div class="tapey-use tapey-faq" aria-hidden="true">
+        <svg viewBox="0 0 560 545"><use href="#tapey"/></svg>
+      </div>
+      <div class="sec-eyebrow">04 — Questions</div>
+      <h2 class="sec-title">Things <em>people ask.</em></h2>
+      <p class="sec-sub">Everything you want to know before you upload. Still stuck? Tapey and the team reply on WhatsApp within an hour.</p>
+    </div>
+    <div class="faq-list">
+      <details class="faq-item" open>
+        <summary>What's the minimum order quantity?</summary>
+        <p>50 pieces. We're built for small businesses — no 1,000-unit minimums, no "sorry we only print in bulk." Order what you need, reorder when you need more.</p>
+      </details>
+      <details class="faq-item">
+        <summary>How long from order to delivery?</summary>
+        <p>Proof within 24 hours. Once approved, printing takes 2–3 business days and shipping takes 2–4 days across India. Most orders land at your doorstep in under a week.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What file formats do you accept?</summary>
+        <p>PDF, AI, EPS, PNG, JPG. For die-cut stickers, a vector file (PDF/AI) is ideal. Don't have print-ready art? Our in-house designer prepares it from ₹499.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Are the stickers waterproof?</summary>
+        <p>Vinyl, transparent and holographic stickers are fully waterproof and UV-resistant. Paper labels are splash-resistant but not fully waterproof — best for indoor packaging.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Do you provide GST invoice?</summary>
+        <p>Yes. Every order comes with a GST-compliant tax invoice. Claim input credit on your business purchases.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What if I don't like the proof?</summary>
+        <p>Free revisions until you're happy. We only print once you sign off — no surprises, no wasted stickers.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- EMAIL CAPTURE -->
+<div class="signup">
+  <div class="wrap">
+    <div class="signup-card">
+      <h3>Get <em>10% off</em> your first order</h3>
+      <p>Plus exclusive previews of new materials, bulk-discount codes and small-biz sticker inspiration. No spam — one email a month, max.</p>
+      <form class="signup-form" onsubmit="event.preventDefault();alert('Welcome to NacPac ✨ Check your email.')">
+        <input type="email" placeholder="your@email.com" required>
+        <button type="submit" class="btn btn-primary">Claim 10% off</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- BIG CTA -->
+<section class="bigcta">
+  <div class="tapey-use tapey-cta" aria-hidden="true">
+    <svg viewBox="0 0 560 545"><use href="#tapey"/></svg>
+  </div>
+  <div class="bigcta-in">
+    <h2>Let's put your brand<br>on <em>everything.</em></h2>
+    <p>Get an instant quote now. Digital proof within 24 hours. Free shipping pan-India on orders above ₹999.</p>
+    <a href="#calc" class="btn btn-yellow btn-lg">Get instant quote →</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="foot">
+      <div>
+        <div class="logo" style="margin-bottom:14px"><span class="logo-mark">nacpac</span></div>
+        <p style="color:var(--muted);max-width:320px;line-height:1.5;font-weight:500">Custom printing &amp; packaging studio for small businesses across India. Made in Mumbai since 2024.</p>
+        <div class="pay-row">
+          <span class="pay">UPI</span>
+          <span class="pay">RAZORPAY</span>
+          <span class="pay">VISA</span>
+          <span class="pay">MASTERCARD</span>
+          <span class="pay">COD</span>
+        </div>
+      </div>
+      <div>
+        <h5>Shop</h5>
+        <a href="#">Die-Cut Vinyl</a>
+        <a href="#">Kiss-Cut</a>
+        <a href="#">Holographic</a>
+        <a href="#">Sheets</a>
+        <a href="#">Sample pack</a>
+      </div>
+      <div>
+        <h5>Studio</h5>
+        <a href="#">How it works</a>
+        <a href="#">File guide</a>
+        <a href="#">Shipping &amp; returns</a>
+        <a href="#">FAQ</a>
+        <a href="#">Sticker Academy</a>
+      </div>
+      <div>
+        <h5>Connect</h5>
+        <a href="#">Instagram</a>
+        <a href="#">WhatsApp</a>
+        <a href="mailto:hello@nacpac.in">hello@nacpac.in</a>
+        <a href="#">+91 98000 00000</a>
+      </div>
+    </div>
+    <div class="copy">
+      <span>© 2026 NacPac Printworks Pvt. Ltd. · GST 27ABCDE1234F1Z5</span>
+      <span>Made in India ♥</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // ===== Live Price Calculator =====
+  const mat = document.getElementById('mat');
+  const size = document.getElementById('size');
+  const finish = document.getElementById('finish');
+  const qtyOpts = document.getElementById('qtyOpts');
+  const priceEl = document.getElementById('price');
+  const unitEl = document.getElementById('unit');
+  let qty = 100;
+
+  function recalc(){
+    const base = parseFloat(mat.value);
+    const sizeMult = parseFloat(size.value);
+    const finishMult = parseFloat(finish.value);
+    // volume discount
+    const volMult = qty >= 500 ? 0.78 : qty >= 250 ? 0.86 : qty >= 100 ? 0.95 : 1;
+    const unit = base * sizeMult * finishMult * volMult;
+    const total = Math.round(unit * qty);
+    priceEl.textContent = '₹' + total.toLocaleString('en-IN');
+    unitEl.textContent = ' for ' + qty + ' stickers';
+  }
+
+  qtyOpts.addEventListener('click', e => {
+    const b = e.target.closest('.qty-btn');
+    if(!b) return;
+    document.querySelectorAll('.qty-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    qty = parseInt(b.dataset.qty);
+    recalc();
+  });
+  [mat,size,finish].forEach(el => el.addEventListener('change', recalc));
+  recalc();
+</script>
+
+</body>
+</html>
