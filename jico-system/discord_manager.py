@@ -8,6 +8,7 @@ from task_router import TaskRouter
 from nacpac_manager import NacpacManager
 from jico_manager import JicoManager
 from utils import OracleVMConnector, TaskScheduler
+from auto_mode import AutoTaskExecutor
 from config import Config
 
 logger = logging.getLogger(__name__)
@@ -24,6 +25,10 @@ class DiscordManager(commands.Cog):
         self.scheduler = TaskScheduler(self.oracle_vm)
         self.router = TaskRouter(self.nacpac_mgr, self.jico_mgr, self.scheduler)
 
+        # Auto Mode - Autonomous task execution
+        self.auto_executor = AutoTaskExecutor(self.compression, self.router, self)
+        self.auto_mode_task = None
+
         # Cache for Discord channels
         self.logs_channel = None
         self.reports_channel = None
@@ -39,6 +44,11 @@ class DiscordManager(commands.Cog):
             if guild:
                 self.logs_channel = discord.utils.get(guild.channels, name=Config.DISCORD_LOGS_CHANNEL)
                 self.reports_channel = discord.utils.get(guild.channels, name=Config.DISCORD_REPORTS_CHANNEL)
+
+        # Start auto mode automatically
+        if not self.auto_mode_task:
+            self.auto_mode_task = asyncio.create_task(self.auto_executor.start_auto_mode())
+            logger.info("🤖 Auto mode started automatically")
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -63,7 +73,7 @@ class DiscordManager(commands.Cog):
         await self.bot.process_commands(message)
 
     async def process_message(self, message):
-        """Process user message through the pipeline"""
+        """Process user message through the pipeline - QUEUES TO AUTO MODE"""
         user_input = message.content.strip()
 
         if not user_input:
@@ -76,22 +86,13 @@ class DiscordManager(commands.Cog):
         task = self.compression.compress_message(user_input)
         logger.info(f"Compressed task: {task}")
 
-        # Step 2: Route task
-        result = await self.router.route_task(task)
-        logger.info(f"Route result: {result}")
-
-        # Step 3: Decompress and send results
-        response_text = self.compression.decompress_results(result, message.author.id)
-
-        # Send to appropriate channel
-        if result.get('status') == 'scheduled':
-            await self.send_to_channel(self.logs_channel, f"📅 Task scheduled\n{response_text}")
-        else:
-            await self.send_to_channel(self.reports_channel, f"✅ Task completed\n{response_text}")
-
-        # Send summary reaction
+        # Step 2: Queue to auto mode (don't execute immediately)
+        task_id = await self.auto_executor.queue_task(task)
         await message.remove_reaction('⏳', self.bot.user)
-        await message.add_reaction('✅')
+        await message.add_reaction('📋')
+
+        # Send confirmation
+        await message.channel.send(f"📋 Task queued: `{task_id}`\nAuto mode will execute when a worker is available")
 
     async def send_to_channel(self, channel, message: str):
         """Send message to Discord channel"""
@@ -150,6 +151,71 @@ class DiscordManager(commands.Cog):
 For detailed help, contact @techbot
         """
         await ctx.send(help_msg)
+
+    @commands.command()
+    async def auto_mode(self, ctx, action: str = "start"):
+        """Control auto mode - start, stop, pause, resume, status"""
+        action = action.lower()
+
+        if action == "start":
+            if not self.auto_mode_task:
+                self.auto_mode_task = asyncio.create_task(self.auto_executor.start_auto_mode())
+                await ctx.send("🤖 **AUTO MODE STARTED**\nSystem is now in autonomous mode - processes tasks continuously")
+            else:
+                await ctx.send("❌ Auto mode is already running")
+
+        elif action == "stop":
+            if self.auto_mode_task:
+                await self.auto_executor.pause()
+                self.auto_mode_task.cancel()
+                self.auto_mode_task = None
+                await ctx.send("⏹️ **AUTO MODE STOPPED**")
+            else:
+                await ctx.send("❌ Auto mode is not running")
+
+        elif action == "pause":
+            await self.auto_executor.pause()
+            await ctx.send("⏸️ **AUTO MODE PAUSED**\nNo new tasks will be accepted")
+
+        elif action == "resume":
+            await self.auto_executor.resume()
+            await ctx.send("▶️ **AUTO MODE RESUMED**\nContinuous execution resumed")
+
+        elif action == "status":
+            status = await self.auto_executor.get_status()
+            status_msg = f"""
+🤖 **AUTO MODE STATUS**
+Enabled: {'✅ Yes' if status['auto_mode'] else '❌ No'}
+Pending Tasks: {status['pending']}
+Executing: {status['executing']}
+Completed: {status['completed']}
+
+📋 Pending: {', '.join(status['tasks']['pending'][:3]) or 'None'}
+⚙️  Executing: {', '.join(status['tasks']['executing'][:3]) or 'None'}
+✅ Recent: {', '.join(status['tasks']['recent_completed'][-3:]) or 'None'}
+            """
+            await ctx.send(status_msg)
+
+        elif action == "history":
+            history = await self.auto_executor.get_task_history(10)
+            history_msg = "📊 **RECENT TASK HISTORY** (last 10)\n"
+            for task in history[-10:]:
+                history_msg += f"\n{task.get('task_id')}"
+                history_msg += f"\n  Status: {task.get('status')}"
+                history_msg += f"\n  Action: {task.get('action')}\n"
+            await ctx.send(history_msg)
+
+        else:
+            help_msg = """
+**Auto Mode Commands:**
+- `!auto_mode start` - Start autonomous execution
+- `!auto_mode stop` - Stop autonomous mode
+- `!auto_mode pause` - Pause (don't accept new tasks)
+- `!auto_mode resume` - Resume execution
+- `!auto_mode status` - Show current status
+- `!auto_mode history` - Show task history
+            """
+            await ctx.send(help_msg)
 
 
 def create_discord_bot():
