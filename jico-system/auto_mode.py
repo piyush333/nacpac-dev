@@ -117,34 +117,18 @@ class AutoTaskExecutor:
                 del self.executing_tasks[task_id]
 
     async def _post_result_to_discord(self, task: Dict[str, Any], result: Dict[str, Any]):
-        """Post task result to Discord"""
+        """Post task result to appropriate channel (nacpac-dev or jico-dev)"""
         try:
-            response_text = self.compression.decompress_results(result, 0)
-            message = f"""
-✅ **Task Completed**
-Type: {task.get('task_type')}
-Action: {task.get('action')}
-Worker: {task.get('target')}
-
-{response_text}
-"""
-            if self.discord_mgr.reports_channel:
-                await self.discord_mgr.send_to_channel(self.discord_mgr.reports_channel, message)
+            result['status'] = 'success'
+            await self.discord_mgr.post_task_result(task, result)
         except Exception as e:
             logger.error(f"Failed to post result: {e}")
 
     async def _post_error_to_discord(self, task: Dict[str, Any], error: str):
-        """Post task error to Discord"""
+        """Post task error to #logs channel"""
         try:
-            message = f"""
-❌ **Task Failed**
-Type: {task.get('task_type')}
-Action: {task.get('action')}
-
-Error: {error}
-"""
-            if self.discord_mgr.logs_channel:
-                await self.discord_mgr.send_to_channel(self.discord_mgr.logs_channel, message)
+            result = {'status': 'error', 'error': error}
+            await self.discord_mgr.post_task_result(task, result)
         except Exception as e:
             logger.error(f"Failed to post error: {e}")
 

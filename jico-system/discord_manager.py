@@ -14,7 +14,7 @@ from config import Config
 logger = logging.getLogger(__name__)
 
 class DiscordManager(commands.Cog):
-    """Discord Bot Manager for JICO System"""
+    """Discord Bot Manager for JICO System - Manager routing from #general"""
 
     def __init__(self, bot):
         self.bot = bot
@@ -29,77 +29,196 @@ class DiscordManager(commands.Cog):
         self.auto_executor = AutoTaskExecutor(self.compression, self.router, self)
         self.auto_mode_task = None
 
-        # Cache for Discord channels
+        # Channel references
+        self.general_channel = None
+        self.nacpac_dev_channel = None
+        self.jico_dev_channel = None
         self.logs_channel = None
         self.reports_channel = None
 
     @commands.Cog.listener()
     async def on_ready(self):
-        """Bot is ready"""
-        logger.info(f"Discord bot logged in as {self.bot.user}")
+        """Bot is ready - initialize channel references"""
+        logger.info(f"🤖 Discord Manager online as {self.bot.user}")
 
-        # Get channel references
         if Config.DISCORD_GUILD_ID:
             guild = self.bot.get_guild(int(Config.DISCORD_GUILD_ID))
             if guild:
-                self.logs_channel = discord.utils.get(guild.channels, name=Config.DISCORD_LOGS_CHANNEL)
-                self.reports_channel = discord.utils.get(guild.channels, name=Config.DISCORD_REPORTS_CHANNEL)
+                # Set up channel references
+                self.general_channel = discord.utils.get(guild.channels, name="general")
+                self.nacpac_dev_channel = discord.utils.get(guild.channels, name="nacpac-dev")
+                self.jico_dev_channel = discord.utils.get(guild.channels, name="jico-dev")
+                self.logs_channel = discord.utils.get(guild.channels, name="logs")
+                self.reports_channel = discord.utils.get(guild.channels, name="reports")
 
-        # Start auto mode automatically
+                logger.info(f"✅ Channels initialized: general={self.general_channel is not None}, nacpac-dev={self.nacpac_dev_channel is not None}, jico-dev={self.jico_dev_channel is not None}")
+
+        # Start auto mode
         if not self.auto_mode_task:
             self.auto_mode_task = asyncio.create_task(self.auto_executor.start_auto_mode())
-            logger.info("🤖 Auto mode started automatically")
+            logger.info("🤖 Auto mode started - listening for tasks in #general")
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        """Handle incoming messages"""
+        """Handle messages - Manager listens in #general only"""
         # Ignore bot messages
         if message.author == self.bot.user:
             return
 
-        # Only process messages from allowed user or in specific channels
-        if message.author.id != Config.ALLOWED_USER_ID:
-            logger.warning(f"Message from unauthorized user: {message.author.id}")
+        # Only process messages from #general (where user talks to Manager)
+        if message.channel.name != "general":
             return
 
-        # Process command
+        # Only authorized user can command
+        if message.author.id != Config.ALLOWED_USER_ID:
+            logger.warning(f"Unauthorized message from {message.author}: {message.content}")
+            return
+
         try:
-            await self.process_message(message)
+            await self.process_user_message(message)
         except Exception as e:
             logger.error(f"Error processing message: {e}")
             await message.channel.send(f"❌ Error: {str(e)}")
 
-        # Process commands
         await self.bot.process_commands(message)
 
-    async def process_message(self, message):
-        """Process user message through the pipeline - QUEUES TO AUTO MODE"""
+    async def process_user_message(self, message):
+        """
+        Manager intelligently reads user input in #general:
+        1. Decide: Nacpac or Jico?
+        2. Parse: What task?
+        3. Route: Queue to auto mode
+        4. Update: Post to appropriate channel
+        """
         user_input = message.content.strip()
-
-        if not user_input:
+        if not user_input or user_input.startswith("!"):
             return
 
-        logger.info(f"Processing message from {message.author}: {user_input}")
+        logger.info(f"Manager processing: {user_input}")
+        await message.add_reaction("⏳")
 
-        # Step 1: Compress message
-        await message.add_reaction('⏳')
+        # Step 1: Intelligently detect brand (Nacpac vs Jico)
+        brand = self.detect_brand(user_input)
+        logger.info(f"Detected brand: {brand}")
+
+        # Step 2: Compress message into task JSON
         task = self.compression.compress_message(user_input)
-        logger.info(f"Compressed task: {task}")
 
-        # Step 2: Queue to auto mode (don't execute immediately)
+        # Step 3: Override task_type based on brand detection if needed
+        if brand == "nacpac":
+            task["task_type"] = "nacpac"
+        elif brand == "jico":
+            task["task_type"] = "jico"
+
+        logger.info(f"Task: {task['task_type']}/{task['target']} - {task['action']}")
+
+        # Step 4: Queue to auto mode
         task_id = await self.auto_executor.queue_task(task)
-        await message.remove_reaction('⏳', self.bot.user)
-        await message.add_reaction('📋')
 
-        # Send confirmation
-        await message.channel.send(f"📋 Task queued: `{task_id}`\nAuto mode will execute when a worker is available")
+        await message.remove_reaction("⏳", self.bot.user)
+        await message.add_reaction("✅")
+
+        # Step 5: Acknowledge in #general
+        brand_emoji = "📱" if brand == "nacpac" else "🎨"
+        await message.channel.send(
+            f"{brand_emoji} **{brand.upper()}** task queued\n"
+            f"ID: `{task_id}`\n"
+            f"Action: {task['action'][:100]}...\n"
+            f"Updates → #{brand}-dev"
+        )
+
+        # Step 6: Post to brand channel (nacpac-dev or jico-dev)
+        brand_channel = self.nacpac_dev_channel if brand == "nacpac" else self.jico_dev_channel
+        if brand_channel:
+            await brand_channel.send(
+                f"📋 Task {task_id} started\n"
+                f"**Action:** {task['action']}\n"
+                f"**Target:** {task['target']}\n"
+                f"**Priority:** {task['priority']}"
+            )
+
+    def detect_brand(self, user_input: str) -> str:
+        """
+        Intelligently detect brand from user input:
+        - Nacpac keywords: mobile, desktop, APK, EXE, expo, electron, home screen, UI, button, build, sticker, wallpaper
+        - Jico keywords: AR, panel, Shopify, 3D, model, asset, Netlify, glb, wall
+        - Default: Nacpac (more common)
+        """
+        nacpac_keywords = [
+            "mobile", "desktop", "apk", "exe", "expo", "electron",
+            "home screen", "ui", "button", "build", "sticker", "wallpaper",
+            "react native", "typescript", "firebase", "screen", "feature"
+        ]
+        jico_keywords = [
+            "ar", "panel", "shopify", "3d", "model", "asset", "netlify",
+            "glb", "wall", "render", "variant", "color", "acoustic"
+        ]
+
+        user_lower = user_input.lower()
+
+        # Count keyword matches
+        nacpac_score = sum(1 for kw in nacpac_keywords if kw in user_lower)
+        jico_score = sum(1 for kw in jico_keywords if kw in user_lower)
+
+        if jico_score > nacpac_score:
+            return "jico"
+        return "nacpac"  # Default to Nacpac
+
+    async def post_task_result(self, task: Dict[str, Any], result: Dict[str, Any]):
+        """
+        Post task result to appropriate channel:
+        - Task updates → #nacpac-dev or #jico-dev
+        - Logs → #logs
+        - Reports → #reports
+        """
+        task_type = task.get("task_type", "unknown")
+        task_id = task.get("task_id", "unknown")
+        action = task.get("action", "")
+        status = result.get("status", "unknown")
+
+        # Determine which dev channel
+        if task_type == "nacpac":
+            channel = self.nacpac_dev_channel
+        elif task_type == "jico":
+            channel = self.jico_dev_channel
+        else:
+            channel = self.logs_channel
+
+        if not channel:
+            logger.warning(f"No channel found for task type: {task_type}")
+            return
+
+        # Format result message
+        status_emoji = "✅" if status == "success" else "❌" if status == "error" else "⏳"
+        result_msg = (
+            f"{status_emoji} **Task {task_id} {status.upper()}**\n"
+            f"Action: {action}\n"
+            f"Target: {task.get('target', 'unknown')}\n"
+        )
+
+        # Add result details
+        if status == "success":
+            if "builds" in result:
+                for build in result.get("builds", []):
+                    if build.get("status") == "success":
+                        result_msg += f"📦 {build['type'].upper()}: {build.get('url', 'built')}\n"
+            if "summary" in result:
+                result_msg += f"📝 {result['summary'][:200]}\n"
+        elif status == "error":
+            result_msg += f"❌ Error: {result.get('error', 'Unknown error')}\n"
+
+        try:
+            await channel.send(result_msg)
+            logger.info(f"Posted result to #{channel.name}")
+        except Exception as e:
+            logger.error(f"Failed to post result: {e}")
 
     async def send_to_channel(self, channel, message: str):
-        """Send message to Discord channel"""
+        """Send message to specific Discord channel"""
         if channel:
             try:
                 await channel.send(message)
-                logger.info(f"Sent to {channel.name}: {message[:50]}...")
+                logger.info(f"Sent to #{channel.name}: {message[:50]}...")
             except Exception as e:
                 logger.error(f"Failed to send message: {e}")
         else:
@@ -128,27 +247,34 @@ class DiscordManager(commands.Cog):
     async def help_jico(self, ctx):
         """Show JICO system help"""
         help_msg = """
-📚 **JICO System Commands**
+📚 **JICO Manager Architecture**
 
-**Natural Language Tasks:**
-- Send any message describing your task
-- System will compress, route, and execute
+**How it works:**
+1️⃣ You talk in **#general** (plain language, any task)
+2️⃣ Manager reads → decides brand (Nacpac/Jico) → routes task
+3️⃣ Workers execute in background
+4️⃣ Results appear in **#nacpac-dev** or **#jico-dev**
 
-**Examples:**
-- "Generate SEO tags for nacpac homepage"
-- "Schedule a build for tomorrow at 10am"
-- "Run dev tests on jico module"
-- "Create ad campaign for Q3"
+**You stay in #general. Manager handles the routing.**
 
-**Scheduled Tasks:**
-- Use natural language with time references
-- Examples: "Schedule...", "Tomorrow...", "Next week..."
+**Channels:**
+- **#general** — You talk here, Manager listens and routes
+- **#nacpac-dev** — Nacpac task updates and results (bot-to-bot)
+- **#jico-dev** — Jico task updates and results (bot-to-bot)
+- **#logs** — Raw worker output and errors
+- **#reports** — Scheduled reports (builds, analytics)
 
-**System Commands:**
-- `!status` - Show system status
-- `!help_jico` - Show this help
+**Example in #general:**
+You: "Add dark mode to mobile app"
+Manager: "📱 NACPAC task queued. Updates → #nacpac-dev"
+[Manager routes to dev worker, which generates code and builds]
 
-For detailed help, contact @techbot
+**Commands (anywhere):**
+- `!status` — System health
+- `!auto_mode status` — Pending tasks
+- `!auto_mode history` — Recent work
+
+Stay in #general. The bots handle the rest.
         """
         await ctx.send(help_msg)
 
