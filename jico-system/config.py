@@ -31,6 +31,7 @@ class Config:
     NACPAC_R2_URL = os.getenv('NACPAC_R2_URL')
 
     # Jico
+    JICO_DIR = os.getenv('JICO_DIR')
     JICO_R2_BUCKET = os.getenv('JICO_R2_BUCKET')
     JICO_R2_URL = os.getenv('JICO_R2_URL')
 
