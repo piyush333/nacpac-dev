@@ -25,8 +25,8 @@ class HealthMonitor:
         self.failure_count = {}
         self.recovery_attempts = {}
 
-        # Thresholds
-        self.check_interval = 30  # Check every 30 seconds
+        # Thresholds (OPTIMIZED for reduced overhead)
+        self.check_interval = 60  # Check every 60 seconds (was 30s)
         self.failure_threshold = 3  # Fail after 3 consecutive failures
         self.max_recovery_attempts = 5
 
