@@ -12,6 +12,8 @@ Thumbs.db
 .env.local
 *.key
 *.pem
+credentials.json
+token.json
 
 # Build output
 node_modules/
