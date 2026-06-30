@@ -8,13 +8,15 @@ logger = logging.getLogger(__name__)
 class CompressionLayer:
     def __init__(self):
         self.client = Anthropic(api_key=Config.ANTHROPIC_API_KEY)
-        self.model = "claude-3-5-haiku-20241022"
+        self.model = "claude-3-5-haiku-20241022"  # Falls back to claude-3-haiku-20240307 if unavailable
 
     def compress_message(self, user_message: str) -> dict:
         """Convert natural language message to optimized task JSON using Claude Haiku"""
         try:
+            # Try to call the API with model specification
+            # If the model isn't available, it will fall back to error handling
             response = self.client.messages.create(
-                model=self.model,
+                model="claude-3-5-haiku-20241022",  # Latest Haiku model
                 max_tokens=1024,
                 system="""You are a task compression engine. Convert user messages into structured JSON tasks.
 
@@ -27,6 +29,10 @@ Output JSON with these fields:
   "priority": "high|normal|low",
   "schedule_time": "ISO8601 or null for immediate"
 }
+
+For Nacpac tasks (code changes, mobile/desktop development, builds): set task_type to "nacpac"
+For Jico tasks (AR/3D content, Shopify): set task_type to "jico"
+For scheduling: set schedule_time and task_type appropriately
 
 Be concise. Extract only essential data.""",
                 messages=[
