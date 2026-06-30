@@ -55,11 +55,20 @@ class GDriveBackup:
                     self.creds.refresh(Request())
                 elif os.path.exists("credentials.json"):
                     # Use OAuth2 flow with credentials.json
-                    print("📝 Starting OAuth2 authentication (browser will open)...")
+                    print("📝 Starting OAuth2 authentication...")
                     flow = InstalledAppFlow.from_client_secrets_file(
                         "credentials.json", SCOPES
                     )
-                    self.creds = flow.run_local_server(port=0, open_browser=True)
+                    try:
+                        # Try with browser (for local machines)
+                        self.creds = flow.run_local_server(port=8080, open_browser=True)
+                    except Exception as e:
+                        # Fallback for headless servers
+                        print("📡 Running in headless mode (no browser available)")
+                        print("   Starting OAuth server on http://localhost:8080")
+                        self.creds = flow.run_local_server(port=8080, open_browser=False)
+                        print("   Open this URL in your browser to authorize:")
+                        print(f"   http://localhost:8080")
 
                     # Save credentials for next time
                     with open("token.json", "w") as token:
