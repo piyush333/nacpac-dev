@@ -1,0 +1,12 @@
+node_modules/
+.expo/
+dist/
+build/
+desktop/dist/
+desktop/node_modules/
+mobile-temp/
+*.env
+.env.local
+.DS_Store
+techbot/__pycache__/
+techbot/last_build.json

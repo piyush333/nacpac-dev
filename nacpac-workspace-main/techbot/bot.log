@@ -1,0 +1,38 @@
+^CException in thread Thread-5 (_readerthread):
+Traceback (most recent call last):
+  File "C:\Python314\Lib\threading.py", line 1082, in _bootstrap_inner
+    self._context.run(self.run)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Python314\Lib\threading.py", line 1024, in run
+    self._target(*self._args, **self._kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\subprocess.py", line 1614, in _readerthread
+    buffer.append(fh.read())
+                  ~~~~~~~^^
+  File "C:\Python314\Lib\encodings\cp1252.py", line 23, in decode
+    return codecs.charmap_decode(input,self.errors,decoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeDecodeError: 'charmap' codec can't decode byte 0x8f in position 724: character maps to <undefined>
+No error handlers are registered, logging exception.
+Traceback (most recent call last):
+  File "C:\Users\piyus\AppData\Roaming\Python\Python314\site-packages\telegram\ext\_application.py", line 1315, in process_update
+    await coroutine
+  File "C:\Users\piyus\AppData\Roaming\Python\Python314\site-packages\telegram\ext\_handlers\basehandler.py", line 159, in handle_update
+    return await self.callback(update, context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\nacpac\techbot\bot.py", line 132, in handle_callback
+    code, out, err = run(
+                     ~~~^
+        "eas build --platform android --profile preview --non-interactive",
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        cwd=MOBILE_DIR,
+        ^^^^^^^^^^^^^^^
+        timeout=1800,
+        ^^^^^^^^^^^^^
+    )
+    ^
+  File "D:\nacpac\techbot\bot.py", line 47, in run
+    return result.returncode, result.stdout.strip(), result.stderr.strip()
+                              ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'strip'
+^C^C^C^C^C^C^C^C

@@ -24,6 +24,9 @@ class Config:
     R2_ENDPOINT = os.getenv('R2_ENDPOINT')
 
     # Nacpac
+    NACPAC_DIR = os.getenv('NACPAC_DIR')
+    MOBILE_DIR = os.getenv('MOBILE_DIR')
+    DESKTOP_DIR = os.getenv('DESKTOP_DIR')
     NACPAC_R2_BUCKET = os.getenv('NACPAC_R2_BUCKET')
     NACPAC_R2_URL = os.getenv('NACPAC_R2_URL')
 

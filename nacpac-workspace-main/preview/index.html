@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NACPAC Admin — Mobile Preview</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#ffffff;--card:#1a1730;--card2:#221e3a;--border:#2e2a4a;
+  --text:#f1f0f8;--muted:#6b6890;--sub:#9b98b8;
+  --purple:#5a3493;--purple-light:#7b55b8;--purple-dim:#5a349322;
+  --gold:#f5b11b;--gold-dim:#f5b11b22;--navy:#29266c;
+  --font:'Inter',system-ui,sans-serif;
+  --logo-font:'Nunito',system-ui,sans-serif;
+}
+body{font-family:var(--font);background:#1a1730;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:100vh;padding:24px 16px 40px;-webkit-font-smoothing:antialiased;}
+h1{color:#f1f0f8;font-size:13px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;opacity:.4;}
+
+/* ── Phone Frame ─────────────────────────────────── */
+.phone{width:390px;height:780px;background:var(--bg);border-radius:44px;border:8px solid #221e3a;box-shadow:0 0 0 2px #2e2a4a,0 32px 80px #0009,0 0 60px #5a349318;overflow:hidden;position:relative;display:flex;flex-direction:column;}
+.phone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:30px;background:#0f0d1a;border-radius:0 0 18px 18px;z-index:99;}
+.status-bar{height:44px;padding:12px 20px 0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+.status-bar span{font-size:12px;font-weight:600;color:var(--text);}
+
+/* ── Screen ───────────────────────────────────────── */
+.screen{flex:1;overflow:hidden;display:none;flex-direction:column;}
+.screen.active{display:flex;}
+.scroll{flex:1;overflow-y:auto;padding:16px;}
+.scroll::-webkit-scrollbar{width:3px;}
+.scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
+
+/* ── Tab bar ─────────────────────────────────────── */
+.tab-bar{height:60px;background:#120f22;border-top:1px solid var(--border);display:flex;align-items:center;flex-shrink:0;}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;padding:6px 0;border:none;background:transparent;}
+.tab svg{width:20px;height:20px;stroke:var(--muted);fill:none;stroke-width:1.8;}
+.tab span{font-size:10px;color:var(--muted);font-weight:600;}
+.tab.active svg{stroke:var(--gold);}
+.tab.active span{color:var(--gold);}
+
+/* ── Screen header ────────────────────────────────── */
+.screen-header{padding:12px 16px 10px;border-bottom:1px solid var(--border);font-size:16px;font-weight:700;color:var(--text);flex-shrink:0;display:flex;align-items:center;gap:8px;}
+.back-btn{background:none;border:none;cursor:pointer;color:var(--purple-light);font-size:18px;padding:0 4px;}
+.screen-nav{padding:12px 16px 4px;display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700;color:var(--text);flex-shrink:0;padding-top:12px;}
+
+/* ── Logo wordmark ────────────────────────────────── */
+.nacpac-logo{font-family:var(--logo-font);font-weight:900;line-height:.9;letter-spacing:-1px;}
+.nacpac-logo .nac{color:var(--purple);font-size:42px;}
+.nacpac-logo .pac{color:var(--gold);font-size:42px;}
+.nacpac-logo-sm{font-family:var(--logo-font);font-weight:900;line-height:.9;letter-spacing:-1px;}
+.nacpac-logo-sm .nac{color:var(--purple);font-size:20px;}
+.nacpac-logo-sm .pac{color:var(--gold);font-size:20px;}
+.nacpac-logo-inv .nac{color:#fff;}
+.nacpac-logo-inv .pac{color:var(--gold);}
+
+/* ── Typography ───────────────────────────────────── */
+.label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px;margin-top:14px;}
+.section-title{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;}
+
+/* ── Cards ────────────────────────────────────────── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;}
+
+/* ── Category buttons ─────────────────────────────── */
+.cat-btn{background:var(--card);border:2px solid var(--border);border-radius:16px;padding:20px 16px;display:flex;align-items:center;gap:14px;width:100%;cursor:pointer;margin-bottom:12px;transition:all .15s;text-align:left;}
+.cat-btn:hover{border-color:var(--purple-light);background:var(--card2);}
+.cat-icon{font-size:28px;width:48px;height:48px;background:#0f0d1a;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.cat-name{font-size:15px;font-weight:700;color:var(--text);margin-bottom:3px;}
+.cat-sub{font-size:12px;color:var(--muted);}
+
+/* ── Chips ────────────────────────────────────────── */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px;}
+.chip{padding:8px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--card);color:var(--sub);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;}
+.chip.selected{background:var(--purple-dim);border-color:var(--purple-light);color:#c4adee;}
+.chip:hover{border-color:#4a4570;}
+
+/* ── Form inputs ──────────────────────────────────── */
+.input{width:100%;background:#0d0b18;color:var(--text);border:1px solid var(--border);border-radius:10px;padding:11px 13px;font-size:14px;font-family:var(--font);outline:none;margin-bottom:4px;}
+.input:focus{border-color:var(--purple-light);}
+.input-row{display:flex;gap:8px;}
+
+/* ── Buttons ──────────────────────────────────────── */
+.btn{width:100%;background:var(--purple);color:#fff;border:none;border-radius:11px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);margin-top:16px;transition:all .15s;}
+.btn:hover{background:var(--purple-light);}
+.btn-gold{background:var(--gold);color:var(--navy);}
+.btn-gold:hover{background:#f9c142;}
+.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--sub);border-radius:10px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);width:100%;}
+
+/* ── File drop ────────────────────────────────────── */
+.file-drop{border:2px dashed var(--border);border-radius:12px;padding:24px;text-align:center;cursor:pointer;margin-bottom:4px;transition:border-color .15s;}
+.file-drop:hover{border-color:var(--purple-light);}
+.file-drop .ft{font-size:12px;color:var(--muted);}
+
+/* ── Stat cards ───────────────────────────────────── */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;border-top:3px solid;}
+.stat-val{font-size:26px;font-weight:800;margin-bottom:2px;}
+.stat-lbl{font-size:11px;color:var(--sub);font-weight:600;}
+
+/* ── Job cards ────────────────────────────────────── */
+.job-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;cursor:pointer;border-left:4px solid;transition:background .15s;}
+.job-card:hover{background:var(--card2);}
+.jc-top{display:flex;justify-content:space-between;margin-bottom:5px;}
+.jc-num{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.8px;}
+.jc-time{font-size:11px;color:var(--muted);}
+.jc-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px;}
+.jc-badges{display:flex;gap:6px;flex-wrap:wrap;}
+.badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;letter-spacing:.3px;}
+
+/* ── Steps indicator ──────────────────────────────── */
+.steps{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 0;}
+.step-dot{width:8px;height:8px;border-radius:50%;background:var(--border);}
+.step-dot.done{background:var(--purple-light);}
+
+/* ── Report cards ─────────────────────────────────── */
+.report-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;}
+.report-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);}
+.report-row:last-child{border-bottom:none;}
+.report-label{font-size:13px;color:var(--sub);}
+.report-value{font-size:13px;font-weight:700;color:var(--text);}
+.month-sel{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:14px;}
+.month-sel span{font-size:14px;font-weight:600;color:var(--text);}
+.month-sel button{background:none;border:none;color:var(--purple-light);font-size:18px;cursor:pointer;padding:0 4px;}
+.divider{height:1px;background:var(--border);margin:10px 0;}
+
+/* ── Tags ─────────────────────────────────────────── */
+.tag-sticker  {background:#5a349322;color:#c4adee;}
+.tag-wallpaper{background:#29266c33;color:#8b89d4;}
+.tag-ntr      {background:#f5b11b22;color:#f5b11b;}
+.tag-pending  {background:#f5b11b22;color:#f5b11b;}
+.tag-progress {background:#3b82f622;color:#60a5fa;}
+.tag-done     {background:#22c55e22;color:#4ade80;}
+
+/* ── Login ────────────────────────────────────────── */
+.login-bg{flex:1;display:flex;flex-direction:column;justify-content:center;padding:28px;background:var(--bg);}
+.login-logo-wrap{text-align:center;margin-bottom:10px;}
+.login-tagline{font-size:11px;color:var(--muted);text-align:center;letter-spacing:2px;font-weight:600;text-transform:uppercase;margin-bottom:36px;}
+.login-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px;}
+.login-hint{font-size:11px;color:var(--muted);text-align:center;margin-top:20px;line-height:1.6;}
+.login-stripe{height:4px;background:linear-gradient(90deg,var(--purple),var(--gold));border-radius:0 0 12px 12px;margin-bottom:20px;}
+
+/* ── Switcher pills ───────────────────────────────── */
+.switcher{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:12px;max-width:500px;}
+.sw-btn{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid #2e2a4a;background:#1a1730;color:#9b98b8;cursor:pointer;transition:all .15s;}
+.sw-btn:hover,.sw-btn.active{background:var(--purple-dim);border-color:var(--purple-light);color:#c4adee;}
+
+/* ── Toast ────────────────────────────────────────── */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--purple);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;z-index:999;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<h1>NACPAC Admin App — Interactive Preview</h1>
+
+<div class="switcher">
+  <button class="sw-btn active" onclick="showScreen('login')">Login</button>
+  <button class="sw-btn" onclick="showScreen('home')">Home</button>
+  <button class="sw-btn" onclick="showScreen('newjob-cat')">New Job (Cat)</button>
+  <button class="sw-btn" onclick="showScreen('newjob-sub')">New Job (Sub)</button>
+  <button class="sw-btn" onclick="showScreen('newjob-form')">New Job (Form)</button>
+  <button class="sw-btn" onclick="showScreen('jobs')">All Jobs</button>
+  <button class="sw-btn" onclick="showScreen('reports')">Reports</button>
+</div>
+
+<div class="phone">
+  <div class="phone-notch"></div>
+  <div class="status-bar"><span>9:41</span><span>●●● 5G 🔋</span></div>
+  <div class="toast" id="toast">✅ Job sent to production!</div>
+
+  <!-- ══════════════════════ LOGIN ══════════════════ -->
+  <div class="screen active" id="screen-login">
+    <div class="login-stripe"></div>
+    <div class="login-bg">
+      <div class="login-logo-wrap">
+        <div class="nacpac-logo"><div class="nac">nac</div><div class="pac">pac</div></div>
+      </div>
+      <div class="login-tagline">Production Admin</div>
+      <div class="login-card">
+        <div class="label">Email</div>
+        <input class="input" type="email" value="admin@nacpac.com" style="margin-bottom:12px"/>
+        <div class="label">Password</div>
+        <input class="input" type="password" value="••••••••" style="margin-bottom:4px"/>
+        <button class="btn btn-gold" onclick="showScreen('home')" style="margin-top:18px">Sign In</button>
+      </div>
+      <div class="login-hint">Contact your system administrator<br/>to create or reset your account.</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ HOME ═══════════════════ -->
+  <div class="screen" id="screen-home">
+    <div style="padding:14px 16px 8px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);flex-shrink:0;">
+      <div class="nacpac-logo-sm"><div class="nac">nac</div><div class="pac">pac</div></div>
+      <div style="font-size:11px;color:var(--muted)">admin@nacpac.com</div>
+    </div>
+    <div class="scroll">
+      <div style="padding:4px 0 14px">
+        <div style="font-size:15px;font-weight:700;color:var(--text)">Welcome back 👋</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">April 2026</div>
+      </div>
+      <div class="section-title">Overview</div>
+      <div class="stat-grid">
+        <div class="stat-card" style="border-top-color:#f5b11b"><div class="stat-val" style="color:#f5b11b">12</div><div class="stat-lbl">Pending</div></div>
+        <div class="stat-card" style="border-top-color:#60a5fa"><div class="stat-val" style="color:#60a5fa">5</div><div class="stat-lbl">In Progress</div></div>
+        <div class="stat-card" style="border-top-color:#4ade80"><div class="stat-val" style="color:#4ade80">87</div><div class="stat-lbl">Completed</div></div>
+        <div class="stat-card" style="border-top-color:var(--gold)"><div class="stat-val" style="color:var(--gold)">104</div><div class="stat-lbl">This Month</div></div>
+      </div>
+      <div class="section-title">By Category</div>
+      <div class="card" style="padding:10px 14px">
+        <div class="report-row"><span class="report-label">🏷️ Stickers</span><span class="report-value">61 jobs</span></div>
+        <div class="report-row"><span class="report-label">🖼️ Wallpapers</span><span class="report-value">38 jobs</span></div>
+        <div class="report-row"><span class="report-label">📦 NTR</span><span class="report-value">5 jobs</span></div>
+      </div>
+      <div class="section-title">Recent Jobs</div>
+      <div class="job-card" style="border-left-color:var(--purple-light)" onclick="showScreen('jobs')">
+        <div class="jc-top"><span class="jc-num">JOB-0042</span><span class="jc-time">2h ago</span></div>
+        <div class="jc-title">Vinyl Stickers — Jain Traders</div>
+        <div class="jc-badges">
+          <span class="badge tag-sticker">Vinyl · Custom Cut</span>
+          <span class="badge tag-progress">In Progress</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px">12×8 in · Qty 500 · 📎 1</div>
+      </div>
+      <div class="job-card" style="border-left-color:var(--navy)" onclick="showScreen('jobs')">
+        <div class="jc-top"><span class="jc-num">JOB-0041</span><span class="jc-time">5h ago</span></div>
+        <div class="jc-title">PVC Wallpaper — Sharma Interiors</div>
+        <div class="jc-badges">
+          <span class="badge tag-wallpaper">PVC Wallpaper</span>
+          <span class="badge tag-pending">Pending</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px">10×6 ft · Qty 2 · 📎 1</div>
+      </div>
+      <div class="job-card" style="border-left-color:var(--gold)" onclick="showScreen('jobs')">
+        <div class="jc-top"><span class="jc-num">JOB-0040</span><span class="jc-time">1d ago</span></div>
+        <div class="jc-title">NTR Print — Mehta Packaging</div>
+        <div class="jc-badges">
+          <span class="badge tag-ntr">NTR</span>
+          <span class="badge tag-done">Completed</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px">24×18 in · Qty 200 · 📎 2</div>
+      </div>
+    </div>
+    <div class="tab-bar">
+      <button class="tab active" onclick="showScreen('home')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></button>
+      <button class="tab" onclick="showScreen('newjob-cat')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg><span>New Job</span></button>
+      <button class="tab" onclick="showScreen('jobs')"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span>Jobs</span></button>
+      <button class="tab" onclick="showScreen('reports')"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>Reports</span></button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ NEW JOB — CATEGORY ═════ -->
+  <div class="screen" id="screen-newjob-cat">
+    <div class="screen-header">New Job</div>
+    <div class="steps"><div class="step-dot done"></div><div class="step-dot"></div><div class="step-dot"></div></div>
+    <div class="scroll">
+      <div class="section-title">Choose Category</div>
+      <button class="cat-btn" onclick="selectCategory('stickers')">
+        <div class="cat-icon">🏷️</div>
+        <div><div class="cat-name">Stickers</div><div class="cat-sub">Vinyl · Transparent · Holographic · Glitter · Gold Chrome</div></div>
+      </button>
+      <button class="cat-btn" onclick="selectCategory('wallpapers')">
+        <div class="cat-icon">🖼️</div>
+        <div><div class="cat-name">Wallpapers</div><div class="cat-sub">Canvas · PVC · Non-woven</div></div>
+      </button>
+      <button class="cat-btn" onclick="selectCategory('ntr')">
+        <div class="cat-icon">📦</div>
+        <div><div class="cat-name">NTR</div><div class="cat-sub">Proceed directly to job details</div></div>
+      </button>
+    </div>
+    <div class="tab-bar">
+      <button class="tab" onclick="showScreen('home')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></button>
+      <button class="tab active"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg><span>New Job</span></button>
+      <button class="tab" onclick="showScreen('jobs')"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span>Jobs</span></button>
+      <button class="tab" onclick="showScreen('reports')"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>Reports</span></button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ NEW JOB — SUB-TYPE ═════ -->
+  <div class="screen" id="screen-newjob-sub">
+    <div class="screen-header"><button class="back-btn" onclick="showScreen('newjob-cat')">‹</button><span id="sub-title">Stickers</span></div>
+    <div class="steps"><div class="step-dot done"></div><div class="step-dot done"></div><div class="step-dot"></div></div>
+    <div class="scroll">
+      <div id="sub-stickers">
+        <div class="label">Material Type</div>
+        <div class="chips">
+          <div class="chip" onclick="toggleChip(this,'mat')">Vinyl</div>
+          <div class="chip" onclick="toggleChip(this,'mat')">Transparent</div>
+          <div class="chip" onclick="toggleChip(this,'mat')">Holographic</div>
+          <div class="chip" onclick="toggleChip(this,'mat')">Glitter</div>
+          <div class="chip" onclick="toggleChip(this,'mat')">Gold Chrome</div>
+        </div>
+        <div class="label">Cutting Profile</div>
+        <div class="chips">
+          <div class="chip" onclick="toggleChip(this,'cut')">Custom Cut</div>
+          <div class="chip" onclick="toggleChip(this,'cut')">Square</div>
+          <div class="chip" onclick="toggleChip(this,'cut')">Round</div>
+          <div class="chip" onclick="toggleChip(this,'cut')">Rectangle</div>
+        </div>
+      </div>
+      <div id="sub-wallpapers" style="display:none">
+        <div class="label">Material Type</div>
+        <div class="chips">
+          <div class="chip" onclick="toggleChip(this,'mat')">Canvas</div>
+          <div class="chip" onclick="toggleChip(this,'mat')">PVC</div>
+          <div class="chip" onclick="toggleChip(this,'mat')">Non-woven</div>
+        </div>
+      </div>
+      <button class="btn" onclick="showScreen('newjob-form')" style="margin-top:24px">Next →</button>
+    </div>
+    <div class="tab-bar">
+      <button class="tab" onclick="showScreen('home')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></button>
+      <button class="tab active"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg><span>New Job</span></button>
+      <button class="tab" onclick="showScreen('jobs')"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span>Jobs</span></button>
+      <button class="tab" onclick="showScreen('reports')"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>Reports</span></button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ NEW JOB — FORM ═════════ -->
+  <div class="screen" id="screen-newjob-form">
+    <div class="screen-header"><button class="back-btn" onclick="goBackFromForm()">‹</button>Job Details</div>
+    <div class="steps"><div class="step-dot done"></div><div class="step-dot done"></div><div class="step-dot done"></div></div>
+    <div class="scroll">
+      <div class="label">Client Name</div>
+      <input class="input" placeholder="e.g. Jain Traders" style="margin-bottom:4px"/>
+      <div class="label">Size (inches)</div>
+      <div class="input-row" style="margin-bottom:4px">
+        <input class="input" placeholder="Width" type="number" style="flex:1"/>
+        <div style="display:flex;align-items:center;color:var(--muted);font-size:18px;padding:0 6px">×</div>
+        <input class="input" placeholder="Height" type="number" style="flex:1"/>
+      </div>
+      <div class="label">Quantity</div>
+      <input class="input" placeholder="e.g. 500" type="number" style="margin-bottom:4px"/>
+      <div class="label">Upload File</div>
+      <div class="file-drop">
+        <div style="font-size:24px;margin-bottom:6px">📎</div>
+        <div style="font-size:13px;color:var(--sub);font-weight:600;margin-bottom:4px">Tap to attach file</div>
+        <div class="ft">PDF · CDR · AI · JPEG</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:9px 12px;margin-top:6px">
+        <span>📄</span><span style="flex:1;font-size:12px;color:var(--sub)">design_vinyl_jain.pdf</span><span style="font-size:11px;color:var(--muted)">1.2 MB</span>
+      </div>
+      <button class="btn btn-gold" onclick="submitJob()" style="margin-top:20px">📤  Send to Production</button>
+      <div style="height:12px"></div>
+    </div>
+    <div class="tab-bar">
+      <button class="tab" onclick="showScreen('home')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></button>
+      <button class="tab active"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg><span>New Job</span></button>
+      <button class="tab" onclick="showScreen('jobs')"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span>Jobs</span></button>
+      <button class="tab" onclick="showScreen('reports')"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>Reports</span></button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ ALL JOBS ═══════════════ -->
+  <div class="screen" id="screen-jobs">
+    <div class="screen-nav">All Jobs</div>
+    <div style="display:flex;gap:6px;padding:8px 14px;overflow-x:auto;flex-shrink:0;border-bottom:1px solid var(--border)">
+      <div class="chip selected" style="white-space:nowrap;font-size:11px">All</div>
+      <div class="chip" style="white-space:nowrap;font-size:11px">Pending</div>
+      <div class="chip" style="white-space:nowrap;font-size:11px">In Progress</div>
+      <div class="chip" style="white-space:nowrap;font-size:11px">Completed</div>
+      <div class="chip" style="white-space:nowrap;font-size:11px">🏷️ Stickers</div>
+      <div class="chip" style="white-space:nowrap;font-size:11px">🖼️ Wallpaper</div>
+    </div>
+    <div class="scroll">
+      <div class="job-card" style="border-left-color:var(--purple-light)">
+        <div class="jc-top"><span class="jc-num">JOB-0042</span><span class="jc-time">2h ago</span></div>
+        <div class="jc-title">Vinyl Stickers — Jain Traders</div>
+        <div class="jc-badges"><span class="badge tag-sticker">Vinyl</span><span class="badge" style="background:#2e2a4a;color:#6b6890">Custom Cut</span><span class="badge tag-progress">In Progress</span></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px">12×8 in · Qty 500 · 📎 2 files</div>
+      </div>
+      <div class="job-card" style="border-left-color:var(--navy)">
+        <div class="jc-top"><span class="jc-num">JOB-0041</span><span class="jc-time">5h ago</span></div>
+        <div class="jc-title">PVC Wallpaper — Sharma Interiors</div>
+        <div class="jc-badges"><span class="badge tag-wallpaper">PVC</span><span class="badge tag-pending">Pending</span></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px">10×6 ft · Qty 2 · 📎 1 file</div>
+      </div>
+      <div class="job-card" style="border-left-color:var(--gold)">
+        <div class="jc-top"><span class="jc-num">JOB-0040</span><span class="jc-time">1d ago</span></div>
+        <div class="jc-title">NTR Print — Mehta Packaging</div>
+        <div class="jc-badges"><span class="badge tag-ntr">NTR</span><span class="badge tag-done">Completed</span></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px">24×18 in · Qty 200 · 📎 2 files</div>
+      </div>
+      <div class="job-card" style="border-left-color:var(--purple-light)">
+        <div class="jc-top"><span class="jc-num">JOB-0039</span><span class="jc-time">2d ago</span></div>
+        <div class="jc-title">Holographic Stickers — Kapoor Events</div>
+        <div class="jc-badges"><span class="badge tag-sticker">Holographic</span><span class="badge" style="background:#2e2a4a;color:#6b6890">Round</span><span class="badge tag-done">Completed</span></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px">3×3 in · Qty 1000 · 📎 1 file</div>
+      </div>
+      <div class="job-card" style="border-left-color:var(--navy)">
+        <div class="jc-top"><span class="jc-num">JOB-0038</span><span class="jc-time">3d ago</span></div>
+        <div class="jc-title">Canvas Wallpaper — Reddy Residency</div>
+        <div class="jc-badges"><span class="badge tag-wallpaper">Canvas</span><span class="badge tag-done">Completed</span></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px">8×4 ft · Qty 1 · 📎 1 file</div>
+      </div>
+    </div>
+    <div class="tab-bar">
+      <button class="tab" onclick="showScreen('home')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></button>
+      <button class="tab" onclick="showScreen('newjob-cat')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg><span>New Job</span></button>
+      <button class="tab active"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span>Jobs</span></button>
+      <button class="tab" onclick="showScreen('reports')"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>Reports</span></button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ REPORTS ════════════════ -->
+  <div class="screen" id="screen-reports">
+    <div class="screen-nav">Monthly Reports</div>
+    <div class="scroll">
+      <div class="month-sel"><button>‹</button><span>April 2026</span><button>›</button></div>
+      <div class="stat-grid">
+        <div class="stat-card" style="border-top-color:var(--purple-light)"><div class="stat-val" style="color:var(--purple-light)">104</div><div class="stat-lbl">Total Jobs</div></div>
+        <div class="stat-card" style="border-top-color:#4ade80"><div class="stat-val" style="color:#4ade80">87</div><div class="stat-lbl">Completed</div></div>
+      </div>
+      <div class="section-title">By Category</div>
+      <div class="report-card">
+        <div class="report-row"><span class="report-label">🏷️ Stickers</span><span class="report-value">61 jobs</span></div>
+        <div style="padding:6px 0 10px;display:flex;gap:6px;flex-wrap:wrap">
+          <span class="badge tag-sticker">Vinyl: 24</span>
+          <span class="badge tag-sticker">Transparent: 15</span>
+          <span class="badge tag-sticker">Holographic: 12</span>
+          <span class="badge tag-sticker">Glitter: 6</span>
+          <span class="badge tag-sticker">Gold Chrome: 4</span>
+        </div>
+        <div class="divider"></div>
+        <div class="report-row"><span class="report-label">🖼️ Wallpapers</span><span class="report-value">38 jobs</span></div>
+        <div style="padding:6px 0 10px;display:flex;gap:6px;flex-wrap:wrap">
+          <span class="badge tag-wallpaper">Canvas: 18</span>
+          <span class="badge tag-wallpaper">PVC: 14</span>
+          <span class="badge tag-wallpaper">Non-woven: 6</span>
+        </div>
+        <div class="divider"></div>
+        <div class="report-row"><span class="report-label">📦 NTR</span><span class="report-value">5 jobs</span></div>
+      </div>
+      <div class="section-title">By Client</div>
+      <div class="report-card">
+        <div class="report-row"><div><div style="font-size:13px;font-weight:600;color:var(--text)">Jain Traders</div><div style="font-size:11px;color:var(--muted)">Stickers · Wallpapers</div></div><div style="text-align:right"><div class="report-value">18 jobs</div><div style="font-size:11px;color:var(--muted)">Qty: 4,200</div></div></div>
+        <div class="report-row"><div><div style="font-size:13px;font-weight:600;color:var(--text)">Sharma Interiors</div><div style="font-size:11px;color:var(--muted)">Wallpapers</div></div><div style="text-align:right"><div class="report-value">12 jobs</div><div style="font-size:11px;color:var(--muted)">Qty: 28</div></div></div>
+        <div class="report-row"><div><div style="font-size:13px;font-weight:600;color:var(--text)">Kapoor Events</div><div style="font-size:11px;color:var(--muted)">Stickers · NTR</div></div><div style="text-align:right"><div class="report-value">9 jobs</div><div style="font-size:11px;color:var(--muted)">Qty: 3,800</div></div></div>
+        <div class="report-row"><div><div style="font-size:13px;font-weight:600;color:var(--text)">Mehta Packaging</div><div style="font-size:11px;color:var(--muted)">NTR · Stickers</div></div><div style="text-align:right"><div class="report-value">7 jobs</div><div style="font-size:11px;color:var(--muted)">Qty: 1,400</div></div></div>
+      </div>
+      <button class="btn-outline" style="margin-top:4px">⬇ Export as PDF</button>
+      <div style="height:12px"></div>
+    </div>
+    <div class="tab-bar">
+      <button class="tab" onclick="showScreen('home')"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></button>
+      <button class="tab" onclick="showScreen('newjob-cat')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg><span>New Job</span></button>
+      <button class="tab" onclick="showScreen('jobs')"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span>Jobs</span></button>
+      <button class="tab active"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>Reports</span></button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let currentCat='stickers';
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  document.querySelectorAll('.sw-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.sw-btn').forEach(b=>{if(b.getAttribute('onclick')&&b.getAttribute('onclick').includes("'"+id+"'"))b.classList.add('active');});
+}
+function selectCategory(cat){
+  currentCat=cat;
+  if(cat==='ntr'){showScreen('newjob-form');}
+  else{
+    document.getElementById('sub-title').textContent=cat==='stickers'?'Stickers':'Wallpapers';
+    document.getElementById('sub-stickers').style.display=cat==='stickers'?'block':'none';
+    document.getElementById('sub-wallpapers').style.display=cat==='wallpapers'?'block':'none';
+    showScreen('newjob-sub');
+  }
+}
+function goBackFromForm(){if(currentCat==='ntr')showScreen('newjob-cat');else showScreen('newjob-sub');}
+function toggleChip(el,group){
+  document.querySelectorAll('.chip[onclick*="\''+group+'\'"]').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function submitJob(){
+  showScreen('home');
+  const t=document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+</script>
+</body>
+</html>

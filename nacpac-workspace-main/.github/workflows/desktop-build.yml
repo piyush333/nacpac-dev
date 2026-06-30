@@ -1,0 +1,55 @@
+name: Desktop Build & Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "desktop/**"
+    tags:
+      - 'desktop-v*'
+
+permissions:
+  contents: write   # needed to create GitHub Releases
+
+jobs:
+  build:
+    name: Build Windows App
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+
+      - name: Install dependencies
+        working-directory: desktop
+        run: npm ci
+
+      # ── CI build (branch push): just compile, upload artifact ──────
+      - name: Build (CI)
+        if: "!startsWith(github.ref, 'refs/tags/')"
+        working-directory: desktop
+        run: npm run build
+
+      - name: Upload artifact (CI)
+        if: "!startsWith(github.ref, 'refs/tags/')"
+        uses: actions/upload-artifact@v4
+        with:
+          name: nacpac-desktop-portable
+          path: desktop/dist/*.exe
+          retention-days: 30
+
+      # ── Release build (tag push): compile + publish to GitHub Releases
+      # To release: bump version in desktop/package.json, commit, then:
+      #   git tag desktop-v<version> && git push origin desktop-v<version>
+      - name: Build & Publish Release
+        if: startsWith(github.ref, 'refs/tags/')
+        working-directory: desktop
+        run: npm run release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

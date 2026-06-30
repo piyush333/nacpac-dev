@@ -1,0 +1,57 @@
+{
+  "name": "nacpac-desktop",
+  "version": "1.0.0",
+  "description": "NACPAC Production Operator Dashboard",
+  "author": "NACPAC",
+  "main": "main.js",
+  "scripts": {
+    "dev": "concurrently \"npm run webpack:watch\" \"electron .\"",
+    "webpack:watch": "webpack --mode development --watch",
+    "webpack:build": "webpack --mode production",
+    "build": "npm run webpack:build && electron-builder --win",
+    "release": "npm run webpack:build && electron-builder --win --publish always",
+    "start": "electron ."
+  },
+  "build": {
+    "appId": "com.nacpac.desktop",
+    "productName": "NACPAC Production",
+    "directories": { "output": "dist" },
+    "win": {
+      "target": "portable",
+      "icon": "assets/icon.ico"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "bundle.js",
+      "styles.css",
+      "assets/**"
+    ],
+    "publish": {
+      "provider": "github",
+      "owner": "jico-org",
+      "repo": "nacpac-workspace"
+    }
+  },
+  "dependencies": {
+    "firebase": "^10.12.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "electron-updater": "^6.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "concurrently": "^8.2.0",
+    "css-loader": "^6.10.0",
+    "electron": "^31.0.0",
+    "electron-builder": "^24.9.0",
+    "mini-css-extract-plugin": "^2.8.0",
+    "style-loader": "^3.3.4",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.3.0",
+    "webpack": "^5.91.0",
+    "webpack-cli": "^5.1.4"
+  }
+}

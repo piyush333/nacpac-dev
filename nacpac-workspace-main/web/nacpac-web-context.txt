@@ -1,0 +1,213 @@
+NACPAC LANDING PAGE — DESIGN & BUILD CONTEXT
+For handoff to Claude Design / continuation sessions
+============================================================
+
+PROJECT
+-------
+NACPAC is an in-house print studio in India.
+Three product lines: Stickers, Wallpapers, NTR (Number-Tag-Rolls).
+Primary customer acquisition channel: WhatsApp.
+The landing page (web/) is a static HTML/CSS/JS site — no framework, no build step.
+Served locally via: python3 -m http.server 3457 --directory web
+
+Files:
+  web/index.html   — full page markup
+  web/styles.css   — complete design system + component styles
+  web/main.js      — scroll-reveal, animated counters, 3D card tilt, mobile nav, sticky header
+
+
+DESIGN SYSTEM
+-------------
+Fonts (Google Fonts):
+  Display:  Dela Gothic One — all-caps, weight 400, used for headings, logo, buttons
+  Body:     Noto Sans — weight 500 (medium), clean and legible
+  Script:   Kalam Bold Italic — used once in the CTA banner for handwritten accent
+
+Palette (CSS custom properties):
+  --dark:    #0D0D0D   (near-black, primary text + backgrounds)
+  --dark-2:  #1A1A1A
+  --dark-3:  #2C2C2C
+  --mid:     #6B6B6B   (secondary text, captions)
+  --border:  #E5E5E3
+  --bg:      #FFFFFF
+  --bg-soft: #F5F5F3   (warm grey, alternate sections)
+  --yellow:  rgb(249 211 0)  (primary CTA colour — warm, not electric)
+  --yellow-h:rgb(251 230 112) (hover state)
+  --blue:    #0099FF   (accent, hero em, eyebrow text, logo dot)
+  --pink:    #FF4D8D
+  --green:   #00C389   (trust icons, WhatsApp button base-ish)
+
+Button variants:
+  .btn-primary  — yellow fill, 4px/4px box-shadow offset (neo-brutalist)
+  .btn-wa       — WhatsApp green #25D366, same offset shadow
+  .btn-ghost    — transparent, dark border, inverts on hover
+  .btn-dark     — dark fill, hover lifts with shadow
+
+Typography class:
+  .disp   — font-family: Dela Gothic One, uppercase, letter-spacing .03em, line-height 1.02
+  .script — Kalam, italic, no uppercase
+  .eyebrow — .7rem, 700 weight, .18em letter-spacing, uppercase, color: blue
+
+Spacing system:
+  --max-w: 1230px  (page shell width)
+  --margin: clamp(20px, 5vw, 96px)  (horizontal gutters, fluid)
+  .shell = max-width container centred with padding-inline: var(--margin)
+
+Border radius tokens:
+  --radius-sm: 8px   (buttons)
+  --radius-md: 16px  (feature cards)
+  --radius-lg: 24px  (product cards)
+  --radius-xl: 40px  (guarantee block, CTA banner)
+
+Shadow tokens:
+  --shadow-sm / --shadow-md / --shadow-lg (layered, subtle)
+
+
+PAGE STRUCTURE (top to bottom)
+-------------------------------
+1.  Mobile nav overlay       — fullscreen dark, slide from top, visibility:hidden when closed
+2.  Sticky header            — glassmorphism (backdrop-filter blur), adds shadow on scroll
+3.  Hero                     — 2-col grid (1.15fr 1fr) on desktop, stacked on mobile
+4.  Marquee strip            — dark background, white text, yellow dot separators, infinite scroll
+5.  Logo bar                 — "Trusted by" + brand pills (Meesho Sellers, D2C Founders, etc.)
+6.  Products section         — 3-col grid, each card has CSS art thumbnail + specs + pricing
+7.  Why NACPAC               — 4 feature cards on white-grey bg
+8.  Testimonials             — 3 quote cards with avatar initials
+9.  Process                  — 4-step numbered flow (dashed connector line on desktop)
+10. Guarantee block          — dark rounded panel with shield emoji + reprint policy CTA
+11. Stats section            — dark bg, animated counters (12,000+ jobs / 4.9★ / 98% / 300+)
+12. CTA banner               — yellow rounded panel, script accent, WhatsApp + email CTAs
+13. Footer                   — dark bg, 4-col (brand desc + 3 nav columns)
+
+
+HERO SECTION
+------------
+Left column:
+  - Rating pill:  ★★★★★  4.9  from 300+ brands
+  - H1: "Your artwork. PRINT-READY in days."
+      - "Print-ready" in blue (color: var(--blue))
+      - font-size: clamp(2.4rem, 5.5vw, 4.8rem)
+  - Subtext: "Custom stickers, wallpapers and NTR rolls…"
+  - CTAs: [WhatsApp quote] [See our products]
+  - Trust strip: ✓ In-house print  ✓ 4-day dispatch  ✓ Reprint guarantee
+
+Right column — product stack illustration (pure CSS, no images):
+  .pc-stickers   — yellow card, rotated -6deg, grid of coloured circle dots
+  .pc-wallpaper  — purple gradient card, rotated +4deg, "Wallpaper mural" label
+  .pc-ntr        — dark card, rotated +2deg, yellow number "001" + mini roll strip
+  .hero-badge    — floating "12k+ / jobs shipped" pill, float animation (3s infinite)
+
+
+CSS ART (no photography)
+------------------------
+Since no product photos exist, product thumbnails are built entirely in CSS:
+
+Stickers card:
+  8 circles in a 4-col grid, each a different colour
+  Classes: .sai-1 (dark) .sai-2 (blue) .sai-3 (pink) .sai-4 (green) .sai-5 (white) .sai-6 (pink) .sai-7 (blue) .sai-8 (dark)
+
+Wallpaper card:
+  4 horizontal colour stripes stacked full-height
+  .ws-1 #667eea / .ws-2 #764ba2 / .ws-3 #f093fb / .ws-4 #f5576c
+
+NTR card:
+  Dark background, 4 rows each with a small tag number + barcode pattern
+  Barcode = repeating-linear-gradient (alternating white/transparent bars)
+
+Hero product stack cards use the same visual vocabulary at a smaller scale.
+
+
+ANIMATIONS
+----------
+Scroll reveal:
+  All major elements have [data-reveal] attribute
+  IntersectionObserver in main.js adds .is-visible class on enter
+  CSS: opacity 0 → 1, translateY(28px) → 0, duration .7s, ease-out cubic
+  data-delay="1/2/3/4" adds transition-delay of .1/.2/.3/.4s
+
+Animated counters:
+  Elements with data-count="12000" data-suffix="+" start at 0
+  requestAnimationFrame loop with cubic ease-out over 1800ms
+  Triggers when element enters viewport (IntersectionObserver threshold 0.5)
+
+3D card tilt:
+  .tilt-card class — mousemove applies perspective(600px) rotateY/rotateX
+  Rotates ±5deg on both axes based on mouse position within card
+  Resets on mouseleave
+
+Marquee:
+  .strip-track — animation: marquee 28s linear infinite
+  Track is duplicated (20 items × 2 = 40 spans) for seamless loop
+  translateX(0) → translateX(-50%)
+
+Floating badge:
+  @keyframes float — translateY(0) ↔ translateY(-8px), 3s ease-in-out infinite
+
+Pulse dot (urgency tag in CTA banner):
+  @keyframes pulse — scale + opacity, 1.5s, on green 8px circle
+
+Sticky header:
+  window scroll listener (passive) adds .is-scrolled class at >20px
+  .is-scrolled adds border-bottom + box-shadow
+
+
+MOBILE RESPONSIVENESS
+---------------------
+Breakpoints used:
+  860px — hero becomes 2-col, desktop nav shows, burger hides, header phone/CTA shows
+  750px — product grid becomes 3-col, testimonials 3-col, footer 4-col
+  600px — features grid becomes 2-col
+
+Key mobile-specific decisions:
+  - Header CTA button (.header-cta) is hidden at ≤859px (was causing horizontal overflow)
+  - Hero stacks to single column
+  - H1 uses clamp(2.4rem, 5.5vw, 4.8rem) to prevent word-break on narrow screens
+  - Mobile nav: fullscreen overlay, slides from top, visibility:hidden when closed
+    (visibility trick prevents tab-focus on hidden links)
+
+Verified clean at:
+  - 375px (iPhone SE) — no horizontal overflow, scrollWidth === 375
+  - 1280px desktop — all 10 sections render correctly
+
+
+CONTACT DETAILS (PLACEHOLDER — NEEDS REPLACING)
+------------------------------------------------
+Phone:     +91 00000 00000  (used in header-phone and footer)
+WhatsApp:  https://wa.me/910000000000  (used in 4 CTA buttons)
+Email:     hello@nacpac.in  (used in CTA banner + footer)
+
+All three of the above need to be updated with real values before going live.
+
+
+WHAT'S NOT DONE
+---------------
+1. Real phone number / WhatsApp number / email address
+2. Real product photography (currently all CSS illustration — biggest trust uplift if added)
+3. Live hosting URL (currently local-only, served on port 3457)
+   Firebase Hosting is the natural choice since Firebase is already in use for the
+   mobile/desktop apps in this repo
+4. Form / quote intake (currently all CTAs go to WhatsApp deep-link)
+5. Favicon / OG meta image / Open Graph tags for social sharing
+
+
+REPO CONTEXT
+------------
+This web/ folder is one of four parts of the NACPAC monorepo:
+  mobile/   — Expo/React Native admin app (~80% complete)
+  desktop/  — Electron/React operator dashboard (~20% complete)
+  shared/   — TypeScript types (Job, Client, status enums)
+  web/      — this landing page (complete, needs real contact data)
+
+Firebase is the shared backend:
+  Firestore collections: clients, jobs, jobFiles
+  Firebase Storage for file uploads from mobile admin
+  Auth: email/password
+
+
+LAUNCH CONFIG
+-------------
+To serve locally:
+  python3 -m http.server 3457 --directory web
+  Open: http://localhost:3457
+
+In Claude Code, configured as "nacpac-web" launch config in .claude/launch.json

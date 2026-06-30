@@ -1,0 +1,35 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "nacpac-mobile-preview",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "3456", "--directory", "preview"],
+      "port": 3456
+    },
+    {
+      "name": "nacpac-web",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "3457", "--directory", "web"],
+      "port": 3457
+    },
+    {
+      "name": "nacpac-mobile",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "cd mobile && npx expo start --web"],
+      "port": 19006
+    },
+    {
+      "name": "nacpac-desktop-webpack",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "cd desktop && npm run webpack:watch"],
+      "port": 9000
+    },
+    {
+      "name": "jico-navbar",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "cd jico-navbar && npm run dev"],
+      "port": 5173
+    }
+  ]
+}

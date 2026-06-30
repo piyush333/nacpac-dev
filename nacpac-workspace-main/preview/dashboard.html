@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NACPAC — Production Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#ffffff;--card:#1a1730;--card2:#221e3a;--border:#2e2a4a;
+  --text:#f1f0f8;--sub:#9b98b8;--muted:#6b6890;
+  --purple:#5a3493;--purple-light:#7b55b8;--purple-dim:#5a349322;
+  --gold:#f5b11b;--gold-dim:#f5b11b22;--navy:#29266c;
+  --font:'Inter',system-ui,sans-serif;
+  --logo-font:'Nunito',system-ui,sans-serif;
+  --sidebar:230px;--detail:390px;
+}
+html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;}
+
+/* ── LOGO ───────────────────────────────────────────────────── */
+.nacpac-logo{font-family:var(--logo-font);font-weight:900;line-height:.88;letter-spacing:-1px;}
+.nacpac-logo .nac{color:var(--purple);font-size:22px;display:block;}
+.nacpac-logo .pac{color:var(--gold);font-size:22px;display:block;}
+.nacpac-logo-inv .nac{color:#fff;}
+.nacpac-logo-inv .pac{color:var(--gold);}
+.nacpac-logo-xs .nac,.nacpac-logo-xs .pac{font-size:15px;}
+
+/* ── LAYOUT ─────────────────────────────────────────────────── */
+.app{display:grid;grid-template-columns:var(--sidebar) 1fr var(--detail);height:calc(100vh - 36px);overflow:hidden;}
+
+/* ── SIDEBAR ────────────────────────────────────────────────── */
+.sidebar{background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+
+.sb-top{padding:16px 18px 0;border-bottom:1px solid var(--border);padding-bottom:14px;}
+.sb-prod{font-size:9px;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:4px;}
+
+.sb-section{padding:12px 0 4px;font-size:10px;color:var(--muted);font-weight:700;letter-spacing:1px;padding-left:18px;text-transform:uppercase;}
+.sb-item{display:flex;align-items:center;gap:10px;padding:9px 18px;cursor:pointer;border-left:3px solid transparent;transition:all .15s;font-size:13px;color:var(--sub);}
+.sb-item:hover{background:var(--card2);color:var(--text);}
+.sb-item.active{background:var(--card2);color:var(--text);border-left-color:var(--gold);}
+.sb-item .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sb-item .ico{font-size:15px;width:18px;text-align:center;}
+.sb-item .cnt{margin-left:auto;font-weight:700;font-size:13px;}
+
+.sb-footer{margin-top:auto;padding:12px 18px;border-top:1px solid var(--border);}
+.sb-email{font-size:11px;color:var(--muted);margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sb-signout{background:transparent;border:1px solid #ef444433;color:#ef4444;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font);width:100%;}
+.sb-signout:hover{background:#ef444411;}
+
+/* ── MAIN ───────────────────────────────────────────────────── */
+.main{display:flex;flex-direction:column;overflow:hidden;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:11px 18px;border-bottom:1px solid var(--border);flex-shrink:0;gap:12px;}
+.topbar-title{font-size:15px;font-weight:700;color:var(--text);white-space:nowrap;}
+.topbar-right{display:flex;align-items:center;gap:8px;position:relative;}
+.search-box{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:13px;color:var(--text);font-family:var(--font);outline:none;width:220px;}
+.search-box::placeholder{color:var(--muted);}
+.search-box:focus{border-color:var(--purple-light);}
+.notif-btn{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:15px;position:relative;line-height:1;}
+.notif-badge{position:absolute;top:-5px;right:-5px;background:#ef4444;color:#fff;font-size:9px;font-weight:700;border-radius:10px;padding:1px 5px;min-width:16px;text-align:center;}
+
+/* ── QUEUE ──────────────────────────────────────────────────── */
+.queue-area{flex:1;overflow:hidden;display:flex;flex-direction:column;}
+.queue-count{padding:7px 16px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--border);flex-shrink:0;}
+.queue-list{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:7px;}
+.queue-list::-webkit-scrollbar{width:4px;}
+.queue-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
+
+/* ── JOB CARD ───────────────────────────────────────────────── */
+.jcard{background:var(--card);border:1px solid var(--border);border-left:4px solid;border-radius:10px;padding:12px 13px;cursor:pointer;transition:background .15s;}
+.jcard:hover{background:var(--card2);}
+.jcard.selected{background:var(--card2);border-color:var(--gold);border-left-color:var(--gold);}
+.jc-r1{display:flex;justify-content:space-between;margin-bottom:3px;}
+.jc-num{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.8px;}
+.jc-time{font-size:11px;color:var(--muted);}
+.jc-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px;line-height:1.3;}
+.jc-r3{display:flex;gap:5px;flex-wrap:wrap;align-items:center;}
+.tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;letter-spacing:.3px;}
+.jc-meta{font-size:11px;color:var(--muted);}
+
+/* ── DETAIL ─────────────────────────────────────────────────── */
+.detail{background:var(--card);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
+.detail::-webkit-scrollbar{width:4px;}
+.detail::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
+
+/* Gold top accent bar */
+.detail-accent{height:3px;background:linear-gradient(90deg,var(--purple),var(--gold));flex-shrink:0;}
+
+.d-hdr{display:flex;justify-content:space-between;align-items:flex-start;padding:16px 18px 10px;border-bottom:1px solid var(--border);}
+.d-num{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px;margin-bottom:3px;}
+.d-title{font-size:15px;font-weight:700;line-height:1.3;color:var(--text);}
+.d-close{background:var(--bg);border:1px solid var(--border);color:var(--sub);border-radius:6px;width:26px;height:26px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.d-close:hover{color:var(--text);}
+.d-badges{display:flex;gap:6px;padding:10px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+
+.d-sec{padding:12px 18px;border-bottom:1px solid var(--border);}
+.d-sec-title{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;}
+
+.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.meta-item{background:var(--bg);border-radius:7px;padding:7px 9px;}
+.meta-label{font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px;}
+.meta-val{font-size:12px;color:var(--text);font-weight:600;}
+
+.file-row{display:flex;align-items:center;gap:7px;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:7px 9px;margin-bottom:5px;}
+.file-name{flex:1;font-size:12px;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.file-size{font-size:11px;color:var(--muted);flex-shrink:0;}
+.dl-btn{background:var(--purple-dim);border:1px solid var(--purple-light);color:#c4adee;border-radius:5px;padding:3px 8px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font);flex-shrink:0;}
+.dl-btn:hover{background:#5a349333;}
+
+.op-input{width:100%;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:8px 10px;font-size:13px;font-family:var(--font);outline:none;margin-bottom:6px;}
+.op-input:focus{border-color:var(--purple-light);}
+textarea.op-input{resize:vertical;min-height:65px;line-height:1.5;}
+.save-btn{background:var(--bg);border:1px solid var(--border);color:var(--sub);border-radius:7px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);}
+.save-btn:hover{background:var(--card2);color:var(--text);}
+
+.status-btns{display:flex;flex-direction:column;gap:7px;}
+.st-btn{background:transparent;border:1.5px solid;border-radius:8px;padding:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s;}
+.st-btn:hover{background:#ffffff08;filter:brightness(1.1);}
+
+/* ── EMPTY ──────────────────────────────────────────────────── */
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
+.empty-icon{font-size:38px;}
+.empty-text{font-size:15px;font-weight:600;color:var(--sub);}
+.empty-sub{font-size:12px;color:var(--muted);text-align:center;max-width:240px;}
+
+/* ── NOTIF PANEL ────────────────────────────────────────────── */
+.notif-panel{position:absolute;top:44px;right:0;width:296px;background:var(--card);border:1px solid var(--border);border-radius:12px;z-index:200;box-shadow:0 8px 32px #0009;overflow:hidden;}
+.notif-hdr{padding:9px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);}
+.notif-item{padding:9px 14px;border-bottom:1px solid var(--border);cursor:pointer;}
+.notif-item:hover{background:var(--card2);}
+.notif-item:last-child{border-bottom:none;}
+.ni-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px;}
+.ni-msg{font-size:11px;color:var(--muted);}
+
+/* ── DEMO BAR ───────────────────────────────────────────────── */
+.demo-bar{height:36px;background:#0d0b18;border-top:1px solid var(--border);display:flex;align-items:center;gap:6px;padding:0 14px;}
+.demo-bar span{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.5px;margin-right:2px;}
+.sw{padding:3px 9px;border-radius:12px;font-size:11px;font-weight:600;border:1px solid var(--border);background:var(--card);color:var(--sub);cursor:pointer;}
+.sw:hover,.sw.on{background:var(--purple-dim);border-color:var(--purple-light);color:#c4adee;}
+
+/* ── TAG COLORS ─────────────────────────────────────────────── */
+.t-sticker  {color:#c4adee;background:#5a349322;}
+.t-wallpaper{color:#8b89d4;background:#29266c33;}
+.t-ntr      {color:#f5b11b;background:#f5b11b22;}
+.t-pending  {color:#f5b11b;background:#f5b11b22;}
+.t-progress {color:#60a5fa;background:#3b82f622;}
+.t-done     {color:#4ade80;background:#22c55e22;}
+.t-rejected {color:#f87171;background:#ef444422;}
+.t-neutral  {background:#2e2a4a;color:#6b6890;}
+
+/* ── TOAST ──────────────────────────────────────────────────── */
+#toast{position:fixed;bottom:50px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--purple);color:#fff;padding:8px 18px;border-radius:20px;font-size:13px;font-weight:600;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;z-index:999;}
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <!-- ═══════════════════════════════════ SIDEBAR ═══ -->
+  <aside class="sidebar">
+    <div class="sb-top">
+      <div class="nacpac-logo"><span class="nac">nac</span><span class="pac">pac</span></div>
+      <div class="sb-prod">Production Dashboard</div>
+    </div>
+
+    <div class="sb-section">Status</div>
+    <div class="sb-item active" onclick="setFilter('all',this)">
+      <span class="dot" style="background:var(--gold)"></span>
+      <span>All Jobs</span><span class="cnt" style="color:var(--gold)">17</span>
+    </div>
+    <div class="sb-item" onclick="setFilter('pending',this)">
+      <span class="dot" style="background:#f5b11b"></span>
+      <span>Pending</span><span class="cnt" style="color:#f5b11b">8</span>
+    </div>
+    <div class="sb-item" onclick="setFilter('in_progress',this)">
+      <span class="dot" style="background:#60a5fa"></span>
+      <span>In Progress</span><span class="cnt" style="color:#60a5fa">3</span>
+    </div>
+    <div class="sb-item" onclick="setFilter('completed',this)">
+      <span class="dot" style="background:#4ade80"></span>
+      <span>Completed</span><span class="cnt" style="color:#4ade80">5</span>
+    </div>
+    <div class="sb-item" onclick="setFilter('rejected',this)">
+      <span class="dot" style="background:#f87171"></span>
+      <span>Rejected</span><span class="cnt" style="color:#f87171">1</span>
+    </div>
+
+    <div class="sb-section">Category</div>
+    <div class="sb-item" onclick="setFilter('stickers',this)">
+      <span class="ico">🏷️</span>
+      <span>Stickers</span><span class="cnt" style="color:#c4adee">9</span>
+    </div>
+    <div class="sb-item" onclick="setFilter('wallpapers',this)">
+      <span class="ico">🖼️</span>
+      <span>Wallpapers</span><span class="cnt" style="color:#8b89d4">6</span>
+    </div>
+    <div class="sb-item" onclick="setFilter('ntr',this)">
+      <span class="ico">📦</span>
+      <span>NTR</span><span class="cnt" style="color:#f5b11b">2</span>
+    </div>
+
+    <div class="sb-footer">
+      <div class="sb-email">operator@nacpac.com</div>
+      <button class="sb-signout">Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- ═══════════════════════════════════ MAIN ════════ -->
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="topbar-title">Job Queue — All Jobs</div>
+      <div class="topbar-right">
+        <input class="search-box" placeholder="🔍  Search client or job no..."/>
+        <button class="notif-btn" onclick="toggleNotif()">
+          🔔<span class="notif-badge">3</span>
+        </button>
+        <div class="notif-panel" id="notif-panel" style="display:none">
+          <div class="notif-hdr">New Notifications</div>
+          <div class="notif-item" onclick="openJob(0);toggleNotif()">
+            <div class="ni-title">JOB-0045 — Jain Traders</div>
+            <div class="ni-msg">New job: Gold Chrome Stickers · Qty 300</div>
+          </div>
+          <div class="notif-item" onclick="openJob(2);toggleNotif()">
+            <div class="ni-title">JOB-0043 — Kapoor Events</div>
+            <div class="ni-msg">New job: Holographic Stickers · Qty 1,000</div>
+          </div>
+          <div class="notif-item" onclick="openJob(4);toggleNotif()">
+            <div class="ni-title">JOB-0041 — Sharma Interiors</div>
+            <div class="ni-msg">New job: Canvas Wallpaper · Qty 1</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="queue-area">
+      <div class="queue-count" id="queue-count">17 jobs</div>
+      <div class="queue-list" id="queue-list"></div>
+    </div>
+  </main>
+
+  <!-- ═══════════════════════════════════ DETAIL ══════ -->
+  <aside class="detail" id="detail-panel">
+    <div class="detail-accent"></div>
+    <div class="d-hdr">
+      <div>
+        <div class="d-num" id="d-num">JOB-0045</div>
+        <div class="d-title" id="d-title">Gold Chrome Stickers — Jain Traders</div>
+      </div>
+      <button class="d-close" onclick="closeDetail()">✕</button>
+    </div>
+    <div class="d-badges" id="d-badges">
+      <span class="tag t-sticker">Gold Chrome</span>
+      <span class="tag t-neutral">Square</span>
+      <span class="tag t-pending">Pending</span>
+    </div>
+    <div class="d-sec">
+      <div class="d-sec-title">Job Specifications</div>
+      <div class="meta-grid" id="d-specs">
+        <div class="meta-item"><div class="meta-label">Client</div><div class="meta-val">Jain Traders</div></div>
+        <div class="meta-item"><div class="meta-label">Category</div><div class="meta-val">🏷️ Stickers</div></div>
+        <div class="meta-item"><div class="meta-label">Size</div><div class="meta-val">4 × 4 in</div></div>
+        <div class="meta-item"><div class="meta-label">Quantity</div><div class="meta-val">300 pcs</div></div>
+        <div class="meta-item"><div class="meta-label">Received</div><div class="meta-val">9m ago</div></div>
+        <div class="meta-item"><div class="meta-label">Files</div><div class="meta-val">📎 2</div></div>
+      </div>
+    </div>
+    <div class="d-sec">
+      <div class="d-sec-title">Attachments (2)</div>
+      <div class="file-row"><span>📄</span><span class="file-name">gold_chrome_design.pdf</span><span class="file-size">2.4 MB</span><button class="dl-btn">↓ Open</button></div>
+      <div class="file-row"><span>🖼️</span><span class="file-name">reference_sample.jpg</span><span class="file-size">840 KB</span><button class="dl-btn">↓ Open</button></div>
+    </div>
+    <div class="d-sec">
+      <div class="d-sec-title">Operator Details</div>
+      <div class="meta-label" style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Material Roll Size</div>
+      <input class="op-input" placeholder="e.g. 0.6m wide, 30m roll"/>
+      <div class="meta-label" style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;margin-top:6px">Ink Consumption</div>
+      <input class="op-input" placeholder="e.g. 350 ml"/>
+      <div class="meta-label" style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px;margin-top:6px">Notes</div>
+      <textarea class="op-input" placeholder="Remarks, colour codes, issues..."></textarea>
+      <button class="save-btn">💾  Save Details</button>
+    </div>
+    <div class="d-sec">
+      <div class="d-sec-title">Update Status</div>
+      <div class="status-btns">
+        <button class="st-btn" style="color:#60a5fa;border-color:#3b82f655" onclick="toast('Status → In Progress')">▶  Start Job</button>
+        <button class="st-btn" style="color:#4ade80;border-color:#22c55e55" onclick="toast('Status → Completed ✓')">✔  Mark Complete</button>
+        <button class="st-btn" style="color:#f87171;border-color:#ef444455" onclick="toast('Status → Rejected')">✕  Reject Job</button>
+      </div>
+    </div>
+  </aside>
+
+</div>
+
+<!-- Demo bar -->
+<div class="demo-bar">
+  <span>VIEW:</span>
+  <button class="sw on"  onclick="showView('queue')">All Jobs</button>
+  <button class="sw"     onclick="showView('empty')">Empty</button>
+  <button class="sw"     onclick="showView('progress')">In Progress</button>
+  <span style="margin-left:10px">DETAIL:</span>
+  <button class="sw on"  onclick="toggleDetail(true)">Show Panel</button>
+  <button class="sw"     onclick="toggleDetail(false)">Hide Panel</button>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const JOBS=[
+  {num:'JOB-0045',title:'Gold Chrome Stickers — Jain Traders',      cat:'stickers',  sub:'Gold Chrome',  cut:'Square',     st:'pending',     w:4, h:4,  qty:300,  files:2,time:'9m ago', col:'#7b55b8'},
+  {num:'JOB-0044',title:'PVC Wallpaper — Sharma Interiors',         cat:'wallpapers',sub:'PVC',          cut:null,         st:'pending',     w:10,h:6,  qty:2,    files:1,time:'41m ago',col:'#29266c'},
+  {num:'JOB-0043',title:'Holographic Stickers — Kapoor Events',     cat:'stickers',  sub:'Holographic',  cut:'Round',      st:'pending',     w:3, h:3,  qty:1000, files:1,time:'1h ago', col:'#7b55b8'},
+  {num:'JOB-0042',title:'Vinyl Stickers — Mehta Packaging',         cat:'stickers',  sub:'Vinyl',        cut:'Custom Cut', st:'in_progress', w:12,h:8,  qty:500,  files:2,time:'2h ago', col:'#7b55b8'},
+  {num:'JOB-0041',title:'Canvas Wallpaper — Reddy Residency',       cat:'wallpapers',sub:'Canvas',       cut:null,         st:'pending',     w:8, h:4,  qty:1,    files:1,time:'3h ago', col:'#29266c'},
+  {num:'JOB-0040',title:'NTR Print — Mehta Packaging',              cat:'ntr',       sub:'NTR',          cut:null,         st:'in_progress', w:24,h:18, qty:200,  files:2,time:'4h ago', col:'#f5b11b'},
+  {num:'JOB-0039',title:'Glitter Stickers — Kapoor Events',         cat:'stickers',  sub:'Glitter',      cut:'Rectangle',  st:'pending',     w:6, h:4,  qty:200,  files:1,time:'5h ago', col:'#7b55b8'},
+  {num:'JOB-0038',title:'Non-woven Wallpaper — Jain Traders',       cat:'wallpapers',sub:'Non-woven',    cut:null,         st:'completed',   w:12,h:8,  qty:4,    files:1,time:'1d ago', col:'#29266c'},
+  {num:'JOB-0037',title:'Transparent Stickers — Singh Promotions',  cat:'stickers',  sub:'Transparent',  cut:'Round',      st:'completed',   w:2, h:2,  qty:2000, files:1,time:'1d ago', col:'#7b55b8'},
+  {num:'JOB-0036',title:'NTR Banner — Event Corp',                  cat:'ntr',       sub:'NTR',          cut:null,         st:'completed',   w:36,h:12, qty:5,    files:2,time:'2d ago', col:'#f5b11b'},
+  {num:'JOB-0035',title:'PVC Wallpaper — Kumar Office',             cat:'wallpapers',sub:'PVC',          cut:null,         st:'in_progress', w:15,h:9,  qty:3,    files:1,time:'2d ago', col:'#29266c'},
+  {num:'JOB-0034',title:'Vinyl Stickers — Mehta Packaging',         cat:'stickers',  sub:'Vinyl',        cut:'Square',     st:'completed',   w:5, h:5,  qty:400,  files:1,time:'3d ago', col:'#7b55b8'},
+  {num:'JOB-0033',title:'Gold Chrome Stickers — VIP Branding',      cat:'stickers',  sub:'Gold Chrome',  cut:'Custom Cut', st:'rejected',    w:3, h:3,  qty:150,  files:1,time:'3d ago', col:'#7b55b8'},
+  {num:'JOB-0032',title:'Canvas Wallpaper — Hotel Taj',             cat:'wallpapers',sub:'Canvas',       cut:null,         st:'completed',   w:20,h:10, qty:2,    files:3,time:'4d ago', col:'#29266c'},
+  {num:'JOB-0031',title:'Holographic Stickers — Star Events',       cat:'stickers',  sub:'Holographic',  cut:'Round',      st:'pending',     w:2, h:2,  qty:5000, files:1,time:'4d ago', col:'#7b55b8'},
+  {num:'JOB-0030',title:'NTR Print — Mehta Packaging',              cat:'ntr',       sub:'NTR',          cut:null,         st:'pending',     w:18,h:12, qty:100,  files:1,time:'5d ago', col:'#f5b11b'},
+  {num:'JOB-0029',title:'Transparent Stickers — Kapoor Events',     cat:'stickers',  sub:'Transparent',  cut:'Square',     st:'pending',     w:3, h:3,  qty:800,  files:1,time:'5d ago', col:'#7b55b8'},
+];
+const SC={pending:'t-pending',in_progress:'t-progress',completed:'t-done',rejected:'t-rejected'};
+const SL={pending:'Pending',in_progress:'In Progress',completed:'Completed',rejected:'Rejected'};
+const CC={stickers:'t-sticker',wallpapers:'t-wallpaper',ntr:'t-ntr'};
+
+let selIdx=0, curFilter='all';
+
+function render(jobs){
+  const list=document.getElementById('queue-list');
+  list.innerHTML='';
+  document.getElementById('queue-count').textContent=jobs.length+' job'+(jobs.length!==1?'s':'');
+  if(!jobs.length){
+    list.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No jobs in queue</div><div class="empty-sub">New jobs from the admin app appear here in real-time.</div></div>`;
+    return;
+  }
+  jobs.forEach(j=>{
+    const orig=JOBS.indexOf(j);
+    const el=document.createElement('div');
+    el.className='jcard'+(orig===selIdx?' selected':'');
+    el.style.borderLeftColor=j.col;
+    el.innerHTML=`
+      <div class="jc-r1"><span class="jc-num">${j.num}</span><span class="jc-time">${j.time}</span></div>
+      <div class="jc-title">${j.title}</div>
+      <div class="jc-r3">
+        <span class="tag ${CC[j.cat]}">${j.sub}</span>
+        ${j.cut?`<span class="tag t-neutral">${j.cut}</span>`:''}
+        <span class="tag ${SC[j.st]}">${SL[j.st]}</span>
+        <span class="jc-meta">${j.w}×${j.h} in</span>
+        <span class="jc-meta">·  Qty ${j.qty.toLocaleString()}</span>
+        ${j.files?`<span class="jc-meta">·  📎 ${j.files}</span>`:''}
+      </div>`;
+    el.onclick=()=>openJob(orig);
+    list.appendChild(el);
+  });
+}
+
+function filt(f){
+  if(f==='all')return JOBS;
+  if(['pending','in_progress','completed','rejected'].includes(f))return JOBS.filter(j=>j.st===f);
+  return JOBS.filter(j=>j.cat===f);
+}
+
+function setFilter(f,el){
+  curFilter=f;
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+  if(el)el.classList.add('active');
+  const L={all:'All Jobs',pending:'Pending',in_progress:'In Progress',completed:'Completed',rejected:'Rejected',stickers:'Stickers',wallpapers:'Wallpapers',ntr:'NTR'};
+  document.getElementById('topbar-title').textContent='Job Queue — '+(L[f]||f);
+  render(filt(f));
+}
+
+function openJob(idx){
+  selIdx=idx;
+  const j=JOBS[idx];
+  document.getElementById('d-num').textContent=j.num;
+  document.getElementById('d-title').textContent=j.title;
+  document.getElementById('d-badges').innerHTML=
+    `<span class="tag ${CC[j.cat]}">${j.sub}</span>`+
+    (j.cut?`<span class="tag t-neutral">${j.cut}</span>`:'')+
+    `<span class="tag ${SC[j.st]}">${SL[j.st]}</span>`;
+  const client=j.title.split('—')[1]?.trim()??'';
+  const catLabel={stickers:'🏷️ Stickers',wallpapers:'🖼️ Wallpapers',ntr:'📦 NTR'};
+  document.getElementById('d-specs').innerHTML=`
+    <div class="meta-item"><div class="meta-label">Client</div><div class="meta-val">${client}</div></div>
+    <div class="meta-item"><div class="meta-label">Category</div><div class="meta-val">${catLabel[j.cat]}</div></div>
+    <div class="meta-item"><div class="meta-label">Size</div><div class="meta-val">${j.w} × ${j.h} in</div></div>
+    <div class="meta-item"><div class="meta-label">Quantity</div><div class="meta-val">${j.qty.toLocaleString()} pcs</div></div>
+    <div class="meta-item"><div class="meta-label">Received</div><div class="meta-val">${j.time}</div></div>
+    <div class="meta-item"><div class="meta-label">Files</div><div class="meta-val">📎 ${j.files}</div></div>`;
+  document.getElementById('detail-panel').style.display='';
+  document.getElementById('app').style.gridTemplateColumns='var(--sidebar) 1fr var(--detail)';
+  render(filt(curFilter));
+}
+
+function closeDetail(){
+  document.getElementById('detail-panel').style.display='none';
+  document.getElementById('app').style.gridTemplateColumns='var(--sidebar) 1fr';
+  selIdx=-1;
+  render(filt(curFilter));
+}
+
+function toggleDetail(show){
+  document.querySelectorAll('.demo-bar .sw').forEach((b,i)=>{if(i>=4)b.classList.remove('on');});
+  event.currentTarget.classList.add('on');
+  if(show)openJob(0);else closeDetail();
+}
+
+function showView(v){
+  document.querySelectorAll('.demo-bar .sw').forEach((b,i)=>{if(i<4)b.classList.remove('on');});
+  event.currentTarget.classList.add('on');
+  if(v==='empty'){document.getElementById('queue-list').innerHTML=`<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No jobs in queue</div><div class="empty-sub">New jobs from the admin app appear here in real-time.</div></div>`;document.getElementById('queue-count').textContent='0 jobs';}
+  else if(v==='progress'){setFilter('in_progress',null);document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));}
+  else{setFilter('all',document.querySelector('.sb-item'));document.querySelector('.sb-item').classList.add('active');}
+}
+
+function toggleNotif(){
+  const p=document.getElementById('notif-panel');
+  p.style.display=p.style.display==='none'?'block':'none';
+}
+
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent='✅ '+msg;t.style.opacity='1';t.style.transform='translateX(-50%) translateY(0)';
+  setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(-50%) translateY(10px)';},2500);
+}
+
+render(JOBS);
+</script>
+</body>
+</html>

@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brand Mascot Widget</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      background: #0d1117;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      overflow: hidden;
+    }
+
+    /* ── Demo background ─────────────────────────────── */
+    .demo-bg {
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(120,80,255,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, rgba(0,180,255,0.10) 0%, transparent 55%),
+        linear-gradient(160deg, #0d1117 0%, #131b2e 100%);
+    }
+
+    .demo-grid {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    .demo-text {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .demo-text h1 {
+      font-size: clamp(3rem, 8vw, 7rem);
+      font-weight: 900;
+      letter-spacing: -4px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .demo-text p {
+      color: rgba(255,255,255,0.06);
+      font-size: 1rem;
+      margin-top: 8px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    /* ── WIDGET CONTAINER ────────────────────────────── */
+    #mascot-widget {
+      position: fixed;
+      bottom: 36px;
+      right: 36px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 12px;
+      z-index: 9999;
+      user-select: none;
+    }
+
+    /* ── SPEECH BUBBLE ───────────────────────────────── */
+    #speech-bubble {
+      position: relative;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 16px 42px 16px 18px;
+      max-width: 260px;
+      min-width: 160px;
+      box-shadow:
+        0 2px 0 rgba(255,255,255,0.8) inset,
+        0 20px 60px rgba(0,0,0,0.4),
+        0 4px 16px rgba(0,0,0,0.2),
+        0 0 0 1px rgba(255,255,255,0.15);
+      opacity: 0;
+      transform: translateY(12px) scale(0.9);
+      transform-origin: bottom right;
+      transition: opacity 0.3s cubic-bezier(0.34,1.56,0.64,1),
+                  transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+      pointer-events: none;
+    }
+
+    #speech-bubble.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    /* Tail */
+    #speech-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -14px;
+      right: 34px;
+      width: 0;
+      height: 0;
+      border-left: 12px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 14px solid rgba(255,255,255,0.95);
+      filter: drop-shadow(0 4px 4px rgba(0,0,0,0.15));
+    }
+
+    #bubble-text {
+      font-size: 0.875rem;
+      color: #1a1a2e;
+      line-height: 1.55;
+      font-weight: 500;
+    }
+
+    #bubble-close {
+      position: absolute;
+      top: 8px;
+      right: 10px;
+      background: rgba(0,0,0,0.06);
+      border: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      font-size: 11px;
+      color: #666;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, color 0.15s, transform 0.15s;
+    }
+
+    #bubble-close:hover {
+      background: rgba(0,0,0,0.12);
+      color: #222;
+      transform: scale(1.1);
+    }
+
+    /* ── MASCOT BODY ─────────────────────────────────── */
+    #mascot-container {
+      position: relative;
+      width: 120px;
+      height: 140px;
+      cursor: pointer;
+      animation: float 3.5s cubic-bezier(0.45,0.05,0.55,0.95) infinite;
+      will-change: transform;
+      transition: filter 0.2s;
+    }
+
+    #mascot-container:hover {
+      filter: brightness(1.08) drop-shadow(0 0 20px rgba(160,140,220,0.5));
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0.3deg); }
+      33%       { transform: translateY(-9px) rotate(-0.5deg); }
+      66%       { transform: translateY(-5px) rotate(0.6deg); }
+    }
+
+    #mascot-container.excited {
+      animation: excited 0.45s ease-in-out infinite;
+    }
+
+    @keyframes excited {
+      0%, 100% { transform: translateY(0)   rotate(0deg)   scale(1); }
+      25%       { transform: translateY(-14px) rotate(-4deg) scale(1.04); }
+      75%       { transform: translateY(-7px)  rotate(4deg)  scale(1.02); }
+    }
+
+    #mascot-container.tap {
+      animation: tap-anim 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards;
+    }
+
+    @keyframes tap-anim {
+      0%   { transform: scale(1) rotate(0deg); }
+      30%  { transform: scale(0.88) rotate(-3deg); }
+      60%  { transform: scale(1.06) rotate(2deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+
+    /* Notification dot */
+    #notif-dot {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 14px;
+      height: 14px;
+      background: radial-gradient(circle at 35% 35%, #ff6b7a, #ff2244);
+      border-radius: 50%;
+      border: 2.5px solid #0d1117;
+      box-shadow: 0 0 8px rgba(255,34,68,0.6);
+      animation: notif-pulse 1.8s ease-in-out infinite;
+      opacity: 0;
+      transition: opacity 0.3s;
+      cursor: pointer;
+    }
+
+    #notif-dot.show { opacity: 1; }
+
+    @keyframes notif-pulse {
+      0%, 100% { box-shadow: 0 0 6px rgba(255,34,68,0.5); transform: scale(1); }
+      50%       { box-shadow: 0 0 16px rgba(255,34,68,0.8); transform: scale(1.15); }
+    }
+
+    /* Ambient glow beneath mascot */
+    #mascot-glow {
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 70px;
+      height: 20px;
+      background: radial-gradient(ellipse, rgba(155,130,200,0.45) 0%, transparent 70%);
+      border-radius: 50%;
+      filter: blur(6px);
+      animation: glow-pulse 3.5s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes glow-pulse {
+      0%, 100% { opacity: 0.7; transform: translateX(-50%) scaleX(1); }
+      33%       { opacity: 0.35; transform: translateX(-50%) scaleX(0.8); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="demo-bg"></div>
+<div class="demo-grid"></div>
+<div class="demo-text">
+  <h1>Your Brand</h1>
+  <p>Move your cursor &mdash; the mascot is watching</p>
+</div>
+
+<!-- ── MASCOT WIDGET ─────────────────────────────────────── -->
+<div id="mascot-widget">
+
+  <div id="speech-bubble">
+    <button id="bubble-close" title="Close">✕</button>
+    <p id="bubble-text">It looks like you're building a website. Need any help?</p>
+  </div>
+
+  <div id="mascot-container">
+    <div id="notif-dot"></div>
+    <div id="mascot-glow"></div>
+
+    <svg id="mascot-svg" viewBox="0 0 120 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <!-- Paper gradient - warm parchment -->
+        <linearGradient id="paperGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%"   stop-color="#f8f2cc"/>
+          <stop offset="40%"  stop-color="#f0e8a8"/>
+          <stop offset="100%" stop-color="#e4d888"/>
+        </linearGradient>
+        <linearGradient id="paperSheen" x1="0" y1="0" x2="0.5" y2="1">
+          <stop offset="0%"   stop-color="white" stop-opacity="0.25"/>
+          <stop offset="100%" stop-color="white" stop-opacity="0"/>
+        </linearGradient>
+
+        <!-- Clip metallic gradient -->
+        <linearGradient id="clipMain" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stop-color="#7b7ab8"/>
+          <stop offset="30%"  stop-color="#b0aed8"/>
+          <stop offset="55%"  stop-color="#d8d6f0"/>
+          <stop offset="75%"  stop-color="#9896c8"/>
+          <stop offset="100%" stop-color="#6a68a8"/>
+        </linearGradient>
+        <linearGradient id="clipHighlight" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stop-color="white" stop-opacity="0"/>
+          <stop offset="40%"  stop-color="white" stop-opacity="0.6"/>
+          <stop offset="100%" stop-color="white" stop-opacity="0"/>
+        </linearGradient>
+
+        <!-- Eye: sclera shading -->
+        <radialGradient id="scleraL" cx="40%" cy="35%" r="60%">
+          <stop offset="0%"   stop-color="#ffffff"/>
+          <stop offset="70%"  stop-color="#f0eeee"/>
+          <stop offset="100%" stop-color="#ddd9d9"/>
+        </radialGradient>
+        <radialGradient id="scleraR" cx="38%" cy="35%" r="60%">
+          <stop offset="0%"   stop-color="#ffffff"/>
+          <stop offset="70%"  stop-color="#f0eeee"/>
+          <stop offset="100%" stop-color="#ddd9d9"/>
+        </radialGradient>
+
+        <!-- Eye: iris depth -->
+        <radialGradient id="irisL" cx="35%" cy="30%" r="65%">
+          <stop offset="0%"   stop-color="#3a3560"/>
+          <stop offset="40%"  stop-color="#1a1830"/>
+          <stop offset="100%" stop-color="#0a0a18"/>
+        </radialGradient>
+        <radialGradient id="irisR" cx="35%" cy="30%" r="65%">
+          <stop offset="0%"   stop-color="#3a3560"/>
+          <stop offset="40%"  stop-color="#1a1830"/>
+          <stop offset="100%" stop-color="#0a0a18"/>
+        </radialGradient>
+
+        <!-- Eye rim gradient -->
+        <radialGradient id="eyeRimL" cx="50%" cy="50%" r="50%">
+          <stop offset="80%"  stop-color="transparent"/>
+          <stop offset="100%" stop-color="rgba(180,170,170,0.4)"/>
+        </radialGradient>
+
+        <!-- Eyebrow gradient -->
+        <linearGradient id="browGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%"   stop-color="#2a2040"/>
+          <stop offset="100%" stop-color="#4a3870"/>
+        </linearGradient>
+
+        <!-- Shadow / filters -->
+        <filter id="paperShadow" x="-15%" y="-15%" width="140%" height="140%">
+          <feDropShadow dx="3" dy="5" stdDeviation="5" flood-color="#1a1428" flood-opacity="0.55"/>
+        </filter>
+        <filter id="clipShadow" x="-20%" y="-10%" width="145%" height="130%">
+          <feDropShadow dx="3" dy="5" stdDeviation="4" flood-color="#3a308a" flood-opacity="0.5"/>
+        </filter>
+        <filter id="eyeGlow" x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur"/>
+          <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+        </filter>
+        <filter id="softShadow">
+          <feDropShadow dx="1" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.3"/>
+        </filter>
+
+        <!-- Clip inside cut-out mask -->
+        <clipPath id="paperClip">
+          <rect x="18" y="42" width="80" height="92" rx="4" transform="rotate(-7 18 42)"/>
+        </clipPath>
+      </defs>
+
+      <!-- ── PAPER ────────────────────────────────────── -->
+      <g filter="url(#paperShadow)">
+        <!-- Paper base -->
+        <rect x="18" y="42" width="80" height="92" rx="4"
+              fill="url(#paperGrad)" transform="rotate(-7 18 42)"/>
+
+        <!-- Paper ruled lines -->
+        <g transform="rotate(-7 18 42)" clip-path="url(#paperClip)"
+           stroke="#c4ba72" stroke-width="0.8" opacity="0.7">
+          <line x1="18" y1="58"  x2="98"  y2="58"/>
+          <line x1="18" y1="66"  x2="98"  y2="66"/>
+          <line x1="18" y1="74"  x2="98"  y2="74"/>
+          <line x1="18" y1="82"  x2="98"  y2="82"/>
+          <line x1="18" y1="90"  x2="98"  y2="90"/>
+          <line x1="18" y1="98"  x2="98"  y2="98"/>
+          <line x1="18" y1="106" x2="98"  y2="106"/>
+          <line x1="18" y1="114" x2="98"  y2="114"/>
+          <line x1="18" y1="122" x2="98"  y2="122"/>
+          <!-- Red margin -->
+          <line x1="34" y1="42"  x2="34"  y2="134" stroke="#e07070" stroke-width="1" opacity="0.6"/>
+        </g>
+
+        <!-- Paper surface sheen -->
+        <rect x="18" y="42" width="80" height="92" rx="4"
+              fill="url(#paperSheen)" transform="rotate(-7 18 42)" opacity="0.8"/>
+
+        <!-- Paper edge highlight -->
+        <rect x="18" y="42" width="80" height="92" rx="4"
+              fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1"
+              transform="rotate(-7 18 42)"/>
+      </g>
+
+      <!-- ── CLIP BODY (full 3D metallic) ───────────────── -->
+      <g filter="url(#clipShadow)">
+        <!-- Clip outer stroke (ambient occlusion) -->
+        <path d="M 44 86 C 44 106, 44 118, 58 118 C 72 118, 72 106, 72 86
+                 L 72 46 C 72 32, 67 24, 58 24 C 49 24, 44 32, 44 46
+                 L 44 68 C 44 78, 49 84, 58 84 C 67 84, 72 78, 72 68 L 72 52"
+              stroke="#3a3888" stroke-width="11" stroke-linecap="round" fill="none" opacity="0.5"/>
+
+        <!-- Clip main body -->
+        <path d="M 44 86 C 44 106, 44 118, 58 118 C 72 118, 72 106, 72 86
+                 L 72 46 C 72 32, 67 24, 58 24 C 49 24, 44 32, 44 46
+                 L 44 68 C 44 78, 49 84, 58 84 C 67 84, 72 78, 72 68 L 72 52"
+              stroke="url(#clipMain)" stroke-width="8" stroke-linecap="round" fill="none"/>
+
+        <!-- Clip inner highlight line -->
+        <path d="M 46.5 86 C 46.5 104, 46.5 116, 58 116 C 69.5 116, 69.5 104, 69.5 86
+                 L 69.5 46 C 69.5 34, 65.5 27, 58 27 C 50.5 27, 46.5 34, 46.5 46
+                 L 46.5 68 C 46.5 76, 50.5 81, 58 81"
+              stroke="url(#clipHighlight)" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+
+        <!-- Secondary specular dot highlights -->
+        <circle cx="51" cy="30" r="1.5" fill="white" opacity="0.7"/>
+        <circle cx="55" cy="26" r="1"   fill="white" opacity="0.5"/>
+        <circle cx="50" cy="90" r="1.2" fill="white" opacity="0.5"/>
+      </g>
+
+      <!-- ── LEFT EYE ──────────────────────────────────── -->
+      <g id="eye-left-group">
+        <!-- Eye socket shadow -->
+        <ellipse cx="42" cy="35" rx="13.5" ry="14"
+                 fill="rgba(30,20,60,0.25)" transform="translate(1.5,2)"/>
+
+        <!-- Sclera -->
+        <ellipse cx="42" cy="35" rx="13" ry="13.5" fill="url(#scleraL)"/>
+        <!-- Sclera rim -->
+        <ellipse cx="42" cy="35" rx="13" ry="13.5"
+                 fill="none" stroke="rgba(160,150,150,0.5)" stroke-width="0.8"/>
+
+        <!-- Iris -->
+        <circle id="iris-left" cx="42" cy="35" r="7.5" fill="url(#irisL)"/>
+
+        <!-- Iris ring detail -->
+        <circle id="iris-left-ring" cx="42" cy="35" r="7.5"
+                fill="none" stroke="rgba(100,90,160,0.4)" stroke-width="1"/>
+
+        <!-- Pupil (the actual moving dot) -->
+        <circle id="pupil-left" cx="42" cy="35" r="4.5" fill="#080818"/>
+
+        <!-- Cornea gloss — primary highlight -->
+        <ellipse id="gloss-left" cx="39" cy="31.5" rx="2.8" ry="2"
+                 fill="white" opacity="0.85" transform="rotate(-15 39 31.5)"/>
+        <!-- Secondary smaller highlight -->
+        <circle id="gloss2-left" cx="44" cy="39" r="1" fill="white" opacity="0.35"/>
+
+        <!-- Eyelid (blink) -->
+        <ellipse id="lid-left" cx="42" cy="23" rx="13" ry="13"
+                 fill="#a8a0cc" style="transform:scaleY(0); transform-box:fill-box; transform-origin:top center;"/>
+        <!-- Eyelid bottom rim -->
+        <path d="M 29 35 Q 42 38 55 35" stroke="rgba(150,140,160,0.4)" stroke-width="0.8" fill="none"/>
+
+        <!-- Eyebrow -->
+        <path id="brow-left" d="M 30 22 Q 41 17.5 53 21"
+              stroke="url(#browGrad)" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+      </g>
+
+      <!-- ── RIGHT EYE ─────────────────────────────────── -->
+      <g id="eye-right-group">
+        <!-- Socket shadow -->
+        <ellipse cx="76" cy="33" rx="11.5" ry="12"
+                 fill="rgba(30,20,60,0.25)" transform="translate(1.5,2)"/>
+
+        <!-- Sclera -->
+        <ellipse cx="76" cy="33" rx="11" ry="12" fill="url(#scleraR)"/>
+        <ellipse cx="76" cy="33" rx="11" ry="12"
+                 fill="none" stroke="rgba(160,150,150,0.5)" stroke-width="0.8"/>
+
+        <!-- Iris -->
+        <circle id="iris-right" cx="76" cy="33" r="6.8" fill="url(#irisR)"/>
+        <circle id="iris-right-ring" cx="76" cy="33" r="6.8"
+                fill="none" stroke="rgba(100,90,160,0.4)" stroke-width="1"/>
+
+        <!-- Pupil -->
+        <circle id="pupil-right" cx="76" cy="33" r="4" fill="#080818"/>
+
+        <!-- Gloss -->
+        <ellipse id="gloss-right" cx="73.5" cy="30" rx="2.4" ry="1.7"
+                 fill="white" opacity="0.85" transform="rotate(-15 73.5 30)"/>
+        <circle id="gloss2-right" cx="78" cy="36.5" r="0.9" fill="white" opacity="0.35"/>
+
+        <!-- Eyelid -->
+        <ellipse id="lid-right" cx="76" cy="22" rx="11" ry="11"
+                 fill="#a8a0cc" style="transform:scaleY(0); transform-box:fill-box; transform-origin:top center;"/>
+        <path d="M 65 33 Q 76 36.5 87 33" stroke="rgba(150,140,160,0.4)" stroke-width="0.8" fill="none"/>
+
+        <!-- Eyebrow -->
+        <path id="brow-right" d="M 66 20 Q 76 15.5 86 19"
+              stroke="url(#browGrad)" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+      </g>
+
+    </svg>
+  </div>
+</div>
+
+<script>
+  // ── CONFIG ────────────────────────────────────────────────
+  const MESSAGES = [
+    "It looks like you're building a website. Need any help?",
+    "Hi there! I'm your friendly mascot \uD83D\uDC4B",
+    "Pssst — you've got great taste visiting this site.",
+    "Click me again, I don't bite. Usually.",
+    "Fun fact: I never sleep. I\u2019m always watching. \uD83D\uDC40",
+    "Looking good! Keep scrolling down.",
+    "Have you checked out our latest features?",
+    "I see you hovering\u2026 curious, aren\u2019t you?",
+    "Need help? That\u2019s literally what I\u2019m here for.",
+  ];
+
+  const GREETING_DELAY = 1800;
+  const NOTIF_INTERVAL = 18000;
+  const BLINK_MIN      = 2200;
+  const BLINK_MAX      = 5800;
+  const EYE_RANGE_L    = 4.2;
+  const EYE_RANGE_R    = 3.8;
+
+  // base positions of pupils in viewBox coords
+  const BASE = {
+    left:  { cx: 42, cy: 35 },
+    right: { cx: 76, cy: 33 },
+  };
+
+  // ── ELEMENTS ─────────────────────────────────────────────
+  const widget     = document.getElementById('mascot-widget');
+  const container  = document.getElementById('mascot-container');
+  const bubble     = document.getElementById('speech-bubble');
+  const bubbleText = document.getElementById('bubble-text');
+  const btnClose   = document.getElementById('bubble-close');
+  const notifDot   = document.getElementById('notif-dot');
+  const pupilL     = document.getElementById('pupil-left');
+  const pupilR     = document.getElementById('pupil-right');
+  const gloss1L    = document.getElementById('gloss-left');
+  const gloss1R    = document.getElementById('gloss-right');
+  const gloss2L    = document.getElementById('gloss2-left');
+  const gloss2R    = document.getElementById('gloss2-right');
+  const lidL       = document.getElementById('lid-left');
+  const lidR       = document.getElementById('lid-right');
+  const browL      = document.getElementById('brow-left');
+  const browR      = document.getElementById('brow-right');
+
+  let msgIndex  = 0;
+  let bubbleOpen = false;
+
+  // ── BUBBLE ───────────────────────────────────────────────
+  function showBubble(text) {
+    bubbleText.textContent = text;
+    bubble.classList.add('visible');
+    bubbleOpen = true;
+    notifDot.classList.remove('show');
+    animateTap();
+    raiseBrows();
+  }
+
+  function hideBubble() {
+    bubble.classList.remove('visible');
+    bubbleOpen = false;
+  }
+
+  function nextMsg() {
+    msgIndex = (msgIndex + 1) % MESSAGES.length;
+    return MESSAGES[msgIndex];
+  }
+
+  container.addEventListener('click', () => {
+    showBubble(bubbleOpen ? nextMsg() : MESSAGES[msgIndex]);
+  });
+
+  btnClose.addEventListener('click', e => {
+    e.stopPropagation();
+    hideBubble();
+    msgIndex = (msgIndex + 1) % MESSAGES.length;
+  });
+
+  setTimeout(() => {
+    showBubble(MESSAGES[0]);
+    scheduleNotif();
+  }, GREETING_DELAY);
+
+  function scheduleNotif() {
+    setTimeout(() => {
+      if (!bubbleOpen) {
+        notifDot.classList.add('show');
+        container.classList.remove('float');
+        container.classList.add('excited');
+        setTimeout(() => {
+          container.classList.remove('excited');
+        }, 2400);
+      }
+      scheduleNotif();
+    }, NOTIF_INTERVAL);
+  }
+
+  notifDot.addEventListener('click', e => {
+    e.stopPropagation();
+    showBubble(nextMsg());
+  });
+
+  // ── TAP ANIMATION ─────────────────────────────────────────
+  function animateTap() {
+    container.classList.add('tap');
+    container.addEventListener('animationend', () => {
+      container.classList.remove('tap');
+    }, { once: true });
+  }
+
+  // ── BROW RAISE ───────────────────────────────────────────
+  function raiseBrows() {
+    browL.style.transition = 'transform 0.25s ease';
+    browR.style.transition = 'transform 0.25s ease';
+    browL.style.transform  = 'translateY(-2.5px)';
+    browR.style.transform  = 'translateY(-2.5px)';
+    setTimeout(() => {
+      browL.style.transform = '';
+      browR.style.transform = '';
+    }, 700);
+  }
+
+  // ── EYE TRACKING ─────────────────────────────────────────
+  function getSVGEyeScreen(side) {
+    const svg  = document.getElementById('mascot-svg');
+    const rect = svg.getBoundingClientRect();
+    const vbW = 120, vbH = 140;
+    const sX = rect.width  / vbW;
+    const sY = rect.height / vbH;
+    const b  = BASE[side];
+    return { x: rect.left + b.cx * sX, y: rect.top + b.cy * sY };
+  }
+
+  let raf;
+  let targetL = { x: 0, y: 0 };
+  let targetR = { x: 0, y: 0 };
+  let currentL = { x: 0, y: 0 };
+  let currentR = { x: 0, y: 0 };
+
+  function lerp(a, b, t) { return a + (b - a) * t; }
+
+  function updateEyes() {
+    currentL.x = lerp(currentL.x, targetL.x, 0.12);
+    currentL.y = lerp(currentL.y, targetL.y, 0.12);
+    currentR.x = lerp(currentR.x, targetR.x, 0.12);
+    currentR.y = lerp(currentR.y, targetR.y, 0.12);
+
+    // Left pupil + gloss
+    const lx = BASE.left.cx  + currentL.x;
+    const ly = BASE.left.cy  + currentL.y;
+    pupilL.setAttribute('cx', lx);
+    pupilL.setAttribute('cy', ly);
+    gloss1L.setAttribute('cx', lx - 3);
+    gloss1L.setAttribute('cy', ly - 3.5);
+    gloss2L.setAttribute('cx', lx + 2);
+    gloss2L.setAttribute('cy', ly + 4);
+
+    // Right pupil + gloss
+    const rx = BASE.right.cx + currentR.x;
+    const ry = BASE.right.cy + currentR.y;
+    pupilR.setAttribute('cx', rx);
+    pupilR.setAttribute('cy', ry);
+    gloss1R.setAttribute('cx', rx - 2.5);
+    gloss1R.setAttribute('cy', ry - 3);
+    gloss2R.setAttribute('cx', rx + 2);
+    gloss2R.setAttribute('cy', ry + 3.5);
+
+    raf = requestAnimationFrame(updateEyes);
+  }
+
+  updateEyes();
+
+  function trackMouse(mx, my) {
+    ['left', 'right'].forEach(side => {
+      const center = getSVGEyeScreen(side);
+      const dx = mx - center.x;
+      const dy = my - center.y;
+      const dist = Math.hypot(dx, dy);
+      const range = side === 'left' ? EYE_RANGE_L : EYE_RANGE_R;
+      const nx = dist > 0 ? (dx / dist) * Math.min(dist * 0.14, range) : 0;
+      const ny = dist > 0 ? (dy / dist) * Math.min(dist * 0.14, range) : 0;
+      if (side === 'left') { targetL.x = nx; targetL.y = ny; }
+      else                 { targetR.x = nx; targetR.y = ny; }
+    });
+  }
+
+  document.addEventListener('mousemove', e => trackMouse(e.clientX, e.clientY));
+  document.addEventListener('touchmove', e => {
+    const t = e.touches[0];
+    trackMouse(t.clientX, t.clientY);
+  }, { passive: true });
+
+  // ── BLINK ────────────────────────────────────────────────
+  function blink() {
+    const dur = 160;
+    [lidL, lidR].forEach(lid => {
+      // Force reflow before re-animating
+      lid.style.animation = 'none';
+      lid.style.transform = 'scaleY(0)';
+      void lid.offsetWidth;
+      lid.style.transition = '';
+      lid.style.animation  = `blink-anim ${dur}ms ease forwards`;
+    });
+    scheduleBlink();
+  }
+
+  // Inject blink keyframe
+  const styleEl = document.createElement('style');
+  styleEl.textContent = `
+    @keyframes blink-anim {
+      0%   { transform: scaleY(0); }
+      45%  { transform: scaleY(1); }
+      55%  { transform: scaleY(1); }
+      100% { transform: scaleY(0); }
+    }
+  `;
+  document.head.appendChild(styleEl);
+
+  function scheduleBlink() {
+    const delay = BLINK_MIN + Math.random() * (BLINK_MAX - BLINK_MIN);
+    setTimeout(blink, delay);
+  }
+  scheduleBlink();
+
+  // Occasional double-blink
+  setInterval(() => {
+    if (Math.random() < 0.25) {
+      blink();
+      setTimeout(blink, 260);
+    }
+  }, 8000);
+
+  // ── DRAG ─────────────────────────────────────────────────
+  let dragging = false, dragOffX = 0, dragOffY = 0;
+
+  container.addEventListener('mousedown', e => {
+    dragging = true;
+    const r  = widget.getBoundingClientRect();
+    dragOffX = e.clientX - r.right;
+    dragOffY = e.clientY - r.bottom;
+    container.style.cursor = 'grabbing';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    widget.style.right  = Math.max(8, window.innerWidth  - e.clientX + dragOffX) + 'px';
+    widget.style.bottom = Math.max(8, window.innerHeight - e.clientY + dragOffY) + 'px';
+  });
+
+  document.addEventListener('mouseup', () => {
+    dragging = false;
+    container.style.cursor = 'pointer';
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NACPAC — Custom Stickers, Wallpapers & NTR Prints</title>
+  <meta name="description" content="India's go-to print studio for custom stickers, wallpapers and NTR rolls. In-house presses, 4-day turnaround, 100% satisfaction guarantee."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Kalam:wght@700&family=Noto+Sans:ital,wght@0,400;0,500;0,600;0,700;1,500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+
+<!-- ── mobile nav overlay ── -->
+<div id="mobile-nav" aria-label="Navigation" aria-hidden="true">
+  <button class="close-btn" id="close-nav" aria-label="Close menu">&times;</button>
+  <a href="#products" onclick="document.getElementById('mobile-nav').classList.remove('is-open')">Products</a>
+  <a href="#process" onclick="document.getElementById('mobile-nav').classList.remove('is-open')">How it works</a>
+  <a href="#why" onclick="document.getElementById('mobile-nav').classList.remove('is-open')">Why NACPAC</a>
+  <a href="#contact" onclick="document.getElementById('mobile-nav').classList.remove('is-open')">Contact</a>
+</div>
+
+<!-- ── header ── -->
+<header class="site-header">
+  <div class="shell header-inner">
+    <a href="#" class="logo-mark disp">NACPAC<span class="dot">.</span></a>
+
+    <nav class="header-nav" aria-label="Primary">
+      <a href="#products">Products</a>
+      <a href="#process">How it works</a>
+      <a href="#why">Why NACPAC</a>
+      <a href="#contact">Contact</a>
+    </nav>
+
+    <div class="header-right">
+      <a class="header-phone" href="tel:+910000000000">+91 00000 00000</a>
+      <a class="btn btn-primary header-cta" href="https://wa.me/910000000000?text=Hi+NACPAC,+I'd+like+a+quote" target="_blank" rel="noopener">
+        Get a quote
+      </a>
+      <button id="burger" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ── hero ── -->
+  <section class="hero">
+    <div class="shell hero-grid">
+
+      <div>
+        <div class="hero-rating" data-reveal>
+          <span class="stars">★★★★★</span>
+          <span><strong>4.9</strong></span>
+          <span class="count">from 300+ brands</span>
+        </div>
+
+        <h1 class="disp hero-title" data-reveal data-delay="1">
+          Your artwork.<br/><em>Print-ready</em><br/>in days.
+        </h1>
+
+        <p class="hero-sub" data-reveal data-delay="2">
+          Custom stickers, wallpapers and NTR rolls — all printed in-house, proofed before press, and dispatched within the week. No middlemen, no surprises.
+        </p>
+
+        <div class="hero-ctas" data-reveal data-delay="3">
+          <a class="btn btn-wa" href="https://wa.me/910000000000?text=Hi+NACPAC,+I'd+like+a+quote" target="_blank" rel="noopener">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            WhatsApp quote
+          </a>
+          <a class="btn btn-ghost" href="#products">See our products</a>
+        </div>
+
+        <div class="hero-trust" data-reveal data-delay="4">
+          <div class="hero-trust-item">
+            <div class="icon">✓</div>
+            In-house print
+          </div>
+          <div class="hero-trust-item">
+            <div class="icon">✓</div>
+            4-day dispatch
+          </div>
+          <div class="hero-trust-item">
+            <div class="icon">✓</div>
+            Reprint guarantee
+          </div>
+        </div>
+      </div>
+
+      <!-- product stack illustration -->
+      <div class="hero-visual" data-reveal data-delay="2">
+        <div class="product-stack">
+
+          <!-- sticker sheet card -->
+          <div class="product-card pc-stickers tilt-card">
+            <div class="pc-stickers-inner">
+              <div class="sticker-dot sai-1"></div>
+              <div class="sticker-dot sai-2"></div>
+              <div class="sticker-dot sai-3"></div>
+              <div class="sticker-dot sai-4"></div>
+              <div class="sticker-dot sai-5"></div>
+              <div class="sticker-dot sai-6"></div>
+              <div class="sticker-dot sai-7"></div>
+              <div class="sticker-dot sai-8"></div>
+              <div class="sticker-dot sai-1"></div>
+            </div>
+          </div>
+
+          <!-- wallpaper card -->
+          <div class="product-card pc-wallpaper tilt-card">
+            <div class="pc-wallpaper-inner">
+              <div class="wall-art">
+                <div class="wall-stripe ws-1"></div>
+                <div class="wall-stripe ws-2"></div>
+                <div class="wall-stripe ws-3"></div>
+                <div class="wall-stripe ws-4"></div>
+              </div>
+            </div>
+            <div class="pc-wallpaper-label">Wallpaper mural</div>
+          </div>
+
+          <!-- ntr card -->
+          <div class="product-card pc-ntr tilt-card">
+            <div class="pc-ntr-num">001</div>
+            <div class="pc-ntr-label">NTR Roll</div>
+            <div class="pc-ntr-strip">
+              <span>001</span>
+              <span>002</span>
+              <span>003</span>
+            </div>
+          </div>
+
+          <!-- floating badge -->
+          <div class="hero-badge">
+            <span class="b-num">12k+</span>
+            jobs shipped
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── marquee ── -->
+  <div class="strip" aria-hidden="true">
+    <div class="strip-track">
+      <span>Die-cut stickers</span>
+      <span>Kiss-cut sheets</span>
+      <span>Holographic vinyl</span>
+      <span>Wallpaper murals</span>
+      <span>Paste-the-wall</span>
+      <span>Peel &amp; stick</span>
+      <span>NTR rolls</span>
+      <span>Variable data</span>
+      <span>Same-week dispatch</span>
+      <span>In-house print</span>
+      <!-- dupe for seamless loop -->
+      <span>Die-cut stickers</span>
+      <span>Kiss-cut sheets</span>
+      <span>Holographic vinyl</span>
+      <span>Wallpaper murals</span>
+      <span>Paste-the-wall</span>
+      <span>Peel &amp; stick</span>
+      <span>NTR rolls</span>
+      <span>Variable data</span>
+      <span>Same-week dispatch</span>
+      <span>In-house print</span>
+    </div>
+  </div>
+
+  <!-- ── logo bar ── -->
+  <div class="logo-bar">
+    <div class="shell logo-bar-inner">
+      <span class="logo-bar-label">Trusted by</span>
+      <span class="brand-pill">Meesho Sellers</span>
+      <span class="brand-pill">Merch Brands</span>
+      <span class="brand-pill">Event Co.s</span>
+      <span class="brand-pill">Packaging Studios</span>
+      <span class="brand-pill">D2C Founders</span>
+      <span class="brand-pill">Schools &amp; Colleges</span>
+    </div>
+  </div>
+
+  <!-- ── products ── -->
+  <section class="section" id="products">
+    <div class="shell">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">What we make</span>
+        <h2 class="disp">Three product lines.<br/>One print floor.</h2>
+        <p>From a pack of 50 die-cut stickers to a 50-metre wallpaper run — same studio, same colour discipline, same dispatch promise.</p>
+      </div>
+
+      <div class="products-grid">
+
+        <article class="product-feature-card tilt-card" data-reveal data-delay="1">
+          <div class="pfc-thumb pfc-thumb-stickers">
+            <div class="sticker-grid-art">
+              <div class="sticker-art-item sai-1"></div>
+              <div class="sticker-art-item sai-2"></div>
+              <div class="sticker-art-item sai-3"></div>
+              <div class="sticker-art-item sai-4"></div>
+              <div class="sticker-art-item sai-5"></div>
+              <div class="sticker-art-item sai-6"></div>
+              <div class="sticker-art-item sai-7"></div>
+              <div class="sticker-art-item sai-8"></div>
+            </div>
+          </div>
+          <div class="pfc-body">
+            <h3 class="disp">Stickers</h3>
+            <p>Die-cut, kiss-cut, sheet, transfer. Vinyl, holographic, transparent and paper. Indoor and outdoor grade with gloss, matte or soft-touch laminate.</p>
+            <div class="pfc-tags">
+              <span class="pfc-tag">Die-cut</span>
+              <span class="pfc-tag">Kiss-cut</span>
+              <span class="pfc-tag">Holographic</span>
+              <span class="pfc-tag">Transparent</span>
+              <span class="pfc-tag">Transfer</span>
+            </div>
+            <p class="pfc-from">From <strong>₹499</strong> for 50 pcs</p>
+          </div>
+        </article>
+
+        <article class="product-feature-card tilt-card" data-reveal data-delay="2">
+          <div class="pfc-thumb pfc-thumb-wall">
+            <div class="wall-art">
+              <div class="wall-stripe ws-1"></div>
+              <div class="wall-stripe ws-2"></div>
+              <div class="wall-stripe ws-3"></div>
+              <div class="wall-stripe ws-4"></div>
+            </div>
+          </div>
+          <div class="pfc-body">
+            <h3 class="disp">Wallpapers</h3>
+            <p>Paste-the-wall murals, peel-and-stick panels, seamless wide-format runs. Tested for residential and commercial install — cafes, offices, retail.</p>
+            <div class="pfc-tags">
+              <span class="pfc-tag">Paste-the-wall</span>
+              <span class="pfc-tag">Peel &amp; stick</span>
+              <span class="pfc-tag">Mural</span>
+              <span class="pfc-tag">Wide format</span>
+            </div>
+            <p class="pfc-from">From <strong>₹1,200</strong> per sq/m</p>
+          </div>
+        </article>
+
+        <article class="product-feature-card tilt-card" data-reveal data-delay="3">
+          <div class="pfc-thumb pfc-thumb-ntr">
+            <div class="ntr-art">
+              <div class="ntr-row">
+                <div class="ntr-tag">001</div>
+                <div class="ntr-barcode"></div>
+              </div>
+              <div class="ntr-row">
+                <div class="ntr-tag">002</div>
+                <div class="ntr-barcode"></div>
+              </div>
+              <div class="ntr-row">
+                <div class="ntr-tag">003</div>
+                <div class="ntr-barcode"></div>
+              </div>
+              <div class="ntr-row">
+                <div class="ntr-tag">004</div>
+                <div class="ntr-barcode"></div>
+              </div>
+            </div>
+          </div>
+          <div class="pfc-body">
+            <h3 class="disp">NTR prints</h3>
+            <p>Number-tag-rolls and serialised label runs for events, inventory and logistics. Variable data, perforated, barcode-ready. Minimum 500 tags.</p>
+            <div class="pfc-tags">
+              <span class="pfc-tag">Numbered</span>
+              <span class="pfc-tag">Perforated</span>
+              <span class="pfc-tag">Variable data</span>
+              <span class="pfc-tag">Barcode</span>
+            </div>
+            <p class="pfc-from">From <strong>₹799</strong> for 500 tags</p>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── why us ── -->
+  <section class="section section-soft" id="why">
+    <div class="shell">
+      <div class="section-head center" data-reveal>
+        <span class="eyebrow">Why NACPAC</span>
+        <h2 class="disp">Built for brands that ship.</h2>
+        <p>Every decision we've made — presses, workflow, turnaround — is built around one thing: getting your order out the door, right, on time.</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card" data-reveal data-delay="1">
+          <div class="feature-icon fi-yellow">🖨️</div>
+          <h3 class="disp">In-house print</h3>
+          <p>No outsourcing. Every job runs on our floor, on our presses, under our colour profiles. You deal with us, not a middleman.</p>
+        </div>
+        <div class="feature-card" data-reveal data-delay="2">
+          <div class="feature-icon fi-blue">📡</div>
+          <h3 class="disp">Live job tracking</h3>
+          <p>You and your operator see the same board. Job status updates as it moves through press, cutter and pack-out in real time.</p>
+        </div>
+        <div class="feature-card" data-reveal data-delay="3">
+          <div class="feature-icon fi-green">✅</div>
+          <h3 class="disp">No-fuss artwork</h3>
+          <p>Send PDF, AI, PSD or PNG. We pre-flight, mark up the cut line, and wait for your soft-proof approval before anything goes to press.</p>
+        </div>
+        <div class="feature-card" data-reveal data-delay="4">
+          <div class="feature-icon fi-pink">🚀</div>
+          <h3 class="disp">Same-week dispatch</h3>
+          <p>Standard turnaround is 4 working days from artwork lock. Rush slots load the press same day — ask us when you order.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── testimonials ── -->
+  <section class="section">
+    <div class="shell">
+      <div class="section-head center" data-reveal>
+        <span class="eyebrow">What clients say</span>
+        <h2 class="disp">Brands love the output.</h2>
+      </div>
+
+      <div class="testimonials-grid">
+        <div class="testimonial-card tilt-card" data-reveal data-delay="1">
+          <div class="tc-stars">★★★★★</div>
+          <p class="tc-quote">"We've run three sticker orders with NACPAC. Colour accuracy is unmatched — our Pantone-matched brand red comes out exactly right every time. Fast dispatch, zero drama."</p>
+          <div class="tc-author">
+            <div class="tc-avatar av-y">RK</div>
+            <div>
+              <div class="tc-name">Rohan K.</div>
+              <div class="tc-biz">D2C Skincare Brand, Mumbai</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card tilt-card" data-reveal data-delay="2">
+          <p class="tc-stars">★★★★★</p>
+          <p class="tc-quote">"Ordered 3,000 NTR tags for our annual college fest. They delivered in 3 days, perfectly perforated, numbered correctly and packed in rolls. Absolutely clutch."</p>
+          <div class="tc-author">
+            <div class="tc-avatar av-b">PS</div>
+            <div>
+              <div class="tc-name">Priya S.</div>
+              <div class="tc-biz">Events Head, BITS Pilani</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card tilt-card" data-reveal data-delay="3">
+          <p class="tc-stars">★★★★★</p>
+          <p class="tc-quote">"The wallpaper mural for our café came out stunning. NACPAC handled the tiling math, the paste-the-wall material is premium, and the install was seamless. Highly recommend."</p>
+          <div class="tc-author">
+            <div class="tc-avatar av-p">AM</div>
+            <div>
+              <div class="tc-name">Arjun M.</div>
+              <div class="tc-biz">Co-founder, Filter Coffee Co.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── process ── -->
+  <section class="section section-soft" id="process">
+    <div class="shell">
+      <div class="section-head center" data-reveal>
+        <span class="eyebrow">How it works</span>
+        <h2 class="disp">File to front door,<br/>four steps.</h2>
+      </div>
+      <div class="process-grid">
+        <div class="process-step" data-reveal data-delay="1">
+          <div class="ps-num">01</div>
+          <h3 class="disp">Send your brief</h3>
+          <p>Drop artwork, dimensions and quantity via WhatsApp or email. We confirm specs and price within hours.</p>
+        </div>
+        <div class="process-step" data-reveal data-delay="2">
+          <div class="ps-num">02</div>
+          <h3 class="disp">Approve proof</h3>
+          <p>We send a soft proof with cut-line preview. Nothing goes to press until you sign off.</p>
+        </div>
+        <div class="process-step" data-reveal data-delay="3">
+          <div class="ps-num">03</div>
+          <h3 class="disp">Print &amp; cut</h3>
+          <p>Job hits the press the moment you approve. Cut, laminate and pack-out happen same day.</p>
+        </div>
+        <div class="process-step" data-reveal data-delay="4">
+          <div class="ps-num">04</div>
+          <h3 class="disp">Dispatched</h3>
+          <p>Tracked courier across India. You get a link the moment it leaves the studio.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── guarantee ── -->
+  <section class="section">
+    <div class="shell">
+      <div class="guarantee" data-reveal>
+        <div class="guarantee-badge">🛡️</div>
+        <div class="guarantee-text">
+          <h3 class="disp">Print right or reprint free.</h3>
+          <p>If the finished product doesn't match the approved proof — wrong colour, bad cut, any defect — we reprint the full order at zero cost. No negotiation, no "manufacturing tolerance" excuses.</p>
+        </div>
+        <a class="btn btn-primary" href="https://wa.me/910000000000" target="_blank" rel="noopener">Start an order</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── stats ── -->
+  <section class="section section-dark">
+    <div class="shell">
+      <div class="section-head center" data-reveal>
+        <span class="eyebrow" style="color: rgba(255,255,255,.5)">By the numbers</span>
+        <h2 class="disp">Numbers that speak.</h2>
+      </div>
+      <div class="stats-grid">
+        <div class="stat" data-reveal data-delay="1">
+          <div class="stat-val"><span data-count="12000" data-suffix="+">0</span></div>
+          <div class="stat-label">Jobs shipped</div>
+        </div>
+        <div class="stat" data-reveal data-delay="2">
+          <div class="stat-val"><span data-count="4.9" data-suffix="★">0</span></div>
+          <div class="stat-label">Average rating</div>
+        </div>
+        <div class="stat" data-reveal data-delay="3">
+          <div class="stat-val"><span data-count="98" data-suffix="%">0</span></div>
+          <div class="stat-label">On-time dispatch</div>
+        </div>
+        <div class="stat" data-reveal data-delay="4">
+          <div class="stat-val"><span data-count="300" data-suffix="+">0</span></div>
+          <div class="stat-label">Brands served</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── cta ── -->
+  <section class="section" id="quote">
+    <div class="shell">
+      <div class="cta-banner" data-reveal>
+        <div class="urgency-tag">
+          <div class="pulse"></div>
+          Rush slots open today
+        </div>
+        <span class="script">let's print something good.</span>
+        <h2 class="disp">Ready to put your<br/>art on something real?</h2>
+        <p>Tell us what you need on WhatsApp — we'll quote within the hour.</p>
+        <div class="cta-banner-btns">
+          <a class="btn btn-wa" href="https://wa.me/910000000000?text=Hi+NACPAC,+I'd+like+a+quote" target="_blank" rel="noopener">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            WhatsApp us now
+          </a>
+          <a class="btn btn-dark" href="mailto:hello@nacpac.in">hello@nacpac.in</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ── footer ── -->
+<footer class="site-footer" id="contact">
+  <div class="shell">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="logo-mark disp">NACPAC<span class="dot">.</span></div>
+        <p style="margin-top:.75rem">India's in-house print studio for custom stickers, wallpapers and NTR rolls. Fast, faithful to your artwork, dispatched within the week.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Products</h4>
+        <ul>
+          <li><a href="#products">Stickers</a></li>
+          <li><a href="#products">Wallpapers</a></li>
+          <li><a href="#products">NTR prints</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#why">Why NACPAC</a></li>
+          <li><a href="#process">Process</a></li>
+          <li><a href="#quote">Get a quote</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Get in touch</h4>
+        <ul>
+          <li><a href="https://wa.me/910000000000" target="_blank" rel="noopener">WhatsApp</a></li>
+          <li><a href="mailto:hello@nacpac.in">hello@nacpac.in</a></li>
+          <li><a href="tel:+910000000000">+91 00000 00000</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 NACPAC. All rights reserved.</span>
+      <span>Built with print on the brain.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // close mobile nav
+  document.getElementById('close-nav').addEventListener('click', () => {
+    document.getElementById('mobile-nav').classList.remove('is-open');
+  });
+</script>
+<script src="main.js" defer></script>
+</body>
+</html>
