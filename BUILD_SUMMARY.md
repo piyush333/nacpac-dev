@@ -104,25 +104,28 @@ A complete Discord-based automation system that accepts natural language command
 - R2 storage client configured
 - Oracle VM connector configured
 
-## Workflow Diagram
+## Manager Architecture - Channel-Based Workflow
 
 ```
-User sends Discord message
+#general (User talks here)
     ↓
-Discord Manager receives message
+Manager: Detect brand (Nacpac/Jico) from keywords
     ↓
-Compression Layer (Haiku) converts to JSON task
+Compress to JSON task
     ↓
-Task Router decides: execute now or schedule?
+Route to appropriate manager (Nacpac or Jico)
     ↓
-[IMMEDIATE EXECUTION]          [SCHEDULED EXECUTION]
-Nacpac/Jico Manager            → TaskScheduler
-    ↓                            → Oracle VM
-Workers execute task           → Cron job
-    ↓                            → Execute at time
-Results aggregated
+Auto Mode: Execute in background
+    ├─ Nacpac: code → git push → APK/EXE → R2
+    └─ Jico: AR models → Netlify → Shopify
     ↓
-Posted to Discord (+ Telegram)
+Post results to:
+    ├─ #nacpac-dev (Nacpac updates)
+    ├─ #jico-dev (Jico updates)
+    ├─ #logs (worker output)
+    └─ #reports (scheduled reports)
+
+User stays in #general. Bot channels are for internal routing.
 ```
 
 ## Known Limitations
@@ -289,6 +292,13 @@ jico-workspace-main/           (+2MB - full codebase)
 
 **System Status:** 🟢 **READY FOR TESTING AND DEPLOYMENT**
 
+**Discord Architecture:**
+- **#general** - User input (Manager decides brand + task, routes)
+- **#nacpac-dev** - Nacpac task updates (bot-to-bot communication)
+- **#jico-dev** - Jico task updates (bot-to-bot communication)
+- **#logs** - Raw worker output and errors
+- **#reports** - Scheduled reports (builds, analytics, SEO)
+
 **Built:** June 30, 2026  
-**Version:** 1.0 (Production Ready)  
-**Last Updated:** 2026-06-30 14:55 UTC
+**Version:** 1.1 (Manager Architecture with Channel Routing)  
+**Last Updated:** 2026-06-30 15:05 UTC
