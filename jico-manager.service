@@ -1,0 +1,32 @@
+[Unit]
+Description=JICO Discord Manager Bot
+Documentation=file:///home/user/nacpac-dev/DEPLOYMENT_GUIDE.md
+After=network.target
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/user/nacpac-dev/jico-system
+Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+EnvironmentFile=/home/user/nacpac-dev/jico-system/.env
+ExecStart=/usr/bin/python3 main.py
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=jico-manager
+
+# Resource limits
+MemoryMax=1G
+CPUQuota=50%
+
+# Hardening
+PrivateTmp=yes
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=yes
+
+[Install]
+WantedBy=multi-user.target
