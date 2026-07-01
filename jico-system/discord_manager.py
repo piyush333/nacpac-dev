@@ -1,8 +1,11 @@
 import logging
 import asyncio
 import discord
+import json
 from discord.ext import commands
+from discord.ui import Button, View
 from typing import Dict, Any
+from anthropic import Anthropic
 from compression_layer import CompressionLayer
 from task_router import TaskRouter
 from nacpac_manager import NacpacManager
@@ -15,6 +18,66 @@ from model_selector import ModelSelector
 from session_manager import SessionManager
 
 logger = logging.getLogger(__name__)
+
+class ConfirmationView(View):
+    """Yes/No confirmation buttons"""
+    def __init__(self):
+        super().__init__()
+        self.result = None
+
+    @discord.ui.button(label="✅ Yes", style=discord.ButtonStyle.green)
+    async def yes_button(self, interaction: discord.Interaction, button: Button):
+        self.result = "yes"
+        await interaction.response.defer()
+        self.stop()
+
+    @discord.ui.button(label="❌ No", style=discord.ButtonStyle.red)
+    async def no_button(self, interaction: discord.Interaction, button: Button):
+        self.result = "no"
+        await interaction.response.defer()
+        self.stop()
+
+class BuildTypeView(View):
+    """Build type selection buttons"""
+    def __init__(self):
+        super().__init__()
+        self.result = None
+
+    @discord.ui.button(label="📱 APK", style=discord.ButtonStyle.blurple)
+    async def apk_button(self, interaction: discord.Interaction, button: Button):
+        self.result = "apk"
+        await interaction.response.defer()
+        self.stop()
+
+    @discord.ui.button(label="🖥️ EXE", style=discord.ButtonStyle.blurple)
+    async def exe_button(self, interaction: discord.Interaction, button: Button):
+        self.result = "exe"
+        await interaction.response.defer()
+        self.stop()
+
+    @discord.ui.button(label="📦 BOTH", style=discord.ButtonStyle.green)
+    async def both_button(self, interaction: discord.Interaction, button: Button):
+        self.result = "both"
+        await interaction.response.defer()
+        self.stop()
+
+class DeployView(View):
+    """Deploy to Firebase buttons"""
+    def __init__(self):
+        super().__init__()
+        self.result = None
+
+    @discord.ui.button(label="🚀 Deploy", style=discord.ButtonStyle.green)
+    async def deploy_button(self, interaction: discord.Interaction, button: Button):
+        self.result = "deploy"
+        await interaction.response.defer()
+        self.stop()
+
+    @discord.ui.button(label="❌ Cancel", style=discord.ButtonStyle.red)
+    async def cancel_button(self, interaction: discord.Interaction, button: Button):
+        self.result = "cancel"
+        await interaction.response.defer()
+        self.stop()
 
 class DiscordManager(commands.Cog):
     """Discord Bot Manager for JICO System - Manager routing from #general"""
@@ -36,6 +99,9 @@ class DiscordManager(commands.Cog):
         self.cost_tracker = CostTracker(monthly_limit=50.0, daily_limit=10.0)
         self.session_manager = SessionManager()
         self.model_selector = ModelSelector()
+
+        # API Client for preview generation
+        self.anthropic_client = Anthropic(api_key=Config.ANTHROPIC_API_KEY)
 
         # Channel references
         self.general_channel = None
@@ -122,62 +188,61 @@ class DiscordManager(commands.Cog):
 
         logger.info(f"Screened: {brand}/{task['target']} - {task['action']}")
 
-        # Step 3: Build summary (brief, no heavy API calls yet)
+        # Step 3: Build summary
         summary = f"I understood:\n• **Brand:** {brand.upper()}\n• **Target:** {task['target']}\n• **Action:** {task['action'][:80]}"
 
         await message.remove_reaction("⏳", self.bot.user)
+
+        # Step 4: Wait for approval with buttons
+        confirm_view = ConfirmationView()
         await message.channel.send(
-            f"{summary}\n\n**Proceed with build?** (reply: yes/no)"
+            f"{summary}\n\n**Proceed with build?**",
+            view=confirm_view
         )
 
-        # Step 4: Wait for approval (max 5 minutes)
-        def check(m):
-            return m.author == message.author and m.channel == message.channel and m.content.lower() in ["yes", "no"]
-
         try:
-            approval = await self.bot.wait_for("message", check=check, timeout=300)
-            if approval.content.lower() == "no":
+            await asyncio.wait_for(confirm_view.wait(), timeout=300)
+            if confirm_view.result == "no":
                 await message.channel.send("❌ Build cancelled. What would you like instead?")
                 return
         except asyncio.TimeoutError:
             await message.channel.send("⏱️ Approval timeout. Please resend your request.")
             return
 
-        # Step 5: If Nacpac → ask what to build
+        # Step 5: If Nacpac → ask what to build with buttons
         if brand == "nacpac":
+            build_view = BuildTypeView()
             await message.channel.send(
-                "**What to build?**\n"
-                "• `exe` - Windows executable only\n"
-                "• `apk` - Android app only\n"
-                "• `both` - Both APK and EXE"
+                "**What to build?**",
+                view=build_view
             )
 
-            def check_build(m):
-                return m.author == message.author and m.channel == message.channel and m.content.lower() in ["exe", "apk", "both"]
-
             try:
-                build_choice = await self.bot.wait_for("message", check=check_build, timeout=300)
-                task["build_type"] = build_choice.content.lower()
+                await asyncio.wait_for(build_view.wait(), timeout=300)
+                task["build_type"] = build_view.result or "both"
             except asyncio.TimeoutError:
                 await message.channel.send("⏱️ Build choice timeout.")
                 return
 
-        # Step 6: Generate HTML preview of changes
-        await message.channel.send("📋 Generating preview of changes...")
+        # Step 6: Generate HTML preview of changes (uses Haiku)
+        await message.channel.send("📋 Generating UI preview with Haiku...")
         preview_html = await self._generate_preview(task, brand)
 
         if preview_html:
+            # Post preview (split if too long for Discord)
+            preview_msg = f"**Preview of changes:**\n```html\n{preview_html[:400]}\n```"
+            await message.channel.send(preview_msg)
+
+            # Step 7: Ask for deployment confirmation with buttons
+            deploy_view = DeployView()
             await message.channel.send(
-                f"**Preview of changes:**\n```html\n{preview_html[:500]}...\n```\n"
-                f"**Deploy to Firebase?** (reply: yes/no)"
+                "**Deploy to Firebase?**",
+                view=deploy_view
             )
 
-            def check_deploy(m):
-                return m.author == message.author and m.channel == message.channel and m.content.lower() in ["yes", "no"]
-
             try:
-                deploy_choice = await self.bot.wait_for("message", check=check_deploy, timeout=300)
-                if deploy_choice.content.lower() == "no":
+                await asyncio.wait_for(deploy_view.wait(), timeout=300)
+                if deploy_view.result == "cancel":
                     await message.channel.send("❌ Deployment cancelled.")
                     return
             except asyncio.TimeoutError:
@@ -201,29 +266,44 @@ class DiscordManager(commands.Cog):
         return user_input.lower().strip() in greetings
 
     async def _generate_preview(self, task: dict, brand: str) -> str:
-        """Generate HTML preview of changes (summary of what will be built)"""
+        """Generate HTML preview using Haiku - shows actual UI mockup of changes"""
         action = task.get("action", "Unknown action")
         target = task.get("target", "Unknown target")
         build_type = task.get("build_type", "both")
 
-        preview = f"""
-<!-- Preview: {action} -->
-<div class="update-preview">
-  <h2>📱 Nacpac Update Preview</h2>
-  <p><strong>Action:</strong> {action}</p>
-  <p><strong>Target:</strong> {target}</p>
-  <p><strong>Build Type:</strong> {build_type.upper()}</p>
-  <hr>
-  <p>Changes will be:</p>
-  <ul>
-    <li>Applied to source code</li>
-    <li>Tested locally</li>
-    <li>Built as {build_type.upper()}</li>
-    <li>Uploaded to Firebase</li>
-  </ul>
-</div>
-"""
-        return preview
+        # Check cost before calling Haiku (estimated 300 tokens for HTML generation)
+        if not self.cost_tracker.check_can_call("haiku", estimated_tokens=300):
+            logger.warning("Cost limit exceeded - skipping HTML preview")
+            return None
+
+        try:
+            # Call Haiku to generate realistic HTML mockup of the UI changes
+            prompt = f"""Generate a minimal HTML mockup (under 200 chars) showing the UI change for this task:
+
+Task: {action}
+Target: {target}
+
+Return ONLY HTML code with the update preview. Make it visual and concise. Include styling in <style> tags."""
+
+            response = self.anthropic_client.messages.create(
+                model="claude-3-5-haiku-20241022",
+                max_tokens=300,
+                messages=[{"role": "user", "content": prompt}]
+            )
+
+            html = response.content[0].text if response.content else None
+
+            # Log the API call for cost tracking
+            input_tokens = len(prompt.split()) * 1.3  # Rough estimate
+            output_tokens = len(html.split()) * 1.3 if html else 0
+            self.cost_tracker.log_call("haiku", int(input_tokens), int(output_tokens))
+
+            logger.info(f"Generated preview with Haiku ({int(input_tokens)} input, {int(output_tokens)} output tokens)")
+            return html
+
+        except Exception as e:
+            logger.error(f"Failed to generate preview: {e}")
+            return None
 
     def detect_brand(self, user_input: str) -> str:
         """
