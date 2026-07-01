@@ -16,8 +16,29 @@ class GoogleDriveBackup:
     TOKEN_FILE = Path(__file__).parent / ".google_token.pickle"
 
     def __init__(self, credentials_path: str = None):
-        """Initialize Google Drive backup with credentials"""
-        self.credentials_path = credentials_path or str(self.CREDENTIALS_FILE)
+        """Initialize Google Drive backup with credentials.
+
+        Credentials can come from:
+        1. credentials_path parameter (explicit file path)
+        2. GOOGLE_CREDENTIALS_PATH environment variable
+        3. GOOGLE_CREDENTIALS_JSON environment variable (JSON string)
+        4. Default location: jico-system/google_credentials.json (file not tracked in git)
+        """
+        # Try to load from environment variable (JSON string)
+        env_creds_json = os.getenv("GOOGLE_CREDENTIALS_JSON")
+        if env_creds_json:
+            try:
+                creds_data = json.loads(env_creds_json)
+                self.credentials_path = None
+                self.credentials_data = creds_data
+            except json.JSONDecodeError:
+                logger.warning("Failed to parse GOOGLE_CREDENTIALS_JSON, falling back to file")
+                self.credentials_path = credentials_path or os.getenv("GOOGLE_CREDENTIALS_PATH") or str(self.CREDENTIALS_FILE)
+                self.credentials_data = None
+        else:
+            # Try to load from environment variable (file path)
+            self.credentials_path = credentials_path or os.getenv("GOOGLE_CREDENTIALS_PATH") or str(self.CREDENTIALS_FILE)
+            self.credentials_data = None
         self.service = None
         self._authenticate()
 
@@ -29,44 +50,51 @@ class GoogleDriveBackup:
             from google.oauth2.credentials import Credentials as UserCredentials
             from google_auth_oauthlib.flow import InstalledAppFlow
             from googleapiclient.discovery import build
+            import tempfile
 
-            # Try service account first
-            if self.credentials_path and Path(self.credentials_path).exists():
-                try:
-                    creds = Credentials.from_service_account_file(
-                        self.credentials_path,
-                        scopes=['https://www.googleapis.com/auth/drive']
-                    )
-                    self.service = build('drive', 'v3', credentials=creds)
-                    logger.info("✅ Authenticated with Google Drive (Service Account)")
-                    return
-                except:
-                    pass
+            creds_file = None
+            creds_to_use = self.credentials_path
 
-                # Try OAuth flow for installed app
-                try:
-                    creds = None
-                    if self.TOKEN_FILE.exists():
-                        with open(self.TOKEN_FILE, 'rb') as token:
-                            creds = pickle.load(token)
+            # If credentials are in environment as JSON string, write to temp file
+            if self.credentials_data:
+                with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+                    json.dump(self.credentials_data, f)
+                    creds_file = f.name
+                    creds_to_use = creds_file
+            elif self.credentials_path and Path(self.credentials_path).exists():
+                creds_to_use = self.credentials_path
+            else:
+                logger.warning("Google Drive credentials not found. Set GOOGLE_CREDENTIALS_JSON or GOOGLE_CREDENTIALS_PATH environment variable.")
+                return
 
-                    if not creds or not creds.valid:
-                        if creds and creds.expired and creds.refresh_token:
-                            creds.refresh(Request())
-                        else:
-                            flow = InstalledAppFlow.from_client_secrets_file(
-                                self.credentials_path,
-                                scopes=['https://www.googleapis.com/auth/drive']
-                            )
-                            creds = flow.run_local_server(port=0)
+            # Try OAuth flow for installed app
+            try:
+                creds = None
+                if self.TOKEN_FILE.exists():
+                    with open(self.TOKEN_FILE, 'rb') as token:
+                        creds = pickle.load(token)
 
-                        with open(self.TOKEN_FILE, 'wb') as token:
-                            pickle.dump(creds, token)
+                if not creds or not creds.valid:
+                    if creds and creds.expired and creds.refresh_token:
+                        creds.refresh(Request())
+                    else:
+                        flow = InstalledAppFlow.from_client_secrets_file(
+                            creds_to_use,
+                            scopes=['https://www.googleapis.com/auth/drive']
+                        )
+                        creds = flow.run_local_server(port=0)
 
-                    self.service = build('drive', 'v3', credentials=creds)
-                    logger.info("✅ Authenticated with Google Drive (OAuth)")
-                except Exception as e:
-                    logger.error(f"OAuth flow failed: {e}")
+                    with open(self.TOKEN_FILE, 'wb') as token:
+                        pickle.dump(creds, token)
+
+                self.service = build('drive', 'v3', credentials=creds)
+                logger.info("✅ Authenticated with Google Drive (OAuth)")
+            except Exception as e:
+                logger.error(f"OAuth flow failed: {e}")
+            finally:
+                # Clean up temp file if created
+                if creds_file and Path(creds_file).exists():
+                    Path(creds_file).unlink()
 
         except ImportError:
             logger.warning("Google Drive libraries not installed. Run: pip install google-auth-oauthlib google-auth-httplib2 google-api-python-client")
