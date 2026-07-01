@@ -143,7 +143,48 @@ class DiscordManager(commands.Cog):
             await message.channel.send("⏱️ Approval timeout. Please resend your request.")
             return
 
-        # Step 5: Approved → queue task
+        # Step 5: If Nacpac → ask what to build
+        if brand == "nacpac":
+            await message.channel.send(
+                "**What to build?**\n"
+                "• `exe` - Windows executable only\n"
+                "• `apk` - Android app only\n"
+                "• `both` - Both APK and EXE"
+            )
+
+            def check_build(m):
+                return m.author == message.author and m.channel == message.channel and m.content.lower() in ["exe", "apk", "both"]
+
+            try:
+                build_choice = await self.bot.wait_for("message", check=check_build, timeout=300)
+                task["build_type"] = build_choice.content.lower()
+            except asyncio.TimeoutError:
+                await message.channel.send("⏱️ Build choice timeout.")
+                return
+
+        # Step 6: Generate HTML preview of changes
+        await message.channel.send("📋 Generating preview of changes...")
+        preview_html = await self._generate_preview(task, brand)
+
+        if preview_html:
+            await message.channel.send(
+                f"**Preview of changes:**\n```html\n{preview_html[:500]}...\n```\n"
+                f"**Deploy to Firebase?** (reply: yes/no)"
+            )
+
+            def check_deploy(m):
+                return m.author == message.author and m.channel == message.channel and m.content.lower() in ["yes", "no"]
+
+            try:
+                deploy_choice = await self.bot.wait_for("message", check=check_deploy, timeout=300)
+                if deploy_choice.content.lower() == "no":
+                    await message.channel.send("❌ Deployment cancelled.")
+                    return
+            except asyncio.TimeoutError:
+                await message.channel.send("⏱️ Deploy confirmation timeout.")
+                return
+
+        # Step 7: Approved → queue task
         await message.add_reaction("✅")
         task_id = await self.auto_executor.queue_task(task)
 
@@ -158,6 +199,31 @@ class DiscordManager(commands.Cog):
         """Check if message is a casual greeting"""
         greetings = ["hi", "hey", "hello", "yo", "sup", "what's up", "howdy", "greetings"]
         return user_input.lower().strip() in greetings
+
+    async def _generate_preview(self, task: dict, brand: str) -> str:
+        """Generate HTML preview of changes (summary of what will be built)"""
+        action = task.get("action", "Unknown action")
+        target = task.get("target", "Unknown target")
+        build_type = task.get("build_type", "both")
+
+        preview = f"""
+<!-- Preview: {action} -->
+<div class="update-preview">
+  <h2>📱 Nacpac Update Preview</h2>
+  <p><strong>Action:</strong> {action}</p>
+  <p><strong>Target:</strong> {target}</p>
+  <p><strong>Build Type:</strong> {build_type.upper()}</p>
+  <hr>
+  <p>Changes will be:</p>
+  <ul>
+    <li>Applied to source code</li>
+    <li>Tested locally</li>
+    <li>Built as {build_type.upper()}</li>
+    <li>Uploaded to Firebase</li>
+  </ul>
+</div>
+"""
+        return preview
 
     def detect_brand(self, user_input: str) -> str:
         """

@@ -113,7 +113,7 @@ class NacpacWorker:
         return {"status": "success", "worker": "ads", "action": action}
 
     async def build_task(self, action: str, params: Dict) -> Dict[str, Any]:
-        """Build tasks - APK, EXE, and upload"""
+        """Build tasks - APK, EXE, and upload to Firebase"""
         logger.info(f"Build task: {action}")
 
         if not Config.NACPAC_DIR:
@@ -122,6 +122,7 @@ class NacpacWorker:
         try:
             results = []
             build_type = params.get('build_type', 'both')  # apk, exe, or both
+            deploy_to_firebase = params.get('deploy_to_firebase', True)
 
             # Build APK if requested
             if build_type in ('apk', 'both'):
@@ -193,6 +194,16 @@ class NacpacWorker:
                         "status": "error",
                         "error": (err or out)[-300:],
                     })
+
+            # Deploy to Firebase if requested
+            if deploy_to_firebase and any(b.get("status") == "success" for b in results):
+                logger.info("Deploying to Firebase...")
+                firebase_result = await self._deploy_to_firebase(Config.NACPAC_DIR)
+                results.append({
+                    "type": "firebase",
+                    "status": firebase_result.get("status", "error"),
+                    "message": firebase_result.get("message", "Deployment unknown"),
+                })
 
             return {
                 "status": "success",
@@ -292,6 +303,40 @@ class NacpacManager:
             results["status"] = "error"
             results["error"] = str(e)
             return results
+
+    async def _deploy_to_firebase(self, cwd: str) -> Dict[str, Any]:
+        """Deploy built app to Firebase Hosting"""
+        try:
+            logger.info("Starting Firebase deployment...")
+            loop = asyncio.get_event_loop()
+
+            # Run firebase deploy
+            code, out, err = await loop.run_in_executor(
+                None,
+                run_command,
+                "firebase deploy --only hosting",
+                cwd,
+                600,
+            )
+
+            if code == 0:
+                logger.info("Firebase deployment successful")
+                return {
+                    "status": "success",
+                    "message": "Deployed to Firebase Hosting"
+                }
+            else:
+                logger.error(f"Firebase deployment failed: {err}")
+                return {
+                    "status": "error",
+                    "message": f"Firebase deployment failed: {err[:200]}"
+                }
+        except Exception as e:
+            logger.error(f"Firebase deployment error: {e}")
+            return {
+                "status": "error",
+                "message": str(e)
+            }
 
     async def _run_git_push(self) -> tuple:
         """Push changes to GitHub"""
