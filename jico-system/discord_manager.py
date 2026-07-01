@@ -232,22 +232,24 @@ class DiscordManager(commands.Cog):
             # Post preview (split if too long for Discord)
             preview_msg = f"**Preview of changes:**\n```html\n{preview_html[:400]}\n```"
             await message.channel.send(preview_msg)
+        else:
+            await message.channel.send("⚠️ Preview generation skipped (cost limit or API issue). Proceeding with build...")
 
-            # Step 7: Ask for deployment confirmation with buttons
-            deploy_view = DeployView()
-            await message.channel.send(
-                "**Deploy to Firebase?**",
-                view=deploy_view
-            )
+        # Step 7: Ask for deployment confirmation with buttons
+        deploy_view = DeployView()
+        await message.channel.send(
+            "**Deploy to Firebase?**",
+            view=deploy_view
+        )
 
-            try:
-                await asyncio.wait_for(deploy_view.wait(), timeout=300)
-                if deploy_view.result == "cancel":
-                    await message.channel.send("❌ Deployment cancelled.")
-                    return
-            except asyncio.TimeoutError:
-                await message.channel.send("⏱️ Deploy confirmation timeout.")
+        try:
+            await asyncio.wait_for(deploy_view.wait(), timeout=300)
+            if deploy_view.result == "cancel":
+                await message.channel.send("❌ Deployment cancelled.")
                 return
+        except asyncio.TimeoutError:
+            await message.channel.send("⏱️ Deploy confirmation timeout.")
+            return
 
         # Step 7: Approved → queue task
         await message.add_reaction("✅")
@@ -277,7 +279,17 @@ class DiscordManager(commands.Cog):
             return None
 
         try:
-            # Call Haiku to generate realistic HTML mockup of the UI changes
+            loop = asyncio.get_event_loop()
+            html = await loop.run_in_executor(None, self._call_haiku_for_preview, action, target)
+            return html
+
+        except Exception as e:
+            logger.error(f"Failed to generate preview: {e}")
+            return None
+
+    def _call_haiku_for_preview(self, action: str, target: str) -> str:
+        """Synchronous Haiku API call (runs in executor thread)"""
+        try:
             prompt = f"""Generate a minimal HTML mockup (under 200 chars) showing the UI change for this task:
 
 Task: {action}
@@ -302,7 +314,7 @@ Return ONLY HTML code with the update preview. Make it visual and concise. Inclu
             return html
 
         except Exception as e:
-            logger.error(f"Failed to generate preview: {e}")
+            logger.error(f"Haiku API call failed: {e}")
             return None
 
     def detect_brand(self, user_input: str) -> str:
