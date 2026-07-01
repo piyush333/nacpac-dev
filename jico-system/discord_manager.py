@@ -10,6 +10,9 @@ from jico_manager import JicoManager
 from utils import OracleVMConnector, TaskScheduler
 from auto_mode import AutoTaskExecutor
 from config import Config
+from cost_tracker import CostTracker
+from model_selector import ModelSelector
+from session_manager import SessionManager
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +31,11 @@ class DiscordManager(commands.Cog):
         # Auto Mode - Autonomous task execution
         self.auto_executor = AutoTaskExecutor(self.compression, self.router, self)
         self.auto_mode_task = None
+
+        # Cost & Session Management
+        self.cost_tracker = CostTracker(monthly_limit=50.0, daily_limit=10.0)
+        self.session_manager = SessionManager()
+        self.model_selector = ModelSelector()
 
         # Channel references
         self.general_channel = None
@@ -84,58 +92,72 @@ class DiscordManager(commands.Cog):
 
     async def process_user_message(self, message):
         """
-        Manager intelligently reads user input in #general:
-        1. Decide: Nacpac or Jico?
-        2. Parse: What task?
-        3. Route: Queue to auto mode
-        4. Update: Post to appropriate channel
+        Manager workflow in #general:
+        1. Check if greeting → respond directly
+        2. If task → screen it (no API calls)
+        3. Summarize → ask approval in #general
+        4. Wait for yes/no → only then execute
         """
         user_input = message.content.strip()
         if not user_input or user_input.startswith("!"):
             return
 
         logger.info(f"Manager processing: {user_input}")
+
+        # Step 1: Check for greeting
+        if self.is_greeting(user_input):
+            await message.channel.send("Hi piyush, what is the agenda today!")
+            return
+
         await message.add_reaction("⏳")
 
-        # Step 1: Intelligently detect brand (Nacpac vs Jico)
+        # Step 2: Screen task (keyword-based, no API)
         brand = self.detect_brand(user_input)
-        logger.info(f"Detected brand: {brand}")
-
-        # Step 2: Compress message into task JSON
         task = self.compression.compress_message(user_input)
 
-        # Step 3: Override task_type based on brand detection if needed
         if brand == "nacpac":
             task["task_type"] = "nacpac"
         elif brand == "jico":
             task["task_type"] = "jico"
 
-        logger.info(f"Task: {task['task_type']}/{task['target']} - {task['action']}")
+        logger.info(f"Screened: {brand}/{task['target']} - {task['action']}")
 
-        # Step 4: Queue to auto mode
-        task_id = await self.auto_executor.queue_task(task)
+        # Step 3: Build summary (brief, no heavy API calls yet)
+        summary = f"I understood:\n• **Brand:** {brand.upper()}\n• **Target:** {task['target']}\n• **Action:** {task['action'][:80]}"
 
         await message.remove_reaction("⏳", self.bot.user)
-        await message.add_reaction("✅")
+        await message.channel.send(
+            f"{summary}\n\n**Proceed with build?** (reply: yes/no)"
+        )
 
-        # Step 5: Acknowledge in #general
+        # Step 4: Wait for approval (max 5 minutes)
+        def check(m):
+            return m.author == message.author and m.channel == message.channel and m.content.lower() in ["yes", "no"]
+
+        try:
+            approval = await self.bot.wait_for("message", check=check, timeout=300)
+            if approval.content.lower() == "no":
+                await message.channel.send("❌ Build cancelled. What would you like instead?")
+                return
+        except asyncio.TimeoutError:
+            await message.channel.send("⏱️ Approval timeout. Please resend your request.")
+            return
+
+        # Step 5: Approved → queue task
+        await message.add_reaction("✅")
+        task_id = await self.auto_executor.queue_task(task)
+
         brand_emoji = "📱" if brand == "nacpac" else "🎨"
         await message.channel.send(
             f"{brand_emoji} **{brand.upper()}** task queued\n"
             f"ID: `{task_id}`\n"
-            f"Action: {task['action'][:100]}...\n"
             f"Updates → #{brand}-dev"
         )
 
-        # Step 6: Post to brand channel (nacpac-dev or jico-dev)
-        brand_channel = self.nacpac_dev_channel if brand == "nacpac" else self.jico_dev_channel
-        if brand_channel:
-            await brand_channel.send(
-                f"📋 Task {task_id} started\n"
-                f"**Action:** {task['action']}\n"
-                f"**Target:** {task['target']}\n"
-                f"**Priority:** {task['priority']}"
-            )
+    def is_greeting(self, user_input: str) -> bool:
+        """Check if message is a casual greeting"""
+        greetings = ["hi", "hey", "hello", "yo", "sup", "what's up", "howdy", "greetings"]
+        return user_input.lower().strip() in greetings
 
     def detect_brand(self, user_input: str) -> str:
         """
