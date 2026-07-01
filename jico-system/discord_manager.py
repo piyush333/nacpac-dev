@@ -16,6 +16,7 @@ from config import Config
 from cost_tracker import CostTracker
 from model_selector import ModelSelector
 from session_manager import SessionManager
+from build_backup import BuildBackup
 
 logger = logging.getLogger(__name__)
 
@@ -120,6 +121,9 @@ class DiscordManager(commands.Cog):
 
         # API Client for preview generation
         self.anthropic_client = Anthropic(api_key=Config.ANTHROPIC_API_KEY)
+
+        # Build backup and rollback
+        self.build_backup = BuildBackup()
 
         # Channel references
         self.general_channel = None
@@ -506,10 +510,49 @@ Manager: "📱 NACPAC task queued. Updates → #nacpac-dev"
 - `!status` — System health
 - `!auto_mode status` — Pending tasks
 - `!auto_mode history` — Recent work
+- `!rollback <apk|exe>` — Rollback to last successful build
 
 Stay in #general. The bots handle the rest.
         """
         await ctx.send(help_msg)
+
+    @commands.command()
+    async def rollback(self, ctx, build_type: str = None):
+        """Rollback to last successful build if something broke"""
+        if not build_type or build_type.lower() not in ['apk', 'exe', 'both']:
+            await ctx.send("Usage: `!rollback apk` or `!rollback exe` or `!rollback both`")
+            return
+
+        await ctx.send(f"🔄 Checking last successful {build_type} build...")
+
+        build_type = build_type.lower()
+        backup_info = {}
+
+        if build_type in ['apk', 'both']:
+            last_apk = self.build_backup.get_last_build('apk')
+            if last_apk:
+                backup_info['apk'] = last_apk
+            else:
+                await ctx.send("❌ No APK backup found")
+
+        if build_type in ['exe', 'both']:
+            last_exe = self.build_backup.get_last_build('exe')
+            if last_exe:
+                backup_info['exe'] = last_exe
+            else:
+                await ctx.send("❌ No EXE backup found")
+
+        if not backup_info:
+            return
+
+        # Show backup info
+        msg = "🔄 **Rollback Options:**\n"
+        for btype, info in backup_info.items():
+            msg += f"📦 **{btype.upper()}** ({info['timestamp'][:10]})\n"
+            msg += f"   🔗 {info['url']}\n"
+
+        msg += "\n✅ Ready to deploy previous build. Send confirmation in #general or run the build task again."
+        await ctx.send(msg)
 
     @commands.command()
     async def auto_mode(self, ctx, action: str = "start"):

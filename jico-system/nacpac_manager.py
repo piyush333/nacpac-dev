@@ -7,6 +7,7 @@ from typing import Dict, Any
 import boto3
 from utils import R2Storage
 from config import Config
+from build_backup import BuildBackup
 
 logger = logging.getLogger(__name__)
 
@@ -149,11 +150,16 @@ class NacpacWorker:
                         if not url:
                             url = next((l.strip() for l in reversed(lines) if l.strip().startswith("https://")), None)
 
-                        results.append({
+                        result_item = {
                             "type": "apk",
                             "status": "success",
                             "url": url or "APK built but URL not found",
-                        })
+                        }
+                        results.append(result_item)
+
+                        # Save backup
+                        if url:
+                            self.backup.save_build("apk", "mobile-app.apk", url)
                     else:
                         results.append({
                             "type": "apk",
@@ -189,12 +195,16 @@ class NacpacWorker:
                             exe_path = str(exe_files[0])
                             try:
                                 r2_url = upload_to_r2(exe_path, f"desktop/{exe_files[0].name}")
-                                results.append({
+                                result_item = {
                                     "type": "exe",
                                     "status": "success",
                                     "url": r2_url,
                                     "filename": exe_files[0].name,
-                                })
+                                }
+                                results.append(result_item)
+
+                                # Save backup
+                                self.backup.save_build("exe", exe_files[0].name, r2_url)
                             except Exception as e:
                                 results.append({
                                     "type": "exe",
@@ -250,6 +260,7 @@ class NacpacManager:
             'ads': NacpacWorker('ads'),
             'build': NacpacWorker('build'),
         }
+        self.backup = BuildBackup()
 
     async def execute(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a Nacpac task by routing to appropriate worker"""
