@@ -61,6 +61,24 @@ class BuildTypeView(View):
         await interaction.response.defer()
         self.stop()
 
+class PreviewView(View):
+    """Generate preview yes/no buttons"""
+    def __init__(self):
+        super().__init__()
+        self.result = None
+
+    @discord.ui.button(label="✅ Generate Preview", style=discord.ButtonStyle.green)
+    async def yes_button(self, interaction: discord.Interaction, button: Button):
+        self.result = "yes"
+        await interaction.response.defer()
+        self.stop()
+
+    @discord.ui.button(label="⏭️ Skip Preview", style=discord.ButtonStyle.blurple)
+    async def no_button(self, interaction: discord.Interaction, button: Button):
+        self.result = "no"
+        await interaction.response.defer()
+        self.stop()
+
 class DeployView(View):
     """Deploy to Firebase buttons"""
     def __init__(self):
@@ -209,7 +227,31 @@ class DiscordManager(commands.Cog):
             await message.channel.send("⏱️ Approval timeout. Please resend your request.")
             return
 
-        # Step 5: If Nacpac → ask what to build with buttons
+        # Step 5: Ask if user wants HTML preview generation
+        preview_view = PreviewView()
+        await message.channel.send(
+            "**Generate HTML preview?** (uses Haiku API tokens)",
+            view=preview_view
+        )
+
+        preview_html = None
+        try:
+            await asyncio.wait_for(preview_view.wait(), timeout=300)
+            if preview_view.result == "yes":
+                await message.channel.send("📋 Generating UI preview with Haiku...")
+                preview_html = await self._generate_preview(task, brand)
+                if preview_html:
+                    preview_msg = f"**Preview of changes:**\n```html\n{preview_html[:400]}\n```"
+                    await message.channel.send(preview_msg)
+                else:
+                    await message.channel.send("⚠️ Preview generation failed (cost limit or API issue).")
+            else:
+                await message.channel.send("⏭️ Preview skipped.")
+        except asyncio.TimeoutError:
+            await message.channel.send("⏱️ Preview choice timeout.")
+            return
+
+        # Step 6: If Nacpac → ask what to build with buttons
         if brand == "nacpac":
             build_view = BuildTypeView()
             await message.channel.send(
@@ -223,17 +265,6 @@ class DiscordManager(commands.Cog):
             except asyncio.TimeoutError:
                 await message.channel.send("⏱️ Build choice timeout.")
                 return
-
-        # Step 6: Generate HTML preview of changes (uses Haiku)
-        await message.channel.send("📋 Generating UI preview with Haiku...")
-        preview_html = await self._generate_preview(task, brand)
-
-        if preview_html:
-            # Post preview (split if too long for Discord)
-            preview_msg = f"**Preview of changes:**\n```html\n{preview_html[:400]}\n```"
-            await message.channel.send(preview_msg)
-        else:
-            await message.channel.send("⚠️ Preview generation skipped (cost limit or API issue). Proceeding with build...")
 
         # Step 7: Ask for deployment confirmation with buttons
         deploy_view = DeployView()
