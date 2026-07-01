@@ -189,7 +189,7 @@ class DiscordManager(commands.Cog):
     async def post_task_result(self, task: Dict[str, Any], result: Dict[str, Any]):
         """
         Post task result to appropriate channel:
-        - Task updates → #nacpac-dev or #jico-dev
+        - Build results → #nacpac-dev or #jico-dev (with download links)
         - Logs → #logs
         - Reports → #reports
         """
@@ -218,16 +218,38 @@ class DiscordManager(commands.Cog):
             f"Target: {task.get('target', 'unknown')}\n"
         )
 
-        # Add result details
+        # Add result details with special formatting for builds
         if status == "success":
             if "builds" in result:
-                for build in result.get("builds", []):
+                builds = result.get("builds", [])
+                result_msg += "\n**📥 DOWNLOADS:**\n"
+
+                apk_url = None
+                exe_url = None
+
+                for build in builds:
                     if build.get("status") == "success":
-                        result_msg += f"📦 {build['type'].upper()}: {build.get('url', 'built')}\n"
-            if "summary" in result:
-                result_msg += f"📝 {result['summary'][:200]}\n"
+                        build_type = build.get('type', '').upper()
+                        url = build.get('url', '')
+
+                        if build_type == "APK":
+                            apk_url = url
+                            result_msg += f"📱 **APK:** [{url}]({url})\n"
+                        elif build_type == "EXE":
+                            exe_url = url
+                            result_msg += f"🖥️ **EXE:** [{url}]({url})\n"
+                    else:
+                        error = build.get('error', 'Unknown error')
+                        result_msg += f"❌ {build.get('type', 'Build').upper()} failed: {error}\n"
+
+                # Add summary if available
+                if "summary" in result:
+                    result_msg += f"\n📝 **Summary:** {result['summary'][:200]}\n"
+            else:
+                if "summary" in result:
+                    result_msg += f"📝 {result['summary'][:200]}\n"
         elif status == "error":
-            result_msg += f"❌ Error: {result.get('error', 'Unknown error')}\n"
+            result_msg += f"\n❌ **Error:** {result.get('error', 'Unknown error')}\n"
 
         try:
             await channel.send(result_msg)
