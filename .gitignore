@@ -19,3 +19,4 @@ token.json
 node_modules/
 dist/
 build/
+jico-system/google_credentials.json
