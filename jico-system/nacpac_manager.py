@@ -126,74 +126,93 @@ class NacpacWorker:
 
             # Build APK if requested
             if build_type in ('apk', 'both'):
-                logger.info("Building APK...")
-                code, out, err = await self._run_async(
-                    "eas build --platform android --profile preview --non-interactive",
-                    cwd=Config.MOBILE_DIR,
-                    timeout=1800,
-                )
-
-                if code == 0:
-                    # Extract download URL from output
-                    lines = out.split("\n")
-                    url = next((l.strip() for l in lines if l.strip().startswith("https://") and "apk" in l.lower()), None)
-                    if not url:
-                        url = next((l.strip() for l in reversed(lines) if l.strip().startswith("https://")), None)
-
+                # Check if mobile directory exists
+                if not Path(Config.MOBILE_DIR).exists():
+                    logger.warning(f"Mobile directory not found: {Config.MOBILE_DIR}")
                     results.append({
                         "type": "apk",
-                        "status": "success",
-                        "url": url or "APK built but URL not found",
+                        "status": "skipped",
+                        "message": "Mobile app not set up on this instance",
                     })
                 else:
-                    results.append({
-                        "type": "apk",
-                        "status": "error",
-                        "error": (err or out)[-400:],
-                    })
+                    logger.info("Building APK...")
+                    code, out, err = await self._run_async(
+                        "eas build --platform android --profile preview --non-interactive",
+                        cwd=Config.MOBILE_DIR,
+                        timeout=1800,
+                    )
+
+                    if code == 0:
+                        # Extract download URL from output
+                        lines = out.split("\n")
+                        url = next((l.strip() for l in lines if l.strip().startswith("https://") and "apk" in l.lower()), None)
+                        if not url:
+                            url = next((l.strip() for l in reversed(lines) if l.strip().startswith("https://")), None)
+
+                        results.append({
+                            "type": "apk",
+                            "status": "success",
+                            "url": url or "APK built but URL not found",
+                        })
+                    else:
+                        results.append({
+                            "type": "apk",
+                            "status": "error",
+                            "error": (err or out)[-400:],
+                        })
 
             # Build EXE if requested
             if build_type in ('exe', 'both'):
-                logger.info("Building EXE...")
-                code, out, err = await self._run_async(
-                    "npm run build",
-                    cwd=Config.DESKTOP_DIR,
-                    timeout=300,
-                )
+                # Check if npm is available
+                npm_check, _, _ = await self._run_async("which npm", timeout=5)
+                if npm_check != 0:
+                    logger.warning("npm not found on this instance")
+                    results.append({
+                        "type": "exe",
+                        "status": "skipped",
+                        "message": "npm not installed on this instance. Run: sudo apt-get install -y nodejs npm",
+                    })
+                else:
+                    logger.info("Building EXE...")
+                    code, out, err = await self._run_async(
+                        "npm run build",
+                        cwd=Config.DESKTOP_DIR,
+                        timeout=300,
+                    )
 
-                if code == 0:
-                    # Find and upload EXE
-                    dist_dir = Path(Config.DESKTOP_DIR) / "dist"
-                    exe_files = list(dist_dir.glob("*.exe"))
+                    if code == 0:
+                        # Find and upload EXE
+                        dist_dir = Path(Config.DESKTOP_DIR) / "dist"
+                        exe_files = list(dist_dir.glob("*.exe"))
 
-                    if exe_files:
-                        exe_path = str(exe_files[0])
-                        try:
-                            r2_url = upload_to_r2(exe_path, f"desktop/{exe_files[0].name}")
-                            results.append({
-                                "type": "exe",
-                                "status": "success",
-                                "url": r2_url,
-                                "filename": exe_files[0].name,
-                            })
-                        except Exception as e:
+                        if exe_files:
+                            exe_path = str(exe_files[0])
+                            try:
+                                r2_url = upload_to_r2(exe_path, f"desktop/{exe_files[0].name}")
+                                results.append({
+                                    "type": "exe",
+                                    "status": "success",
+                                    "url": r2_url,
+                                    "filename": exe_files[0].name,
+                                })
+                            except Exception as e:
+                                results.append({
+                                    "type": "exe",
+                                    "status": "error",
+                                    "error": f"Upload failed: {str(e)}",
+                                })
+                        else:
                             results.append({
                                 "type": "exe",
                                 "status": "error",
-                                "error": f"Upload failed: {str(e)}",
+                                "error": "No .exe found in dist/",
                             })
                     else:
                         results.append({
                             "type": "exe",
                             "status": "error",
-                            "error": "No .exe found in dist/",
+                            "error": (err or out)[-300:],
                         })
-                else:
-                    results.append({
-                        "type": "exe",
-                        "status": "error",
-                        "error": (err or out)[-300:],
-                    })
 
             # Deploy to Firebase if requested
             if deploy_to_firebase and any(b.get("status") == "success" for b in results):
