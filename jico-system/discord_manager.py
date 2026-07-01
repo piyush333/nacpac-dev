@@ -270,22 +270,6 @@ class DiscordManager(commands.Cog):
                 await message.channel.send("⏱️ Build choice timeout.")
                 return
 
-        # Step 7: Ask for deployment confirmation with buttons
-        deploy_view = DeployView()
-        await message.channel.send(
-            "**Deploy to Firebase?**",
-            view=deploy_view
-        )
-
-        try:
-            await asyncio.wait_for(deploy_view.wait(), timeout=300)
-            if deploy_view.result == "cancel":
-                await message.channel.send("❌ Deployment cancelled.")
-                return
-        except asyncio.TimeoutError:
-            await message.channel.send("⏱️ Deploy confirmation timeout.")
-            return
-
         # Step 7: Approved → queue task
         await message.add_reaction("✅")
         task_id = await self.auto_executor.queue_task(task)
