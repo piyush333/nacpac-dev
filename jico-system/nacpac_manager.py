@@ -8,6 +8,7 @@ import boto3
 from utils import R2Storage
 from config import Config
 from build_backup import BuildBackup
+from google_drive_backup import GoogleDriveBackup
 
 logger = logging.getLogger(__name__)
 
@@ -234,6 +235,12 @@ class NacpacWorker:
                     "message": firebase_result.get("message", "Deployment unknown"),
                 })
 
+            # Backup to Google Drive if builds succeeded
+            if any(b.get("status") == "success" for b in results):
+                logger.info("Backing up to Google Drive...")
+                loop = asyncio.get_event_loop()
+                await loop.run_in_executor(None, self.gdrive_backup.backup_folder, Config.NACPAC_DIR, "nacpac-build")
+
             return {
                 "status": "success",
                 "worker": "build",
@@ -261,6 +268,7 @@ class NacpacManager:
             'build': NacpacWorker('build'),
         }
         self.backup = BuildBackup()
+        self.gdrive_backup = GoogleDriveBackup()
 
     async def execute(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a Nacpac task by routing to appropriate worker"""
