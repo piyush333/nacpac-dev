@@ -24,7 +24,11 @@ fi
 
 echo -e "${YELLOW}Step 1: Update system packages${NC}"
 sudo apt-get update -qq
-sudo apt-get install -y -qq python3 python3-pip nodejs npm git curl
+sudo apt-get install -y -qq python3 python3-pip git curl
+
+echo "  Installing Node.js 18.x..."
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt-get install -y -qq nodejs
 
 echo -e "${GREEN}✓ System packages installed${NC}"
 echo ""
