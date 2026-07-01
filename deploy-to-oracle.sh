@@ -3,8 +3,8 @@
 
 set -e
 
-ORACLE_IP="129.154.42.154"
-ORACLE_USER="opc"
+ORACLE_IP="129.159.226.67"
+ORACLE_USER="ubuntu"
 ORACLE_KEY="$HOME/.ssh/oracle_key.key"
 REMOTE_DIR="/home/ubuntu/nacpac-dev"
 

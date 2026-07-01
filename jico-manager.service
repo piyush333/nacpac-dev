@@ -1,6 +1,6 @@
 [Unit]
 Description=JICO Discord Manager Bot
-Documentation=file:///home/user/nacpac-dev/DEPLOYMENT_GUIDE.md
+Documentation=file:///home/ubuntu/nacpac-dev/DEPLOYMENT_GUIDE.md
 After=network.target
 StartLimitIntervalSec=60
 StartLimitBurst=3
@@ -8,9 +8,9 @@ StartLimitBurst=3
 [Service]
 Type=simple
 User=ubuntu
-WorkingDirectory=/home/user/nacpac-dev/jico-system
+WorkingDirectory=/home/ubuntu/nacpac-dev/jico-system
 Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-EnvironmentFile=/home/user/nacpac-dev/jico-system/.env
+EnvironmentFile=/home/ubuntu/nacpac-dev/jico-system/.env
 ExecStart=/usr/bin/python3 main.py
 Restart=on-failure
 RestartSec=10
