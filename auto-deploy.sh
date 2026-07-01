@@ -15,9 +15,10 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# Check if running as opc user
-if [ "$(whoami)" != "opc" ]; then
-    echo -e "${RED}Error: Must run as opc user${NC}"
+# Check if running as opc or ubuntu user
+CURRENT_USER=$(whoami)
+if [ "$CURRENT_USER" != "opc" ] && [ "$CURRENT_USER" != "ubuntu" ]; then
+    echo -e "${RED}Error: Must run as opc or ubuntu user${NC}"
     exit 1
 fi
 
@@ -127,7 +128,9 @@ echo ""
 
 echo -e "${YELLOW}Step 7: Create systemd service${NC}"
 
-sudo tee /etc/systemd/system/jico-manager.service > /dev/null << 'SYSTEMD_EOF'
+HOME_DIR="/home/$CURRENT_USER"
+
+sudo tee /etc/systemd/system/jico-manager.service > /dev/null << SYSTEMD_EOF
 [Unit]
 Description=JICO Discord Manager Bot
 After=network.target
@@ -135,12 +138,12 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=opc
-WorkingDirectory=/home/opc/nacpac-dev/jico-system
-ExecStart=/usr/bin/python3 /home/opc/nacpac-dev/jico-system/discord_manager.py
+User=$CURRENT_USER
+WorkingDirectory=$HOME_DIR/nacpac-dev/jico-system
+ExecStart=/usr/bin/python3 $HOME_DIR/nacpac-dev/jico-system/discord_manager.py
 
 # Load environment variables from ~/.env
-EnvironmentFile=/home/opc/.env
+EnvironmentFile=$HOME_DIR/.env
 
 # Logging
 StandardOutput=journal
