@@ -29,7 +29,12 @@ class MemoryClient:
             self.client = None
             return
 
-        self.client = create_client(SUPABASE_URL, SUPABASE_KEY)
+        try:
+            self.client = create_client(SUPABASE_URL, SUPABASE_KEY)
+            logger.info("✅ Supabase client initialized")
+        except Exception as e:
+            logger.error(f"Failed to initialize Supabase client: {e}")
+            self.client = None
 
     def create_task(
         self,
