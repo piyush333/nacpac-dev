@@ -36,9 +36,51 @@ Append-only log of decisions made during agentic system build.
 **Rationale:** User is familiar with Discord bot flow; existing jico-system has proven button-based UX; async communication suits agent execution.  
 **Owner:** Piyush
 
+### Decision 6: Deployment (Remote, always-on)
+**Date:** 2026-07-02  
+**Decision:** Agentic system runs on Oracle Cloud VM (systemd service), not on dev machine. Always-on, independent.  
+**Rationale:** Agents can work while user is offline. No single machine dependency. Failsafe recovery built-in.  
+**Owner:** Piyush
+
+### Decision 7: Approval gates (Discord buttons)
+**Date:** 2026-07-02  
+**Decision:** Before any build/deploy, agent shows Discord approval buttons (Y/N). No auto-execution.  
+**Rationale:** Safety gate. Audit trail. Prevents accidental builds. Clear UX.  
+**Owner:** Piyush
+
+### Decision 8: Failsafe mechanisms
+**Date:** 2026-07-02  
+**Decision:** Dead letter queue (failed tasks saved) + auto-retry (exponential backoff) + health monitor (5-min checks, auto-restart) + Discord alerts.  
+**Rationale:** System resilient to crashes. No task loss. Auto-recovery. User stays informed.  
+**Owner:** Piyush
+
+### Decision 9: Multi-platform backup (3 targets)
+**Date:** 2026-07-02  
+**Decision:** Every build artifact backed up to R2 + Google Drive + GitHub Releases.  
+**Rationale:** No single point of failure. Each platform accessible from different contexts (R2 = fast, GDrive = familiar, GitHub = versioned).  
+**Owner:** Piyush
+
+### Decision 10: Token optimization
+**Date:** 2026-07-02  
+**Decision:** Haiku for cheap ops (screening, formatting), Sonnet for reasoning (dev agent). Track every token. Enforce $10/day + $50/month caps.  
+**Rationale:** Cost control. Use smarter model only when needed. Stay within budget.  
+**Owner:** Piyush
+
+### Decision 11: Brand repos (same workspace)
+**Date:** 2026-07-02  
+**Decision:** Both NacPac and Jico Life code in `nacpac-workspace-main/` (same git repo).  
+**Rationale:** Simplified tooling. Shared utils/config. Easier monorepo management.  
+**Owner:** Piyush
+
+### Decision 12: Jico Life AR build
+**Date:** 2026-07-02  
+**Decision:** Jico Life AR is a static site hosted on Netlify. No build step. Deploy via git push → GitHub webhook → Netlify auto-deploys.  
+**Rationale:** Simpler than EAS. Faster deploys. Netlify handles infrastructure.  
+**Owner:** Piyush
+
 ---
 
-## Pending Clarifications (Phase 1)
+## Pending Clarifications (before Phase 1 start)
 
 Before Phase 1 starts, confirm with user:
 - **Jico Life repo location**: Same workspace (nacpac-workspace-main/) or separate repo?

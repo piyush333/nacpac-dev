@@ -10,7 +10,7 @@
 | Brand | Purpose | Repo | Tech Stack | Current Status |
 |-------|---------|------|-----------|-----------------|
 | **NacPac** | Sticker printing & packaging (India) | `nacpac-workspace-main/` | Mobile: Expo/React Native, Desktop: Electron, Web: HTML/CSS/JS | ✅ APK + EXE in production |
-| **Jico Life** | Acoustic felt decor | TBD (same workspace or separate?) | AR app (toolchain TBD) | ✅ AR app in production |
+| **Jico Life** | Acoustic felt decor + AR try-on | `nacpac-workspace-main/` (same workspace) | AR: Static HTML + model-viewer (Google), hosted on Netlify, 3D models (GLB) from Google Drive renders | ✅ AR web app in production (Netlify) |
 
 ---
 
@@ -41,6 +41,11 @@
 | 2026-07-02 | Memory: Supabase + git markdown mirror | Hybrid: durable DB + human-readable docs | Piyush |
 | 2026-07-02 | Runtime: Claude Agent SDK (Python) | Orchestration, subagents, tool calling, memory built-in | Piyush |
 | 2026-07-02 | Interface: Discord | User familiar, existing bot setup, button UX proven | Piyush |
+| 2026-07-02 | Deployment: Remote (systemd on Oracle VM, not local machine) | Always-on, recoverable, independent of dev machine | Piyush |
+| 2026-07-02 | Approval: Discord buttons (Y/N) before builds/deploys | Clear UX, audit trail, prevents accidental deploys | Piyush |
+| 2026-07-02 | Failsafe: Dead letter queue + auto-retry + health monitor | Graceful degradation; system recovers from crashes | Piyush |
+| 2026-07-02 | Backup: 3-platform (R2 + Google Drive + GitHub Releases) | No single point of failure; accessible from multiple places | Piyush |
+| 2026-07-02 | Token optimization: Haiku for screening/routing, Sonnet for reasoning | Cost control; use smarter model only when needed | Piyush |
 
 ---
 
@@ -54,23 +59,86 @@
 
 ---
 
+## Build Commands & Deployment
+
+### NacPac (nacpac-workspace-main/)
+| Target | Command | Approval | Backup to |
+|--------|---------|----------|-----------|
+| **APK** | `eas build --platform android --profile preview --non-interactive` | Manual | R2 + GDrive + GitHub Releases |
+| **EXE** | `cd desktop && npm run build` | Manual | R2 + GDrive + GitHub Releases |
+| Deploy to staging | SCP to staging server + systemd restart | Manual | Documented in Supabase |
+| Deploy to prod | SCP to prod + systemd restart | Manual + double-confirm | Documented in Supabase |
+
+### Jico Life (nacpac-workspace-main/)
+| Target | Command | Approval | Backup to |
+|--------|---------|----------|-----------|
+| **AR Web** | Git push → GitHub → Netlify webhook auto-deploys | Manual (git commit) | Git + Netlify (auto) + GitHub Releases |
+| **GLB Models** | `python scripts/build_glb.py [render.png]` → save to `/assets` | Manual | R2 + GDrive + GitHub |
+| Deploy to prod | Git merge to main → Netlify deploys automatically | Manual | Same as above |
+
+---
+
 ## Next Phase (Phase 1)
 
 **Goal:** Dev agents for NacPac & Jico Life, working end-to-end.
 
 **Steps:**
 1. Create `agentic/` package (config, memory client, tools)
-2. Build NacPac Dev Agent (git, build APK/EXE, deploy)
-3. Build Jico Life Dev Agent (git, build AR app, deploy)
-4. Build Orchestrator (intent parsing, routing, memory management)
-5. Discord gateway (thin bot, slash commands)
-6. Test end-to-end: request → agent → build → deploy → report
+2. Build NacPac Dev Agent (git, build APK/EXE via eas/npm, deploy with approval)
+3. Build Jico Life Dev Agent (git, build GLB models via Python script, deploy via Netlify webhook)
+4. Build Orchestrator (intent parsing, routing, memory management, token tracking)
+5. Discord gateway (thin bot, slash commands, approval buttons)
+6. Failsafe layer (dead letter queue, auto-retry, health monitor, alerts)
+7. Backup automation (upload to R2 + GDrive + GitHub on every build)
+8. Test end-to-end: request → agent → build → approve → deploy → backup → report
 
-**Clarifications needed before Phase 1:**
-- Jico Life repo: same workspace or separate?
-- AR app build toolchain: EAS? custom?
-- Approval flow: Discord buttons or text confirmation?
-- Model choice: Haiku (cheap) or Sonnet (smarter) for dev tasks?
+**Clarifications resolved:**
+- ✅ Jico Life repo: same workspace (nacpac-workspace-main/)
+- ✅ AR app build: Static site + Netlify deploy (no build step; git push triggers deploy)
+- ✅ Approval flow: Discord buttons (Y/N)
+- ✅ Model choice: Haiku for screening/routing, Sonnet for dev reasoning (smart default)
+
+---
+
+## Remote Deployment Architecture
+
+**System runs on:** Oracle Cloud VM (Ubuntu, IP: 68.233.110.235, user: ubuntu)  
+**How:** systemd service (`jico-agentic.service`) runs Python agent system 24/7  
+**Recovery:** Health check every 5 min; auto-restart if down; Discord alert if unhealthy > 15 min
+
+### Failsafe Strategy
+1. **Dead Letter Queue**: Failed tasks go to `failed_tasks` table in Supabase (not lost)
+2. **Auto-retry**: Exponential backoff (2s, 4s, 8s, 16s) up to 3 attempts
+3. **Health Monitor**: Ping Discord every 5 min; if no response → auto-restart service
+4. **Rollback**: Every successful build saved; `!rollback nacpac-apk` restores last good version
+5. **Alerts**: System status sent to Discord; critical errors @-mention you
+
+### Multi-Platform Backup
+- **R2 (Cloudflare)**: Fast access, build artifacts + metadata
+- **Google Drive**: Accessible, human-readable, full backup of builds + logs
+- **GitHub Releases**: Versioned, public-accessible, tagged releases for important builds
+
+All three are populated automatically after every successful build.
+
+---
+
+## Token Optimization Strategy
+
+**Model selection:**
+- **Haiku** (cheap): Task screening, intent classification, memory reads, result formatting
+- **Sonnet** (smart): Dev agent reasoning, complex code understanding, multi-step decisions
+
+**Optimization tactics:**
+1. Cache agent system prompts (reuse same prompt for multiple tasks)
+2. Compress old task history before storing (summarize completed tasks)
+3. Batch API calls (don't call model once per step; batch related steps)
+4. Track every token in Supabase (`runs` table); alert if approaching cap
+5. Use tool calling instead of generating text when possible (cheaper, more deterministic)
+
+**Cost gates:**
+- Daily cap: $10/day (hard stop; no more calls if exceeded)
+- Monthly cap: $50/month (soft warning at 80%)
+- Per-task budget: Tasks over $0.50 need explicit approval
 
 ---
 
@@ -78,9 +146,10 @@
 
 1. **Before each session**: Read this file top-to-bottom. Know the org structure, locked decisions, and next steps.
 2. **After each session**: Update MEMORY.md + DECISIONS.md with new decisions + progress. Commit + push.
-3. **Before builds/deploys**: Ask user for explicit approval.
+3. **Before builds/deploys**: Ask user for explicit approval (via Discord buttons).
 4. **Use git branches**: All work on `claude/agentic-system-org-j9gvae`; commit frequently.
 5. **Keep Supabase in sync**: Every task creation, run completion, or decision goes to Supabase. MEMORY.md mirrors for humans.
+6. **Track tokens**: Every Anthropic API call logged to Supabase with model + token count + cost. Alert if approaching cap.
 
 ---
 
