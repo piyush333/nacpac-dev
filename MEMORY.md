@@ -78,19 +78,30 @@
 
 ---
 
-## Next Phase (Phase 1)
+## Next Phase (Phase 1) — Automation-First Build
 
-**Goal:** Dev agents for NacPac & Jico Life, working end-to-end.
+**Goal:** Dev agents for NacPac & Jico Life, fully automated with manual gates only for production/cost/security.
+
+**Automation Scope:**
+- ✅ Auto-detect code changes
+- ✅ Auto-build (APK/EXE/GLB)
+- ✅ Auto-deploy to staging
+- ✅ Auto-backup (R2 + GDrive + GitHub)
+- ✅ Auto-retry on failures
+- ✅ Auto-update memory + logs
+- ✅ Auto-heal from crashes
+- 🟡 Manual approval ONLY: production deploys, cost exceeds limit, security-sensitive changes
 
 **Steps:**
-1. Create `agentic/` package (config, memory client, tools)
-2. Build NacPac Dev Agent (git, build APK/EXE via eas/npm, deploy with approval)
-3. Build Jico Life Dev Agent (git, build GLB models via Python script, deploy via Netlify webhook)
-4. Build Orchestrator (intent parsing, routing, memory management, token tracking)
-5. Discord gateway (thin bot, slash commands, approval buttons)
-6. Failsafe layer (dead letter queue, auto-retry, health monitor, alerts)
-7. Backup automation (upload to R2 + GDrive + GitHub on every build)
-8. Test end-to-end: request → agent → build → approve → deploy → backup → report
+1. Create `agentic/` package (config, memory client, auto-executing tools)
+2. Build NacPac Dev Agent (git, auto-build APK/EXE, auto-deploy to staging, manual gate for prod)
+3. Build Jico Life Dev Agent (git, auto-build GLB, auto-push to staging branch, manual gate for main)
+4. Build Orchestrator (intent parsing, routing, auto-execution, memory management, token tracking)
+5. Discord gateway (thin bot, slash commands, approval buttons for manual gates only)
+6. Failsafe layer (auto dead letter queue, auto-retry with backoff, auto-health monitor, auto-alerts)
+7. Backup automation (auto-upload to R2 + GDrive + GitHub on every successful build)
+8. Systemd service (auto-start on boot, auto-restart on crash, auto-log rotation)
+9. Test end-to-end: request → auto-build → auto-deploy-to-staging → manual-approve-for-prod → auto-deploy → auto-backup → auto-report
 
 **Clarifications resolved:**
 - ✅ Jico Life repo: same workspace (nacpac-workspace-main/)

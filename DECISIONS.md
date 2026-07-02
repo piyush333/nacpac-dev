@@ -78,6 +78,21 @@ Append-only log of decisions made during agentic system build.
 **Rationale:** Simpler than EAS. Faster deploys. Netlify handles infrastructure.  
 **Owner:** Piyush
 
+### Decision 13: Maximum automation, minimal manual intervention
+**Date:** 2026-07-02  
+**Decision:** Agent system auto-executes as much as possible. Manual deployments/script uploads only if technically impossible. Approval gates only for: production deploys, cost overruns, security decisions.  
+**Rationale:** User wants "set it and forget it". System should be intelligent enough to handle most tasks without escalation. Only interrupt for truly exceptional cases.  
+**Owner:** Piyush
+
+**Implementation:**
+- Auto-deploy to staging ✅
+- Auto-retry on transient failures ✅
+- Auto-backup after every build ✅
+- Auto-heal on crashes ✅
+- Auto-update memory/logs ✅
+- Manual approval ONLY for: production deploys, exceeding daily/monthly cap, security-sensitive changes
+- Zero manual script uploads — everything runs in the agent
+
 ---
 
 ## Pending Clarifications (before Phase 1 start)
