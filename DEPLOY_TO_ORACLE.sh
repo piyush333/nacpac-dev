@@ -76,10 +76,11 @@ echo ""
 echo -e "${YELLOW}4. Setting up Python environment...${NC}"
 ssh_cmd "
 cd /home/ubuntu/nacpac-dev/agentic
+rm -rf venv
 python3 -m venv venv
 source venv/bin/activate
-pip install --upgrade pip
-pip install -r requirements.txt
+pip install --upgrade pip setuptools wheel > /dev/null
+pip install -r requirements.txt > /dev/null
 echo 'Python environment ready'
 "
 echo -e "${GREEN}✅ Python environment created${NC}"
@@ -107,15 +108,21 @@ echo -e "${YELLOW}6. Testing Supabase connection...${NC}"
 ssh_cmd "
 cd /home/ubuntu/nacpac-dev/agentic
 source venv/bin/activate
-python3 -c \"
-from memory import memory
-from config import validate_config
-validate_config()
-state = memory.get_brand_state('nacpac')
-print('✅ Supabase connected')
-print(f'  Brand: nacpac, Branch: {state.get(\\\"current_branch\\\")}')
-\" 2>&1 || echo '⚠️  Supabase test skipped (may need schema setup)'
-"
+python3 << 'PYEOF'
+try:
+    from memory import memory
+    from config import validate_config
+    validate_config()
+    state = memory.get_brand_state('nacpac')
+    if state:
+        print('✅ Supabase connected')
+        print(f\"  Brand: nacpac, Branch: {state.get('current_branch')}\")
+    else:
+        print('⚠️  Supabase available but no brand state (schema may need setup)')
+except Exception as e:
+    print(f'⚠️  Supabase test failed: {e}')
+PYEOF
+" 2>&1
 echo -e "${GREEN}✅ Supabase test complete${NC}"
 
 # 7. Install systemd service
