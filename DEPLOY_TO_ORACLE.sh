@@ -6,7 +6,7 @@ set -e
 
 # Configuration
 ORACLE_IP="144.24.129.201"
-SSH_KEY_PATH="./sshkey20260702.key"
+SSH_KEY_PATH="./ssh-key-2026-07-02.key"
 ORACLE_USER="ubuntu"
 REPO_URL="https://github.com/piyush333/nacpac-dev.git"
 REPO_BRANCH="claude/agentic-system-org-j9gvae"
