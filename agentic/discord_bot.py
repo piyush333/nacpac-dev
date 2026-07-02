@@ -8,7 +8,8 @@ from datetime import datetime
 
 from config import (
     DISCORD_TOKEN, DISCORD_GUILD_ID, ALLOWED_USER_ID,
-    DISCORD_GENERAL_CHANNEL_ID, DISCORD_BUILDS_CHANNEL_ID
+    DISCORD_NACPAC_BUILDS_CHANNEL_ID, DISCORD_NACPAC_DEPLOYS_CHANNEL_ID,
+    DISCORD_JICO_BUILDS_CHANNEL_ID, DISCORD_JICO_DEPLOYS_CHANNEL_ID
 )
 from agents import orchestrator, nacpac_dev_agent, jico_life_dev_agent
 from memory import memory
@@ -19,6 +20,22 @@ logger = logging.getLogger(__name__)
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
+
+def get_channel_id(brand: str, message_type: str) -> int:
+    """Get Discord channel ID based on brand and message type.
+
+    message_type: 'builds' or 'deploys'
+    """
+    if brand.lower() == "jico_life" or "jico" in brand.lower():
+        if message_type == "builds":
+            return DISCORD_JICO_BUILDS_CHANNEL_ID
+        else:  # deploys
+            return DISCORD_JICO_DEPLOYS_CHANNEL_ID
+    else:  # nacpac
+        if message_type == "builds":
+            return DISCORD_NACPAC_BUILDS_CHANNEL_ID
+        else:  # deploys
+            return DISCORD_NACPAC_DEPLOYS_CHANNEL_ID
 
 
 @bot.event
