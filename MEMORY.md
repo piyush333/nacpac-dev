@@ -167,12 +167,21 @@ All three are populated automatically after every successful build.
 
 ## Session Protocol
 
+### ⚠️ CRITICAL APPROVAL PROTOCOL
+**Do NOT plan or act unless explicit approval is given.**
+- Before proposing changes, designing systems, or executing work: wait for user's say-so
+- When user says "do not plan or act unless you have my say so" — this applies to ALL subsequent work
+- Wait for explicit approval on every major decision (design, implementation, deployment)
+- Every time: ask if user wants to proceed, review architecture, change approach, etc.
+
+### Standard Protocol
 1. **Before each session**: Read this file top-to-bottom. Know the org structure, locked decisions, and next steps.
 2. **After each session**: Update MEMORY.md + DECISIONS.md with new decisions + progress. Commit + push.
-3. **Before builds/deploys**: Ask user for explicit approval (via Discord buttons).
-4. **Use git branches**: All work on `claude/agentic-system-org-j9gvae`; commit frequently.
-5. **Keep Supabase in sync**: Every task creation, run completion, or decision goes to Supabase. MEMORY.md mirrors for humans.
-6. **Track tokens**: Every Anthropic API call logged to Supabase with model + token count + cost. Alert if approaching cap.
+3. **Before proposing/planning**: Ask user for explicit approval before moving forward
+4. **Before builds/deploys**: Ask user for explicit approval (via Discord buttons or direct confirmation).
+5. **Use git branches**: All work on `claude/agentic-system-org-j9gvae`; commit frequently.
+6. **Keep Supabase in sync**: Every task creation, run completion, or decision goes to Supabase. MEMORY.md mirrors for humans.
+7. **Track tokens**: Every Anthropic API call logged to Supabase with model + token count + cost. Alert if approaching cap.
 
 ---
 
