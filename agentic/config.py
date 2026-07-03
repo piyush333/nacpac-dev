@@ -63,17 +63,24 @@ SSH_KEY_PATH = os.getenv("SSH_KEY_PATH")
 # Validation
 def validate_config():
     """Ensure all required env vars are set."""
+    # Core requirements (Discord bot + API)
     required = [
         "ANTHROPIC_API_KEY",
-        "SUPABASE_URL",
-        "SUPABASE_KEY",
         "DISCORD_TOKEN",
         "DISCORD_GUILD_ID",
         "ALLOWED_USER_ID",
+        "DISCORD_GENERAL_CHANNEL_ID",
     ]
     missing = [k for k in required if not os.getenv(k)]
     if missing:
         raise ValueError(f"Missing env vars: {', '.join(missing)}")
+
+    # Optional but warn if missing (memory + logging)
+    optional = ["SUPABASE_URL", "SUPABASE_KEY"]
+    missing_optional = [k for k in optional if not os.getenv(k)]
+    if missing_optional:
+        print(f"⚠️  Warning: Optional env vars missing: {', '.join(missing_optional)}")
+        print("   Memory features will be disabled")
 
 if __name__ == "__main__":
     validate_config()
