@@ -1,8 +1,7 @@
-"""Discord bot for Jico agentic system."""
+"""Discord bot for Jico agentic system - natural language conversation with manager agent."""
 
 import discord
 from discord.ext import commands
-from discord import app_commands
 import logging
 from datetime import datetime
 
@@ -39,64 +38,76 @@ def get_channel_id(brand: str, message_type: str) -> int:
 @bot.event
 async def on_ready():
     logger.info(f"✅ Bot logged in as {bot.user}")
-    try:
-        synced = await bot.tree.sync()
-        logger.info(f"Synced {len(synced)} command(s)")
-    except Exception as e:
-        logger.error(f"Failed to sync commands: {e}")
 
 
-@bot.tree.command(name="task", description="Submit a task to the agentic system")
-@app_commands.describe(brand="nacpac or jico_life", request="What should the agent do?")
-async def task_command(interaction: discord.Interaction, brand: str, request: str):
-    """Submit a task. Example: /task brand:nacpac request:Build APK for v2.1"""
-
-    # Check permissions
-    if interaction.user.id != ALLOWED_USER_ID:
-        await interaction.response.send_message("❌ You don't have permission to use this command", ephemeral=True)
+@bot.event
+async def on_message(message: discord.Message):
+    """Listen to messages in #general and route to orchestrator."""
+    # Ignore bot's own messages
+    if message.author == bot.user:
+        await bot.process_commands(message)
         return
 
-    await interaction.response.defer()
+    # Handle prefix commands (! commands like !status, !help_agentic)
+    if message.content.startswith("!"):
+        await bot.process_commands(message)
+        return
 
-    logger.info(f"Task submitted by {interaction.user}: brand={brand}, request={request}")
+    # Only listen in #general channel for natural language tasks
+    if message.channel.id != DISCORD_GENERAL_CHANNEL_ID:
+        await bot.process_commands(message)
+        return
 
-    # Create task in memory
-    task_id = memory.create_task(brand, "general", request, created_by=str(interaction.user))
+    # Only allow specific user
+    if message.author.id != ALLOWED_USER_ID:
+        return
 
-    # Parse intent
-    intent = orchestrator.parse_intent(f"brand={brand}; {request}")
+    logger.info(f"Message from {message.author}: {message.content}")
+
+    # Parse intent from natural language
+    intent = orchestrator.parse_intent(message.content)
+    logger.info(f"Parsed intent: {intent}")
 
     # Check cost gate
     can_afford, reason = orchestrator.check_cost_gate()
     if not can_afford:
-        await interaction.followup.send(f"❌ Cost gate: {reason}")
-        memory.update_task(task_id, "failed", reason)
+        await message.reply(f"❌ Cost gate: {reason}")
         return
+
+    # Create task in memory
+    task_id = memory.create_task(
+        intent.get("brand", "nacpac"),
+        intent.get("task_type", "general"),
+        message.content,
+        created_by=str(message.author)
+    )
 
     # Route to agent
     agent_name = orchestrator.route_to_agent(intent)
 
-    # Get approval (show buttons)
-    view = TaskApprovalView(task_id, agent_name, intent)
+    # Show approval prompt
+    view = TaskApprovalView(task_id, agent_name, intent, message)
     embed = discord.Embed(
-        title="⚠️ Task Approval Required",
-        description=f"**Request:** {request}\n**Agent:** {agent_name}",
-        color=discord.Color.yellow()
+        title="📋 Task Approval",
+        description=f"**Message:** {message.content}\n**Agent:** {agent_name}",
+        color=discord.Color.blue()
     )
-    embed.add_field(name="Brand", value=brand)
+    embed.add_field(name="Brand", value=intent.get("brand", "unknown"))
     embed.add_field(name="Task Type", value=intent.get("task_type", "unknown"))
+    embed.set_footer(text=f"Parsed by manager agent")
 
-    await interaction.followup.send(embed=embed, view=view)
+    await message.reply(embed=embed, view=view)
 
 
 class TaskApprovalView(discord.ui.View):
     """Approval buttons for tasks."""
 
-    def __init__(self, task_id: str, agent_name: str, intent: dict):
+    def __init__(self, task_id: str, agent_name: str, intent: dict, message: discord.Message):
         super().__init__(timeout=3600)  # 1 hour timeout
         self.task_id = task_id
         self.agent_name = agent_name
         self.intent = intent
+        self.message = message
 
     @discord.ui.button(label="✅ Approve", style=discord.ButtonStyle.success)
     async def approve_button(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -105,15 +116,48 @@ class TaskApprovalView(discord.ui.View):
         logger.info(f"Task {self.task_id} approved by {interaction.user}")
         memory.update_task(self.task_id, "approved", "User approved task")
 
+        # Add reaction to original message
+        await self.message.add_reaction("✅")
+
         # Route execution
         result = await self.execute_task()
 
-        # Post result
-        result_msg = f"✅ **Task Completed**\n{result.get('message', 'Success')}"
-        if result.get("status") != "success":
-            result_msg = f"❌ **Task Failed**\n{result.get('message', 'Unknown error')}"
+        # Format result message
+        if result.get("status") == "success":
+            result_text = f"✅ **Task Completed**\n{result.get('message', 'Success')}"
+            color = discord.Color.green()
+        else:
+            result_text = f"❌ **Task Failed**\n{result.get('message', 'Unknown error')}"
+            color = discord.Color.red()
 
-        await interaction.followup.send(result_msg)
+        # Send to logs channel
+        logs_channel = bot.get_channel(DISCORD_LOGS_CHANNEL_ID)
+        if logs_channel:
+            embed = discord.Embed(
+                title="📝 Task Log",
+                description=result_text,
+                color=color
+            )
+            embed.add_field(name="Task ID", value=self.task_id)
+            embed.add_field(name="Agent", value=self.agent_name)
+            embed.add_field(name="Brand", value=self.intent.get("brand", "unknown"))
+            embed.set_footer(text=f"Executed by: {interaction.user}")
+            await logs_channel.send(embed=embed)
+
+        # Send to reports channel for summary
+        reports_channel = bot.get_channel(DISCORD_REPORTS_CHANNEL_ID)
+        if reports_channel:
+            embed = discord.Embed(
+                title="📊 Task Report",
+                description=self.message.content,
+                color=color
+            )
+            embed.add_field(name="Status", value="Completed" if result.get("status") == "success" else "Failed")
+            embed.add_field(name="Agent", value=self.agent_name)
+            await reports_channel.send(embed=embed)
+
+        # Reply in original channel
+        await interaction.followup.send(result_text)
 
     @discord.ui.button(label="❌ Reject", style=discord.ButtonStyle.danger)
     async def reject_button(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -122,7 +166,22 @@ class TaskApprovalView(discord.ui.View):
         logger.info(f"Task {self.task_id} rejected by {interaction.user}")
         memory.update_task(self.task_id, "rejected", "User rejected task")
 
-        await interaction.followup.send("❌ Task rejected")
+        # Add reaction to original message
+        await self.message.add_reaction("❌")
+
+        # Send to logs
+        logs_channel = bot.get_channel(DISCORD_LOGS_CHANNEL_ID)
+        if logs_channel:
+            embed = discord.Embed(
+                title="📝 Task Rejected",
+                description=self.message.content,
+                color=discord.Color.orange()
+            )
+            embed.add_field(name="Task ID", value=self.task_id)
+            embed.set_footer(text=f"Rejected by: {interaction.user}")
+            await logs_channel.send(embed=embed)
+
+        await interaction.followup.send("❌ Task rejected and cancelled")
 
     async def execute_task(self) -> dict:
         """Execute the approved task."""
@@ -156,6 +215,10 @@ class TaskApprovalView(discord.ui.View):
 @bot.command(name="status")
 async def status_command(ctx):
     """Show system status."""
+    if ctx.author.id != ALLOWED_USER_ID:
+        await ctx.send("❌ You don't have permission to use this command")
+        return
+
     state_nacpac = memory.get_brand_state("nacpac")
     state_jico = memory.get_brand_state("jico_life")
 
@@ -182,20 +245,23 @@ async def status_command(ctx):
 @bot.command(name="help_agentic")
 async def help_command(ctx):
     """Show help."""
+    if ctx.author.id != ALLOWED_USER_ID:
+        return
+
     embed = discord.Embed(title="📖 Agentic System Help", color=discord.Color.blue())
     embed.add_field(
-        name="/task",
-        value="Submit a task: `/task brand:nacpac request:Build APK for v2.1`",
+        name="Natural Language Tasks",
+        value="Just type in #general channel. Manager agent will parse your request and ask for approval.",
+        inline=False
+    )
+    embed.add_field(
+        name="Examples",
+        value="- 'Build the NacPac APK for v2.1'\n- 'Deploy Jico Life to staging'\n- 'Update NacPac checkout feature'",
         inline=False
     )
     embed.add_field(
         name="!status",
-        value="Show system status",
-        inline=False
-    )
-    embed.add_field(
-        name="Supported brands",
-        value="- nacpac\n- jico_life",
+        value="Show current branch/deploy status for all brands",
         inline=False
     )
     await ctx.send(embed=embed)
