@@ -190,26 +190,44 @@ class TaskApprovalView(discord.ui.View):
         task_type = intent.get("task_type", "unknown")
 
         try:
+            logger.info(f"Executing {agent_name}::{task_type} for task {self.task_id}")
+
             if agent_name == "nacpac_dev":
                 if task_type == "build":
                     build_target = intent.get("build_target", "apk")
                     if build_target == "apk":
-                        return nacpac_dev_agent.build_apk(self.task_id)
+                        result = nacpac_dev_agent.build_apk(self.task_id)
                     elif build_target == "exe":
-                        return nacpac_dev_agent.build_exe(self.task_id)
+                        result = nacpac_dev_agent.build_exe(self.task_id)
+                    else:
+                        result = {"status": "error", "message": f"Unknown build target: {build_target}"}
                 elif task_type == "deploy":
-                    return nacpac_dev_agent.deploy_to_staging(self.task_id, "apk")
+                    result = nacpac_dev_agent.deploy_to_staging(self.task_id, "apk")
+                else:
+                    result = {"status": "error", "message": f"Unknown NacPac task type: {task_type}"}
 
             elif agent_name == "jico_life_dev":
                 if task_type == "build":
-                    return jico_life_dev_agent.build_glb_model(self.task_id, intent.get("render_path", ""))
+                    render_path = intent.get("render_path", "")
+                    if not render_path:
+                        result = {"status": "error", "message": "No render_path provided for GLB build"}
+                    else:
+                        result = jico_life_dev_agent.build_glb_model(self.task_id, render_path)
                 elif task_type == "deploy":
-                    return jico_life_dev_agent.deploy_to_staging_branch(self.task_id)
+                    result = jico_life_dev_agent.deploy_to_staging_branch(self.task_id)
+                else:
+                    result = {"status": "error", "message": f"Unknown Jico Life task type: {task_type}"}
+            else:
+                result = {"status": "error", "message": f"Unknown agent: {agent_name}"}
 
-            return {"status": "unknown", "message": "Unknown task type"}
+            logger.info(f"Task {self.task_id} result: {result.get('status', 'unknown')}")
+            return result
+
         except Exception as e:
-            logger.error(f"Task execution failed: {e}", exc_info=True)
-            return {"status": "error", "message": f"Error: {str(e)[:200]}"}
+            error_msg = f"Task execution failed: {str(e)[:200]}"
+            logger.error(error_msg, exc_info=True)
+            memory.update_task(self.task_id, "failed", error_msg)
+            return {"status": "error", "message": error_msg}
 
 
 @bot.command(name="status")
