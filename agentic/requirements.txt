@@ -9,3 +9,6 @@ google-auth-httplib2==0.2.0
 google-api-python-client==2.107.0
 httpx==0.25.2
 gotrue==2.4.1
+psycopg2-binary==2.9.9
+redis==5.0.1
+playwright==1.40.0
