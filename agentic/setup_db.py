@@ -4,6 +4,10 @@ import psycopg2
 import os
 import sys
 import logging
+from dotenv import load_dotenv
+
+# Load .env file
+load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
