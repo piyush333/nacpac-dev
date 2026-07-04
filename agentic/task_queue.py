@@ -3,26 +3,32 @@
 import json
 import logging
 import uuid
+import os
 from datetime import datetime
 from typing import Dict, Optional, Any
 from redis import Redis
+from dotenv import load_dotenv
 
+load_dotenv()
 logger = logging.getLogger(__name__)
 
 
 class TaskQueue:
     """Redis-based task queue for agent work distribution."""
 
-    def __init__(self, redis_url: str = "redis://localhost:6379"):
+    def __init__(self, redis_url: str = None):
         """Initialize Redis connection.
 
         Args:
-            redis_url: Redis connection URL
+            redis_url: Redis connection URL (defaults to REDIS_URL from .env)
         """
+        if redis_url is None:
+            redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+
         try:
             self.redis = Redis.from_url(redis_url, decode_responses=True)
             self.redis.ping()
-            logger.info(f"✅ Connected to Redis: {redis_url}")
+            logger.info(f"✅ Connected to Redis")
         except Exception as e:
             logger.error(f"❌ Redis connection failed: {e}")
             self.redis = None

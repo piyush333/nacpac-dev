@@ -198,7 +198,7 @@ def handle_status():
 
     try:
         from registry import registry
-        from queue import queue
+        from task_queue import queue
 
         agents = registry.list_agents()
         print(f"✅ Registered agents: {len(agents)}")
