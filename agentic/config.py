@@ -24,9 +24,9 @@ DISCORD_JICO_DEV_CHANNEL_ID = int(os.getenv("DISCORD_JICO_DEV_CHANNEL_ID", "0"))
 DISCORD_LOGS_CHANNEL_ID = int(os.getenv("DISCORD_LOGS_CHANNEL_ID", "0"))
 DISCORD_REPORTS_CHANNEL_ID = int(os.getenv("DISCORD_REPORTS_CHANNEL_ID", "0"))
 
-# Repos
+# Repos (use local paths for testing, Oracle VM paths for production)
 NACPAC_REPO_PATH = os.getenv("NACPAC_REPO_PATH", "/home/user/nacpac-dev/nacpac-workspace-main")
-JICO_REPO_PATH = os.getenv("JICO_REPO_PATH", "/home/user/nacpac-dev/jico-workspace")
+JICO_REPO_PATH = os.getenv("JICO_REPO_PATH", "/home/user/nacpac-dev/jico-system")  # Use jico-system for now
 
 # Build paths
 EAS_BUILD_PROFILE = os.getenv("EAS_BUILD_PROFILE", "preview")
