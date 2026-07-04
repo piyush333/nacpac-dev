@@ -26,7 +26,7 @@ DISCORD_REPORTS_CHANNEL_ID = int(os.getenv("DISCORD_REPORTS_CHANNEL_ID", "0"))
 
 # Repos
 NACPAC_REPO_PATH = os.getenv("NACPAC_REPO_PATH", "/home/user/nacpac-dev/nacpac-workspace-main")
-JICO_REPO_PATH = os.getenv("JICO_REPO_PATH", "/home/user/nacpac-dev/nacpac-workspace-main")  # Same workspace
+JICO_REPO_PATH = os.getenv("JICO_REPO_PATH", "/home/user/nacpac-dev/jico-workspace")
 
 # Build paths
 EAS_BUILD_PROFILE = os.getenv("EAS_BUILD_PROFILE", "preview")
@@ -51,9 +51,10 @@ GITHUB_REPO = os.getenv("GITHUB_REPO", "piyush333/nacpac-dev")
 DAILY_CAP_USD = float(os.getenv("DAILY_CAP_USD", "10.0"))
 MONTHLY_CAP_USD = float(os.getenv("MONTHLY_CAP_USD", "50.0"))
 
-# Models
-HAIKU_MODEL = "claude-3-5-haiku-20241022"
-SONNET_MODEL = "claude-3-5-sonnet-20241022"
+# Models (complexity-based selection)
+HAIKU_MODEL = "claude-haiku-4-5-20251001"  # Orchestration, routing, fast decisions
+SONNET_MODEL = "claude-sonnet-5"  # Dev tasks: code reasoning, complex builds
+OPUS_MODEL = "claude-opus-4-8"  # Heavy lifting: multi-step orchestration
 
 # System
 SYSTEM_USER = os.getenv("SYSTEM_USER", "ubuntu")

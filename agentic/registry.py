@@ -63,6 +63,7 @@ class AgentRegistry:
 
     def get_agent_class(self, agent_name: str):
         """Get the agent class/instance."""
+        _ensure_agents_loaded()
         agent = self.get_agent(agent_name)
         return agent.get("class") if agent else None
 
@@ -74,3 +75,45 @@ class AgentRegistry:
 
 
 registry = AgentRegistry()
+
+
+# Lazy-load agents on first access
+_agents_loaded = False
+
+def _ensure_agents_loaded():
+    """Lazy-load and register agents on first access."""
+    global _agents_loaded
+    if _agents_loaded:
+        return
+    _agents_loaded = True
+
+    try:
+        from agents.nacpac_dev import nacpac_dev_agent
+        from agents.jico_life_dev import jico_life_dev_agent
+
+        registry.register(
+            "nacpac_dev",
+            nacpac_dev_agent,
+            capabilities=["build_apk", "build_exe", "deploy_staging", "run_tests", "get_state"],
+            version="1.0.0"
+        )
+
+        registry.register(
+            "jico_life_dev",
+            jico_life_dev_agent,
+            capabilities=["build_glb", "deploy_staging", "deploy_production", "get_state"],
+            version="1.0.0"
+        )
+
+        logger.info(f"✅ Auto-registered {len(registry.list_agents())} agents")
+    except Exception as e:
+        logger.warning(f"⚠️  Failed to auto-register agents: {e}")
+
+
+# Wrap list_agents to ensure agents are loaded
+_original_list_agents = registry.list_agents
+def list_agents_with_lazy_load():
+    _ensure_agents_loaded()
+    return _original_list_agents()
+
+registry.list_agents = list_agents_with_lazy_load

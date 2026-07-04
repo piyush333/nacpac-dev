@@ -5,14 +5,16 @@ from datetime import datetime
 from typing import Any, Dict, Optional
 import logging
 
-try:
-    from supabase import create_client
-except ImportError:
-    create_client = None
-
 from config import SUPABASE_URL, SUPABASE_KEY
 
 logger = logging.getLogger(__name__)
+
+create_client = None
+try:
+    from supabase import create_client as _create_client
+    create_client = _create_client
+except Exception as e:
+    logger.warning(f"Supabase unavailable: {type(e).__name__}. Using in-memory storage.")
 
 
 class MemoryClient:

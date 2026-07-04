@@ -15,7 +15,11 @@ class OrchestratorAgent:
     """Main orchestrator: intent parsing, routing, cost gating."""
 
     def __init__(self):
-        self.client = Anthropic()
+        try:
+            self.client = Anthropic()
+        except Exception as e:
+            logger.warning(f"Failed to init Anthropic client: {e}")
+            self.client = None
         self.model = HAIKU_MODEL  # Use cheap model for orchestration
         self.max_tokens = 1024
 

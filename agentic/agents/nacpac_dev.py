@@ -59,7 +59,7 @@ class NacPacDevAgent:
             return {"status": "failed", "message": f"APK build failed: {output[:200]}"}
 
         # Get commit for metadata
-        commit = git_tools.get_last_commit(self.repo_path)
+        commit = git_tools.get_last_commit(self.repo_path) or "unknown-commit"
 
         # Log build
         memory.log_build(self.brand, "apk", commit, output[:200], status="success")
@@ -73,7 +73,7 @@ class NacPacDevAgent:
         )
 
         # Update state
-        branch = git_tools.get_current_branch(self.repo_path)
+        branch = git_tools.get_current_branch(self.repo_path) or "main"
         memory.update_brand_state(self.brand, current_branch=branch, last_commit=commit)
 
         result_msg = f"APK built successfully (commit: {commit[:8]}). Backups: R2={backup_results['r2']}, GDrive={backup_results['gdrive']}"
@@ -101,7 +101,7 @@ class NacPacDevAgent:
             memory.update_task(task_id, "failed", f"EXE build failed: {output[:200]}")
             return {"status": "failed", "message": f"EXE build failed: {output[:200]}"}
 
-        commit = git_tools.get_last_commit(self.repo_path)
+        commit = git_tools.get_last_commit(self.repo_path) or "unknown-commit"
         memory.log_build(self.brand, "exe", commit, output, status="success")
 
         # Backup
@@ -111,7 +111,7 @@ class NacPacDevAgent:
             self.brand
         )
 
-        branch = git_tools.get_current_branch(self.repo_path)
+        branch = git_tools.get_current_branch(self.repo_path) or "main"
         memory.update_brand_state(self.brand, current_branch=branch, last_commit=commit)
 
         result_msg = f"EXE built successfully (commit: {commit[:8]}). Backups: R2={backup_results['r2']}, GDrive={backup_results['gdrive']}"
