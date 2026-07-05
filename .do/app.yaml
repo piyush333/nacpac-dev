@@ -1,0 +1,62 @@
+name: jico-agentic-system
+services:
+- name: discord-bot
+  github:
+    repo: piyush333/nacpac-dev
+    branch: claude/agentic-system-org-j9gvae
+  build_command: pip install -r requirements.txt
+  run_command: python -m agentic.main
+  http_port: 8080
+  dockerfile_path: Dockerfile
+  envs:
+  - key: ANTHROPIC_API_KEY
+    scope: RUN_AND_BUILD_TIME
+    value: ${ANTHROPIC_API_KEY}
+  - key: DISCORD_TOKEN
+    scope: RUN_AND_BUILD_TIME
+    value: ${DISCORD_TOKEN}
+  - key: DISCORD_GUILD_ID
+    scope: RUN_AND_BUILD_TIME
+    value: ${DISCORD_GUILD_ID}
+  - key: ALLOWED_USER_ID
+    scope: RUN_AND_BUILD_TIME
+    value: ${ALLOWED_USER_ID}
+  - key: DISCORD_GENERAL_CHANNEL_ID
+    scope: RUN_AND_BUILD_TIME
+    value: ${DISCORD_GENERAL_CHANNEL_ID}
+  - key: DISCORD_NACPAC_DEV_CHANNEL_ID
+    scope: RUN_AND_BUILD_TIME
+    value: ${DISCORD_NACPAC_DEV_CHANNEL_ID}
+  - key: DISCORD_JICO_DEV_CHANNEL_ID
+    scope: RUN_AND_BUILD_TIME
+    value: ${DISCORD_JICO_DEV_CHANNEL_ID}
+  - key: DISCORD_LOGS_CHANNEL_ID
+    scope: RUN_AND_BUILD_TIME
+    value: ${DISCORD_LOGS_CHANNEL_ID}
+  - key: DISCORD_REPORTS_CHANNEL_ID
+    scope: RUN_AND_BUILD_TIME
+    value: ${DISCORD_REPORTS_CHANNEL_ID}
+  - key: DATABASE_URL
+    scope: RUN_AND_BUILD_TIME
+    value: ${DATABASE_URL}
+  - key: REDIS_URL
+    scope: RUN_AND_BUILD_TIME
+    value: ${REDIS_URL}
+  - key: SUPABASE_URL
+    scope: RUN_AND_BUILD_TIME
+    value: ${SUPABASE_URL}
+  - key: SUPABASE_KEY
+    scope: RUN_AND_BUILD_TIME
+    value: ${SUPABASE_KEY}
+  - key: NACPAC_REPO_PATH
+    scope: RUN_AND_BUILD_TIME
+    value: /workspace/nacpac-workspace-main
+  - key: JICO_REPO_PATH
+    scope: RUN_AND_BUILD_TIME
+    value: /workspace/jico-workspace
+  - key: EXPO_TOKEN
+    scope: RUN_AND_BUILD_TIME
+    value: ${EXPO_TOKEN}
+  - key: BUILD_TEST_MODE
+    scope: RUN_AND_BUILD_TIME
+    value: "false"
