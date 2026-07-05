@@ -10,7 +10,9 @@ from agentic.config import (
     DISCORD_GENERAL_CHANNEL_ID, DISCORD_NACPAC_DEV_CHANNEL_ID,
     DISCORD_JICO_DEV_CHANNEL_ID, DISCORD_LOGS_CHANNEL_ID, DISCORD_REPORTS_CHANNEL_ID
 )
-from agentic.agents import orchestrator, nacpac_dev_agent, jico_life_dev_agent
+from agentic.agents.orchestrator import orchestrator
+from agentic.agents.nacpac_dev import nacpac_dev_agent
+from agentic.agents.jico_life_dev import jico_life_dev_agent
 from agentic.memory import memory
 
 logger = logging.getLogger(__name__)
