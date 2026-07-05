@@ -4,8 +4,8 @@ import logging
 import sys
 import asyncio
 
-from config import validate_config
-from discord_bot import main as discord_main
+from agentic.config import validate_config
+from agentic.discord_bot import main as discord_main
 
 # Configure logging
 logging.basicConfig(

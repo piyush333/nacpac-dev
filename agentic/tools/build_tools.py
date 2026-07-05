@@ -17,15 +17,18 @@ class BuildTools:
     """Build APK, EXE, GLB models."""
 
     @staticmethod
-    def run_command(cmd: list, cwd: str = None, timeout: int = 600) -> tuple[bool, str, str]:
+    def run_command(cmd: list, cwd: str = None, timeout: int = 600, env: dict = None) -> tuple[bool, str, str]:
         """Run a shell command. Returns (success, stdout, stderr)."""
         try:
+            if env is None:
+                env = os.environ.copy()
             result = subprocess.run(
                 cmd,
                 cwd=cwd,
                 capture_output=True,
                 text=True,
-                timeout=timeout
+                timeout=timeout,
+                env=env
             )
             return result.returncode == 0, result.stdout, result.stderr
         except Exception as e:
@@ -44,6 +47,11 @@ class BuildTools:
             logger.info(f"✅ APK build succeeded (simulated): {apk_path}")
             return True, f"Build completed: {apk_path}"
 
+        mobile_path = os.path.join(repo_path, "mobile")
+        if not os.path.exists(mobile_path):
+            logger.error(f"mobile/ directory not found at {mobile_path}")
+            return False, f"mobile/ directory not found"
+
         cmd = [
             "eas", "build",
             "--platform", "android",
@@ -51,15 +59,19 @@ class BuildTools:
             "--non-interactive"
         ]
 
-        success, stdout, stderr = BuildTools.run_command(cmd, cwd=repo_path, timeout=1800)
+        build_env = os.environ.copy()
+        if not build_env.get("EXPO_TOKEN"):
+            logger.warning("⚠️  EXPO_TOKEN not set in environment")
+
+        logger.info(f"Running EAS build from {mobile_path}")
+        success, stdout, stderr = BuildTools.run_command(cmd, cwd=mobile_path, timeout=1800, env=build_env)
 
         if success:
             logger.info("APK build succeeded")
-            # EAS outputs download URL in stdout
             return True, stdout[-500:] if stdout else "Build completed"
         else:
-            logger.error(f"APK build failed: {stderr}")
-            return False, stderr
+            logger.error(f"APK build failed: {stderr[:500]}")
+            return False, f"Build failed: {stderr[:500]}"
 
     @staticmethod
     def build_exe(repo_path: str) -> tuple[bool, str]:
