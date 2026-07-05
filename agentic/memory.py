@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Any, Dict, Optional
 import logging
 
-from config import SUPABASE_URL, SUPABASE_KEY
+from agentic.config import SUPABASE_URL, SUPABASE_KEY
 
 logger = logging.getLogger(__name__)
 

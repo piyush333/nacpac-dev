@@ -1,13 +1,13 @@
 """NacPac Dev Agent - handles code, builds (APK/EXE), deployments."""
 
 import logging
-from config import NACPAC_REPO_PATH, EAS_BUILD_PROFILE, SONNET_MODEL
-from tools.git_tools import git_tools
-from tools.build_tools import build_tools
-from tools.deploy_tools import deploy_tools
-from tools.backup_tools import backup_tools
-from memory import memory
-from cost_tracker import cost_tracker
+from agentic.config import NACPAC_REPO_PATH, EAS_BUILD_PROFILE, SONNET_MODEL
+from agentic.tools.git_tools import git_tools
+from agentic.tools.build_tools import build_tools
+from agentic.tools.deploy_tools import deploy_tools
+from agentic.tools.backup_tools import backup_tools
+from agentic.memory import memory
+from agentic.cost_tracker import cost_tracker
 
 logger = logging.getLogger(__name__)
 

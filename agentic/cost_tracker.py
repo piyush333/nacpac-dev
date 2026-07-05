@@ -2,8 +2,8 @@
 
 import logging
 from datetime import datetime
-from config import DAILY_CAP_USD, MONTHLY_CAP_USD, HAIKU_MODEL, SONNET_MODEL
-from memory import memory
+from agentic.config import DAILY_CAP_USD, MONTHLY_CAP_USD, HAIKU_MODEL, SONNET_MODEL
+from agentic.memory import memory
 
 logger = logging.getLogger(__name__)
 

@@ -88,8 +88,8 @@ def _ensure_agents_loaded():
     _agents_loaded = True
 
     try:
-        from agents.nacpac_dev import nacpac_dev_agent
-        from agents.jico_life_dev import jico_life_dev_agent
+        from agentic.agents.nacpac_dev import nacpac_dev_agent
+        from agentic.agents.jico_life_dev import jico_life_dev_agent
 
         registry.register(
             "nacpac_dev",

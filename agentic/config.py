@@ -52,8 +52,8 @@ DAILY_CAP_USD = float(os.getenv("DAILY_CAP_USD", "10.0"))
 MONTHLY_CAP_USD = float(os.getenv("MONTHLY_CAP_USD", "50.0"))
 
 # Models (complexity-based selection)
-HAIKU_MODEL = "claude-haiku-4-5-20251001"  # Orchestration, routing, fast decisions
-SONNET_MODEL = "claude-sonnet-5"  # Dev tasks: code reasoning, complex builds
+HAIKU_MODEL = "claude-3-5-haiku-20241022"  # Orchestration, routing, fast decisions
+SONNET_MODEL = "claude-3-5-sonnet-20241022"  # Dev tasks: code reasoning, complex builds
 OPUS_MODEL = "claude-opus-4-8"  # Heavy lifting: multi-step orchestration
 
 # System

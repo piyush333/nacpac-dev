@@ -5,13 +5,13 @@ from discord.ext import commands
 import logging
 from datetime import datetime
 
-from config import (
+from agentic.config import (
     DISCORD_TOKEN, DISCORD_GUILD_ID, ALLOWED_USER_ID,
     DISCORD_GENERAL_CHANNEL_ID, DISCORD_NACPAC_DEV_CHANNEL_ID,
     DISCORD_JICO_DEV_CHANNEL_ID, DISCORD_LOGS_CHANNEL_ID, DISCORD_REPORTS_CHANNEL_ID
 )
-from agents import orchestrator, nacpac_dev_agent, jico_life_dev_agent
-from memory import memory
+from agentic.agents import orchestrator, nacpac_dev_agent, jico_life_dev_agent
+from agentic.memory import memory
 
 logger = logging.getLogger(__name__)
 

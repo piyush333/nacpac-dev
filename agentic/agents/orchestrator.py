@@ -4,9 +4,9 @@ import logging
 import json
 from anthropic import Anthropic
 
-from config import HAIKU_MODEL, SONNET_MODEL
-from cost_tracker import cost_tracker
-from memory import memory
+from agentic.config import HAIKU_MODEL, SONNET_MODEL
+from agentic.cost_tracker import cost_tracker
+from agentic.memory import memory
 
 logger = logging.getLogger(__name__)
 
