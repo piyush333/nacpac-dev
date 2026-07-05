@@ -6,6 +6,9 @@
     "base": {
       "node": {
         "version": "18.18.0"
+      },
+      "env": {
+        "npm_config_legacy_peer_deps": "true"
       }
     },
     "preview": {
