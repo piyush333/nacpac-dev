@@ -87,8 +87,8 @@ def handle_build(args):
     print_header(f"Building {brand} {target}")
 
     try:
-        from agents.orchestrator import orchestrator
-        from registry import registry
+        from agentic.agents import orchestrator
+        from agentic.registry import registry
 
         # Create intent
         intent = {
@@ -145,9 +145,9 @@ def handle_preview(args):
     print_header(f"Previewing {brand}" + (f" - {feature}" if feature else ""))
 
     try:
-        from preview import preview
+        from agentic.preview import preview
         from agents.orchestrator import orchestrator
-        from registry import registry
+        from agentic.registry import registry
 
         agent_name = orchestrator.route_to_agent({"brand": brand})
         agent = registry.get_agent_class(agent_name)
@@ -173,7 +173,7 @@ def handle_list_agents():
     print_header("Registered Agents")
 
     try:
-        from registry import registry
+        from agentic.registry import registry
 
         agents = registry.list_agents()
         if not agents:
@@ -197,8 +197,8 @@ def handle_status():
     print_header("System Status")
 
     try:
-        from registry import registry
-        from task_queue import queue
+        from agentic.registry import registry
+        from agentic.task_queue import queue
 
         agents = registry.list_agents()
         print(f"✅ Registered agents: {len(agents)}")
