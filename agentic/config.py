@@ -26,7 +26,7 @@ DISCORD_REPORTS_CHANNEL_ID = int(os.getenv("DISCORD_REPORTS_CHANNEL_ID", "0"))
 
 # Repos (use local paths for testing, Oracle VM paths for production)
 NACPAC_REPO_PATH = os.getenv("NACPAC_REPO_PATH", "/home/user/nacpac-dev/nacpac-workspace-main")
-JICO_REPO_PATH = os.getenv("JICO_REPO_PATH", "/home/user/nacpac-dev/jico-system")  # Use jico-system for now
+JICO_REPO_PATH = os.getenv("JICO_REPO_PATH", "/home/user/nacpac-dev/jico-system")
 
 # Build paths
 EAS_BUILD_PROFILE = os.getenv("EAS_BUILD_PROFILE", "preview")
@@ -52,9 +52,9 @@ DAILY_CAP_USD = float(os.getenv("DAILY_CAP_USD", "10.0"))
 MONTHLY_CAP_USD = float(os.getenv("MONTHLY_CAP_USD", "50.0"))
 
 # Models (complexity-based selection)
-HAIKU_MODEL = "claude-3-5-haiku-20241022"  # Orchestration, routing, fast decisions
-SONNET_MODEL = "claude-3-5-sonnet-20241022"  # Dev tasks: code reasoning, complex builds
-OPUS_MODEL = "claude-opus-4-8"  # Heavy lifting: multi-step orchestration
+HAIKU_MODEL = "claude-3-5-haiku-20241022"
+SONNET_MODEL = "claude-3-5-sonnet-20241022"
+OPUS_MODEL = "claude-opus-4-8"
 
 # System
 SYSTEM_USER = os.getenv("SYSTEM_USER", "ubuntu")
@@ -64,7 +64,6 @@ SSH_KEY_PATH = os.getenv("SSH_KEY_PATH")
 # Validation
 def validate_config():
     """Ensure all required env vars are set."""
-    # Core requirements (Discord bot + API)
     required = [
         "ANTHROPIC_API_KEY",
         "DISCORD_TOKEN",
@@ -76,7 +75,6 @@ def validate_config():
     if missing:
         raise ValueError(f"Missing env vars: {', '.join(missing)}")
 
-    # Optional but warn if missing (memory + logging)
     optional = ["SUPABASE_URL", "SUPABASE_KEY"]
     missing_optional = [k for k in optional if not os.getenv(k)]
     if missing_optional:

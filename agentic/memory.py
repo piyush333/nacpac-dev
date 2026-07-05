@@ -38,13 +38,7 @@ class MemoryClient:
             logger.error(f"Failed to initialize Supabase client: {e}")
             self.client = None
 
-    def create_task(
-        self,
-        brand: str,
-        task_type: str,
-        input_text: str,
-        created_by: str = "agentic-system"
-    ) -> Optional[str]:
+    def create_task(self, brand: str, task_type: str, input_text: str, created_by: str = "agentic-system") -> Optional[str]:
         """Create a task record. Returns task_id."""
         if not self.client:
             logger.warning("Memory unavailable; skipping task creation")
@@ -79,41 +73,10 @@ class MemoryClient:
                 "completed_at": datetime.utcnow().isoformat() if status in ["completed", "failed"] else None,
             }).eq("id", task_id).execute()
         except Exception as e:
-            logger.error(f"Failed to update task {task_id}: {e}")
+            logger.error(f"Failed to update task: {e}")
 
-    def log_run(
-        self,
-        task_id: str,
-        agent: str,
-        model: str,
-        tokens_in: int,
-        tokens_out: int,
-        cost_usd: float,
-        status: str = "completed",
-        log_url: str = ""
-    ):
-        """Log an agent run (execution) with token/cost data."""
-        if not self.client:
-            return
-
-        try:
-            self.client.table("runs").insert({
-                "task_id": task_id,
-                "agent": agent,
-                "model": model,
-                "tokens_in": tokens_in,
-                "tokens_out": tokens_out,
-                "cost_usd": cost_usd,
-                "status": status,
-                "log_url": log_url,
-                "started_at": datetime.utcnow().isoformat(),
-                "finished_at": datetime.utcnow().isoformat(),
-            }).execute()
-        except Exception as e:
-            logger.error(f"Failed to log run: {e}")
-
-    def get_brand_state(self, brand: str) -> Optional[Dict[str, Any]]:
-        """Get current state of a brand (branch, last commit, deploy env, etc.)."""
+    def get_brand_state(self, brand: str) -> Optional[Dict]:
+        """Get current state of a brand."""
         if not self.client:
             return None
 
@@ -126,42 +89,19 @@ class MemoryClient:
             logger.error(f"Failed to get brand state: {e}")
             return None
 
-    def update_brand_state(
-        self,
-        brand: str,
-        current_branch: str = None,
-        last_commit: str = None,
-        last_deploy_env: str = None,
-        last_deploy_time: str = None,
-    ):
-        """Update brand state (current branch, last commit, etc.)."""
+    def update_brand_state(self, brand: str, **kwargs):
+        """Update brand state."""
         if not self.client:
             return
 
         try:
-            update_dict = {}
-            if current_branch:
-                update_dict["current_branch"] = current_branch
-            if last_commit:
-                update_dict["last_commit"] = last_commit
-            if last_deploy_env:
-                update_dict["last_deploy_env"] = last_deploy_env
-            if last_deploy_time:
-                update_dict["last_deploy_time"] = last_deploy_time
-
-            self.client.table("brand_state").update(update_dict).eq("brand", brand).execute()
+            kwargs["updated_at"] = datetime.utcnow().isoformat()
+            self.client.table("brand_state").update(kwargs).eq("brand", brand).execute()
         except Exception as e:
             logger.error(f"Failed to update brand state: {e}")
 
-    def log_build(
-        self,
-        brand: str,
-        build_type: str,
-        commit: str,
-        output_path: str,
-        status: str = "success"
-    ):
-        """Log a build (APK/EXE/GLB)."""
+    def log_build(self, brand: str, build_type: str, commit: str, output_path: str, status: str = "success"):
+        """Log a build."""
         if not self.client:
             return
 
@@ -177,13 +117,7 @@ class MemoryClient:
         except Exception as e:
             logger.error(f"Failed to log build: {e}")
 
-    def log_deployment(
-        self,
-        brand: str,
-        environment: str,
-        commit: str,
-        deployed_by: str = "agentic-system"
-    ):
+    def log_deployment(self, brand: str, environment: str, commit: str):
         """Log a deployment."""
         if not self.client:
             return
@@ -194,66 +128,54 @@ class MemoryClient:
                 "environment": environment,
                 "commit": commit,
                 "deployed_at": datetime.utcnow().isoformat(),
-                "deployed_by": deployed_by,
             }).execute()
         except Exception as e:
             logger.error(f"Failed to log deployment: {e}")
 
-    def get_daily_cost_usd(self) -> float:
-        """Get total cost for today (USD)."""
-        if not self.client:
-            return 0.0
-
-        try:
-            today = datetime.utcnow().date().isoformat()
-            result = self.client.table("costs").select("cost_usd").eq("date", today).execute()
-            return sum(row["cost_usd"] for row in result.data or [])
-        except Exception as e:
-            logger.error(f"Failed to get daily cost: {e}")
-            return 0.0
-
-    def get_monthly_cost_usd(self) -> float:
-        """Get total cost for current month (USD)."""
-        if not self.client:
-            return 0.0
-
-        try:
-            today = datetime.utcnow()
-            month_start = today.replace(day=1).isoformat()
-            result = self.client.table("costs").select("cost_usd").gte("date", month_start).execute()
-            return sum(row["cost_usd"] for row in result.data or [])
-        except Exception as e:
-            logger.error(f"Failed to get monthly cost: {e}")
-            return 0.0
-
     def log_cost(self, agent: str, model: str, tokens: int, cost_usd: float):
-        """Log API cost."""
+        """Log API call cost."""
         if not self.client:
             return
 
         try:
             self.client.table("costs").insert({
-                "date": datetime.utcnow().date().isoformat(),
                 "agent": agent,
                 "model": model,
                 "tokens": tokens,
                 "cost_usd": cost_usd,
+                "date": datetime.utcnow().isoformat(),
             }).execute()
         except Exception as e:
             logger.error(f"Failed to log cost: {e}")
 
-    def get_failed_tasks(self) -> list:
-        """Get tasks in dead letter queue (failed, not yet retried)."""
+    def get_daily_cost_usd(self) -> float:
+        """Get total cost for today."""
         if not self.client:
-            return []
+            return 0.0
 
         try:
-            result = self.client.table("tasks").select("*").eq("status", "failed").execute()
-            return result.data or []
+            from datetime import date
+            today = str(date.today())
+            result = self.client.rpc("get_daily_cost", {"date": today}).execute()
+            return result.data or 0.0
         except Exception as e:
-            logger.error(f"Failed to get failed tasks: {e}")
-            return []
+            logger.error(f"Failed to get daily cost: {e}")
+            return 0.0
+
+    def get_monthly_cost_usd(self) -> float:
+        """Get total cost for this month."""
+        if not self.client:
+            return 0.0
+
+        try:
+            from datetime import date
+            today = date.today()
+            month_start = today.replace(day=1)
+            result = self.client.rpc("get_monthly_cost", {"date_from": str(month_start)}).execute()
+            return result.data or 0.0
+        except Exception as e:
+            logger.error(f"Failed to get monthly cost: {e}")
+            return 0.0
 
 
-# Global instance
 memory = MemoryClient()

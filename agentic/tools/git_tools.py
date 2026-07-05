@@ -1,4 +1,4 @@
-"""Git operations for both brands."""
+"""Git tools for repo operations."""
 
 import subprocess
 import logging
@@ -8,86 +8,93 @@ logger = logging.getLogger(__name__)
 
 
 class GitTools:
-    """Git operations: clone, pull, branch, commit, push."""
+    """Git operations wrapper."""
 
     @staticmethod
-    def run_git(repo_path: str, *args) -> tuple[bool, str]:
-        """Run a git command. Returns (success, output)."""
+    def run_git(cmd: list, cwd: str) -> tuple[bool, str, str]:
+        """Run git command."""
         try:
             result = subprocess.run(
-                ["git", "-C", repo_path] + list(args),
+                cmd,
+                cwd=cwd,
                 capture_output=True,
                 text=True,
                 timeout=30
             )
-            success = result.returncode == 0
-            output = result.stdout or result.stderr
-            return success, output
+            return result.returncode == 0, result.stdout.strip(), result.stderr.strip()
         except Exception as e:
-            logger.error(f"Git command failed: {e}")
-            return False, str(e)
+            return False, "", str(e)
 
     @staticmethod
-    def get_current_branch(repo_path: str) -> Optional[str]:
+    def get_current_branch(repo_path: str) -> str:
         """Get current branch name."""
-        success, output = GitTools.run_git(repo_path, "branch", "--show-current")
-        return output.strip() if success else None
+        success, output, _ = GitTools.run_git(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            repo_path
+        )
+        return output if success else "unknown"
 
     @staticmethod
     def get_last_commit(repo_path: str) -> Optional[str]:
         """Get last commit hash."""
-        success, output = GitTools.run_git(repo_path, "rev-parse", "HEAD")
-        return output.strip() if success else None
+        success, output, _ = GitTools.run_git(
+            ["git", "rev-parse", "HEAD"],
+            repo_path
+        )
+        return output if success else None
 
     @staticmethod
-    def checkout_branch(repo_path: str, branch: str, create: bool = False) -> bool:
-        """Checkout a branch. If create=True, create it first."""
-        if create:
-            success, _ = GitTools.run_git(repo_path, "checkout", "-b", branch)
-        else:
-            success, _ = GitTools.run_git(repo_path, "checkout", branch)
+    def checkout_branch(repo_path: str, branch: str) -> bool:
+        """Checkout a branch."""
+        success, _, _ = GitTools.run_git(
+            ["git", "checkout", branch],
+            repo_path
+        )
         return success
 
     @staticmethod
     def pull(repo_path: str) -> bool:
-        """Pull latest from origin."""
-        success, output = GitTools.run_git(repo_path, "pull", "origin", "HEAD")
-        if success:
-            logger.info(f"Pulled latest: {output[:100]}")
+        """Pull latest changes."""
+        success, _, _ = GitTools.run_git(
+            ["git", "pull", "origin"],
+            repo_path
+        )
         return success
 
     @staticmethod
     def status(repo_path: str) -> str:
-        """Get git status."""
-        _, output = GitTools.run_git(repo_path, "status", "--short")
-        return output or "(clean)"
+        """Get repo status."""
+        success, output, _ = GitTools.run_git(
+            ["git", "status", "--short"],
+            repo_path
+        )
+        return output if success else "error"
 
     @staticmethod
-    def commit_and_push(repo_path: str, message: str, branch: str = None) -> bool:
-        """Stage all, commit, and push."""
-        if not branch:
-            branch = GitTools.get_current_branch(repo_path)
-
-        success, _ = GitTools.run_git(repo_path, "add", ".")
+    def commit_and_push(repo_path: str, message: str, branch: str = "main") -> bool:
+        """Commit and push changes."""
+        GitTools.run_git(["git", "add", "."], repo_path)
+        success, _, _ = GitTools.run_git(
+            ["git", "commit", "-m", message],
+            repo_path
+        )
         if not success:
-            logger.error("Failed to stage changes")
             return False
 
-        success, _ = GitTools.run_git(repo_path, "commit", "-m", message)
-        if not success:
-            logger.error("Failed to commit")
-            return False
-
-        success, _ = GitTools.run_git(repo_path, "push", "-u", "origin", branch)
-        if success:
-            logger.info(f"Pushed to {branch}")
+        success, _, _ = GitTools.run_git(
+            ["git", "push", "origin", branch],
+            repo_path
+        )
         return success
 
     @staticmethod
-    def get_diff(repo_path: str, base_branch: str = "main") -> str:
-        """Get diff between current and base branch."""
-        _, output = GitTools.run_git(repo_path, "diff", base_branch + "..HEAD")
-        return output or "(no changes)"
+    def get_diff(repo_path: str, branch1: str = "main", branch2: str = "HEAD") -> str:
+        """Get diff between branches."""
+        success, output, _ = GitTools.run_git(
+            ["git", "diff", branch1, branch2],
+            repo_path
+        )
+        return output if success else ""
 
 
 git_tools = GitTools()

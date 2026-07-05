@@ -10,12 +10,12 @@ logger = logging.getLogger(__name__)
 # Token pricing (as of 2026-07)
 PRICING = {
     "claude-3-5-haiku-20241022": {
-        "input": 0.80 / 1_000_000,      # $0.80 per 1M input tokens
-        "output": 4.00 / 1_000_000,     # $4.00 per 1M output tokens
+        "input": 0.80 / 1_000_000,
+        "output": 4.00 / 1_000_000,
     },
     "claude-3-5-sonnet-20241022": {
-        "input": 3.0 / 1_000_000,       # $3.00 per 1M input tokens
-        "output": 15.0 / 1_000_000,     # $15.00 per 1M output tokens
+        "input": 3.0 / 1_000_000,
+        "output": 15.0 / 1_000_000,
     },
 }
 
@@ -34,11 +34,7 @@ class CostTracker:
         return round(cost, 6)
 
     def can_afford_call(self, tokens_estimate: int = 5000, model: str = HAIKU_MODEL) -> tuple[bool, str]:
-        """Check if we can afford a model call given current budget.
-
-        Returns: (can_call: bool, reason: str)
-        """
-        # Estimate cost (assume 40% input, 60% output tokens)
+        """Check if we can afford a model call given current budget."""
         estimated_tokens_in = int(tokens_estimate * 0.4)
         estimated_tokens_out = int(tokens_estimate * 0.6)
         estimated_cost = self.calculate_cost(model, estimated_tokens_in, estimated_tokens_out)
@@ -64,10 +60,4 @@ class CostTracker:
         logger.info(f"{agent} used {model}: {tokens_in}+{tokens_out} tokens (${cost:.4f})")
 
 
-# Global instance
 cost_tracker = CostTracker()
-
-
-def log_api_call(agent: str, model: str, tokens_in: int, tokens_out: int):
-    """Helper function to log API call."""
-    cost_tracker.log_call(agent, model, tokens_in, tokens_out)

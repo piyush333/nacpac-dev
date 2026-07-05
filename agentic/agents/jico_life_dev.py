@@ -53,7 +53,6 @@ class JicoLifeDevAgent:
         commit = git_tools.get_last_commit(self.repo_path)
         memory.log_build(self.brand, "glb", commit, output, status="success")
 
-        # Backup the GLB
         backup_results = backup_tools.backup_all_platforms(
             output,
             "glb",
@@ -79,7 +78,6 @@ class JicoLifeDevAgent:
         logger.info(f"Task {task_id}: Deploying to staging branch")
         memory.update_task(task_id, "in_progress", "Pushing to staging branch...")
 
-        # Push to staging branch (not main)
         success = git_tools.commit_and_push(self.repo_path, "Auto-deploy to staging", "staging")
 
         if not success:
@@ -112,7 +110,6 @@ class JicoLifeDevAgent:
         logger.info(f"Task {task_id}: Deploying to PRODUCTION")
         memory.update_task(task_id, "in_progress", "Deploying to PRODUCTION...")
 
-        # Push to main
         success = git_tools.commit_and_push(self.repo_path, "Production release", "main")
 
         if not success:

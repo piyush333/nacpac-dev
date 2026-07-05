@@ -20,7 +20,7 @@ class OrchestratorAgent:
         except Exception as e:
             logger.warning(f"Failed to init Anthropic client: {e}")
             self.client = None
-        self.model = HAIKU_MODEL  # Use cheap model for orchestration
+        self.model = HAIKU_MODEL
         self.max_tokens = 1024
 
     def parse_intent(self, user_message: str) -> dict:
@@ -52,7 +52,6 @@ Response: {"brand": "nacpac", "task_type": "build", "build_target": "apk", "deta
                 ]
             )
 
-            # Log tokens
             cost_tracker.log_call(
                 "orchestrator",
                 self.model,
@@ -63,12 +62,10 @@ Response: {"brand": "nacpac", "task_type": "build", "build_target": "apk", "deta
             intent_text = response.content[0].text
             logger.info(f"Intent parsed: {intent_text}")
 
-            # Try to parse as JSON
             intent = json.loads(intent_text)
             return intent
         except Exception as e:
             logger.error(f"Intent parsing failed: {e}")
-            # Fallback: assume nacpac build
             return {
                 "brand": "nacpac",
                 "task_type": "build",
