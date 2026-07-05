@@ -1,0 +1,33 @@
+name: Deploy to Oracle VM
+
+on:
+  push:
+    branches:
+      - claude/agentic-system-org-j9gvae
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Oracle VM
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.ORACLE_VM_IP }}
+          username: ubuntu
+          key: ${{ secrets.ORACLE_SSH_KEY }}
+          script: |
+            cd ~/nacpac-workspace-main
+            git pull origin claude/agentic-system-org-j9gvae
+
+            # Kill old Discord bot
+            pkill -f "python3 -m agentic.discord_bot" || true
+
+            # Start new Discord bot
+            export BUILD_TEST_MODE=true
+            export DISCORD_TOKEN="${{ secrets.DISCORD_TOKEN }}"
+            export ANTHROPIC_API_KEY="${{ secrets.ANTHROPIC_API_KEY }}"
+            export EXPO_TOKEN="${{ secrets.EXPO_TOKEN }}"
+
+            nohup python3 -m agentic.discord_bot > /tmp/discord_bot.log 2>&1 &
+
+            echo "✅ Deployment complete - Discord bot restarted"
