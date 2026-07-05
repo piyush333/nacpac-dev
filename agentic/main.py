@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 def main():
     """Start the agentic system."""
     logger.info("=" * 60)
-    logger.info("🤖 Jico Agentic System Starting")
+    logger.info("🤖 Jico Agentic System Starting (v2026-07-05T21:50)")
     logger.info("=" * 60)
 
     # Validate config
