@@ -3,6 +3,11 @@
     "version": ">= 5.0.0"
   },
   "build": {
+    "base": {
+      "node": {
+        "version": "18.18.0"
+      }
+    },
     "preview": {
       "android": {
         "buildType": "apk"
