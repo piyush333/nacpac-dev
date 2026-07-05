@@ -2,6 +2,7 @@
   "expo": {
     "name": "Nacpac",
     "slug": "nacpac",
+    "projectId": "c0b65b79-d86a-46c1-9edb-48a269e27b10",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
