@@ -40,24 +40,21 @@ class BuildTools:
 
     @staticmethod
     def build_apk(repo_path: str, profile: str = "preview") -> tuple[bool, str]:
-        """Build NacPac APK using EAS. Returns (success, output_path_or_error)."""
+        """Build NacPac APK using EAS or return pre-built version. Returns (success, output_path_or_url)."""
         logger.info(f"Building APK with profile '{profile}'...")
-        logger.warning(f"🔴 TEST_MODE CHECK: is_test_mode()={is_test_mode()}")
 
         if is_test_mode():
-            logger.info("TEST MODE: Simulating APK build...")
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            apk_path = f"nacpac_v2.1_{timestamp}.apk"
-            logger.info(f"✅ APK build succeeded (simulated): {apk_path}")
-            return True, f"Build completed: {apk_path}"
+            logger.info("TEST MODE: Returning pre-built NacPac APK from R2...")
+            apk_url = "https://pub-20409ad971be41a48b6e0042388c6da3.r2.dev/mobile/nacpac-production.apk"
+            logger.info(f"✅ APK ready: {apk_url}")
+            return True, apk_url
 
         logger.warning(f"🟢 RUNNING REAL EAS BUILD (not test mode)")
         mobile_path = os.path.join(repo_path, "mobile")
         env = os.environ.copy()
         logger.info(f"Mobile path: {mobile_path}")
-
         logger.info(f"EAS command: eas build --platform android --profile {profile}")
-        logger.info(f"Working directory: {mobile_path}")
+
         success, stdout, stderr = BuildTools.run_command(
             ["eas", "build", "--platform", "android", "--profile", profile, "--non-interactive", "-v"],
             cwd=mobile_path,
@@ -66,31 +63,26 @@ class BuildTools:
         )
 
         if success:
-            logger.info(f"✅ EAS build succeeded")
-            logger.info(f"EAS stdout: {stdout[:500]}")
+            logger.info(f"✅ EAS build succeeded: {stdout[:500]}")
             return True, stdout
         else:
             logger.error(f"❌ EAS build failed")
-            logger.error(f"EAS stderr (first 500 chars): {stderr[:500]}")
-            logger.error(f"EAS stdout (first 500 chars): {stdout[:500]}")
-            if stderr:
-                return False, stderr
-            elif stdout:
-                return False, stdout
-            else:
-                return False, "EAS build failed with no output"
+            logger.error(f"EAS stderr: {stderr[:500]}")
+            logger.error(f"EAS stdout: {stdout[:500]}")
+            return False, stderr or stdout or "EAS build failed"
 
     @staticmethod
     def build_exe(repo_path: str) -> tuple[bool, str]:
-        """Build NacPac EXE for Windows. Returns (success, output_path_or_error)."""
+        """Build NacPac EXE for Windows or return pre-built version. Returns (success, output_path_or_url)."""
         logger.info("Building EXE...")
 
         if is_test_mode():
-            logger.info("TEST MODE: Simulating EXE build...")
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            exe_path = f"nacpac_v2.1_{timestamp}.exe"
-            return True, f"Build completed: {exe_path}"
+            logger.info("TEST MODE: Returning pre-built NacPac EXE from R2...")
+            exe_url = "https://pub-20409ad971be41a48b6e0042388c6da3.r2.dev/desktop/NACPAC%20Production%201.0.0.exe"
+            logger.info(f"✅ EXE ready: {exe_url}")
+            return True, exe_url
 
+        logger.info("RUNNING REAL NPM BUILD (not test mode)")
         desktop_path = os.path.join(repo_path, "desktop")
         success, stdout, stderr = BuildTools.run_command(
             ["npm", "run", "build"],
@@ -99,8 +91,10 @@ class BuildTools:
         )
 
         if success:
+            logger.info(f"✅ NPM build succeeded: {stdout[:500]}")
             return True, stdout
         else:
+            logger.error(f"❌ NPM build failed: {stderr[:500]}")
             return False, stderr
 
     @staticmethod
