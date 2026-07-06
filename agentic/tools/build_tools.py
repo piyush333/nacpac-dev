@@ -56,8 +56,10 @@ class BuildTools:
         env = os.environ.copy()
         logger.info(f"Mobile path: {mobile_path}")
 
+        logger.info(f"EAS command: eas build --platform android --profile {profile}")
+        logger.info(f"Working directory: {mobile_path}")
         success, stdout, stderr = BuildTools.run_command(
-            ["eas", "build", "--platform", "android", "--profile", profile, "--non-interactive"],
+            ["eas", "build", "--platform", "android", "--profile", profile, "--non-interactive", "-v"],
             cwd=mobile_path,
             env=env,
             timeout=1800
