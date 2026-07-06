@@ -42,6 +42,7 @@ class BuildTools:
     def build_apk(repo_path: str, profile: str = "preview") -> tuple[bool, str]:
         """Build NacPac APK using EAS. Returns (success, output_path_or_error)."""
         logger.info(f"Building APK with profile '{profile}'...")
+        logger.warning(f"🔴 TEST_MODE CHECK: is_test_mode()={is_test_mode()}")
 
         if is_test_mode():
             logger.info("TEST MODE: Simulating APK build...")
@@ -50,9 +51,11 @@ class BuildTools:
             logger.info(f"✅ APK build succeeded (simulated): {apk_path}")
             return True, f"Build completed: {apk_path}"
 
+        logger.warning(f"🟢 RUNNING REAL EAS BUILD (not test mode)")
         mobile_path = os.path.join(repo_path, "mobile")
         env = os.environ.copy()
-        
+        logger.info(f"Mobile path: {mobile_path}")
+
         success, stdout, stderr = BuildTools.run_command(
             ["eas", "build", "--platform", "android", "--profile", profile, "--non-interactive"],
             cwd=mobile_path,
@@ -61,8 +64,10 @@ class BuildTools:
         )
 
         if success:
+            logger.info(f"✅ EAS build succeeded: {stdout[:100]}")
             return True, stdout
         else:
+            logger.error(f"❌ EAS build failed: {stderr[:200]}")
             return False, stderr
 
     @staticmethod
