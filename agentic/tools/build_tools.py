@@ -64,11 +64,19 @@ class BuildTools:
         )
 
         if success:
-            logger.info(f"✅ EAS build succeeded: {stdout[:100]}")
+            logger.info(f"✅ EAS build succeeded")
+            logger.info(f"EAS stdout: {stdout[:500]}")
             return True, stdout
         else:
-            logger.error(f"❌ EAS build failed: {stderr[:200]}")
-            return False, stderr
+            logger.error(f"❌ EAS build failed")
+            logger.error(f"EAS stderr (first 500 chars): {stderr[:500]}")
+            logger.error(f"EAS stdout (first 500 chars): {stdout[:500]}")
+            if stderr:
+                return False, stderr
+            elif stdout:
+                return False, stdout
+            else:
+                return False, "EAS build failed with no output"
 
     @staticmethod
     def build_exe(repo_path: str) -> tuple[bool, str]:
