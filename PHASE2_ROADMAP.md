@@ -1,12 +1,12 @@
 # Phase 2: Feature Implementation Roadmap
 
-**Status**: In Progress (Option B - Next)
+**Status**: In Progress (Option C - Next)
 
 ---
 
-## Current Phase: Option A ✅ (COMPLETE)
+## Current Phase: Option A + B ✅ (COMPLETE)
 
-**Goal**: Wire Discord proposal UI for code change approval
+**Goal**: Feature proposal UI + real builds
 
 **What's Done:**
 - ✅ Feature Agent created (`agentic/agents/feature_agent.py`)
@@ -15,7 +15,8 @@
 - ✅ Discord ProposalView wired (show proposed changes)
 - ✅ Approval/Rejection buttons functional
 - ✅ Apply execution flow (creates branch, commits, pushes)
-- ✅ End-to-end testing passed (feature request → proposal → apply → build)
+- ✅ Real EAS/npm builds enabled (BUILD_TEST_MODE=false in DigitalOcean)
+- ✅ End-to-end testing passed: feature request → proposal → apply → **real build** → R2 artifacts
 
 **Workflow (Option A Complete):**
 ```
@@ -38,29 +39,30 @@ Agent applies → builds → returns R2 links
 
 ---
 
-## Next Phase: Option B (ACTIVE NEXT)
+## Completed Phase: Option B ✅ (WAS ALREADY ENABLED)
 
 **Goal**: Enable real EAS/npm builds
 
 **Tasks:**
-- ⏳ Set BUILD_TEST_MODE=false in DigitalOcean
-- ⏳ Test real APK build via EAS
-- ⏳ Test real EXE build via npm
-- ⏳ Verify artifacts upload to R2
+- ✅ BUILD_TEST_MODE=false already set in DigitalOcean
+- ✅ Real APK build via EAS working
+- ✅ Real EXE build via npm working
+- ✅ Artifacts uploading to R2
 
-**Why next**: Proposal approval now working, safe to enable real builds
+**Note**: Was built-in to Option A; no separate work needed.
 
 ---
 
-## Final Phase: Option C (DO NOT START YET)
+## Next Phase: Option C (ACTIVE NEXT)
 
-**Goal**: Firebase state tracking
+**Goal**: Firebase state tracking & feature management
 
 **Tasks:**
-- Track deployed features by branch
-- Version management
-- Feature rollback capability
-- State sync between mobile/desktop
+- ⏳ Set up Firebase Realtime DB schema
+- ⏳ Track deployed features by branch
+- ⏳ Version management (v1.0 → v1.1 bumps)
+- ⏳ Feature rollback capability
+- ⏳ State sync between mobile/desktop
 
 ---
 
@@ -75,6 +77,6 @@ Do NOT skip ahead!
 
 ---
 
-**Last Updated**: 2026-07-06 (Option A ✅ Complete, B Ready)
+**Last Updated**: 2026-07-06 (A+B ✅ Complete, C Ready)
 **Current Owner**: You (piyush)
-**Current Task**: Enable real EAS/npm builds for Option B
+**Current Task**: Set up Firebase for Option C (state tracking & rollback)
