@@ -1,6 +1,8 @@
 """NacPac Dev Agent - handles code, builds (APK/EXE), deployments."""
 
 import logging
+import os
+import subprocess
 from agentic.config import NACPAC_REPO_PATH, EAS_BUILD_PROFILE, SONNET_MODEL
 from agentic.tools.git_tools import git_tools
 from agentic.tools.build_tools import build_tools
@@ -19,7 +21,23 @@ class NacPacDevAgent:
         self.brand = "nacpac"
         self.repo_path = NACPAC_REPO_PATH
         self.model = SONNET_MODEL
+        self._ensure_repo_cloned()
         logger.info(f"NacPac Dev Agent initialized (repo: {self.repo_path})")
+
+    def _ensure_repo_cloned(self):
+        """If repo_path is a GitHub URL, clone it to local /tmp path."""
+        if self.repo_path.startswith("http://") or self.repo_path.startswith("https://"):
+            logger.info(f"Repo path is URL: {self.repo_path}, cloning to local...")
+            local_path = "/tmp/nacpac-workspace"
+            if not os.path.exists(local_path):
+                try:
+                    subprocess.run(["git", "clone", self.repo_path, local_path], check=True, capture_output=True, timeout=300)
+                    logger.info(f"✅ Cloned to {local_path}")
+                except Exception as e:
+                    logger.error(f"Failed to clone repo: {e}")
+                    return
+            self.repo_path = local_path
+            logger.info(f"Updated repo_path to local: {self.repo_path}")
 
     def get_current_state(self) -> dict:
         """Get current branch, commit, etc."""
