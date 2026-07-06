@@ -2,12 +2,15 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y git curl build-essential && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y git curl build-essential nodejs npm && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Cache bust: force fresh rebuild - 2026-07-06T13:20 (use GITHUB_TOKEN for private repo auth)
+# Install EAS CLI for mobile builds
+RUN npm install -g eas-cli
+
+# Cache bust: force fresh rebuild - 2026-07-06T14:45 (with eas-cli, use GITHUB_TOKEN for private repo auth)
 RUN echo "Build timestamp: $(date)"
 COPY agentic/ ./agentic/
 RUN ls -la ./agentic/agents/ && echo "Files copied successfully"
