@@ -91,6 +91,111 @@ async def on_message(message: discord.Message):
     await message.reply(embed=embed, view=view)
 
 
+class BuildTargetView(discord.ui.View):
+    """View for selecting build targets (APK, EXE, Both)."""
+
+    def __init__(self, task_id: str, agent_name: str, intent: dict, message: discord.Message, user: discord.User):
+        super().__init__(timeout=3600)
+        self.task_id = task_id
+        self.agent_name = agent_name
+        self.intent = intent
+        self.message = message
+        self.user = user
+
+    @discord.ui.button(label="📱 APK", style=discord.ButtonStyle.primary)
+    async def build_apk_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
+        self.intent["build_target"] = "apk"
+        await self._execute_and_report(interaction)
+
+    @discord.ui.button(label="💻 EXE", style=discord.ButtonStyle.primary)
+    async def build_exe_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
+        self.intent["build_target"] = "exe"
+        await self._execute_and_report(interaction)
+
+    @discord.ui.button(label="📱💻 Both", style=discord.ButtonStyle.success)
+    async def build_both_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
+        self.intent["build_target"] = "both"
+        await self._execute_and_report(interaction)
+
+    async def _execute_and_report(self, interaction: discord.Interaction):
+        """Execute build and report results."""
+        _load_agents()
+        logger.info(f"Building {self.intent.get('build_target', 'unknown')} for task {self.task_id}")
+
+        results = {}
+        if self.intent.get("build_target") in ["apk", "both"]:
+            results["apk"] = await self._build_apk()
+        if self.intent.get("build_target") in ["exe", "both"]:
+            results["exe"] = await self._build_exe()
+
+        # Report results
+        await self._send_reports(interaction, results)
+
+    async def _build_apk(self) -> dict:
+        """Build APK."""
+        try:
+            result = nacpac_dev_agent.build_apk(self.task_id)
+            logger.info(f"APK build result: {result.get('status')}")
+            return result
+        except Exception as e:
+            logger.error(f"APK build failed: {e}")
+            return {"status": "error", "message": str(e)}
+
+    async def _build_exe(self) -> dict:
+        """Build EXE."""
+        try:
+            result = nacpac_dev_agent.build_exe(self.task_id)
+            logger.info(f"EXE build result: {result.get('status')}")
+            return result
+        except Exception as e:
+            logger.error(f"EXE build failed: {e}")
+            return {"status": "error", "message": str(e)}
+
+    async def _send_reports(self, interaction: discord.Interaction, results: dict):
+        """Send build results to logs and reports channels."""
+        status_text = ""
+        color = discord.Color.green()
+
+        for target, result in results.items():
+            status = result.get("status", "unknown")
+            message = result.get("message", "")
+            status_text += f"\n**{target.upper()}**: {status}\n{message[:200]}"
+            if status != "success":
+                color = discord.Color.red()
+
+        # Send to logs channel
+        logs_channel = bot.get_channel(DISCORD_LOGS_CHANNEL_ID)
+        if logs_channel:
+            embed = discord.Embed(
+                title="📝 Build Log",
+                description=status_text,
+                color=color
+            )
+            embed.add_field(name="Task ID", value=self.task_id)
+            embed.add_field(name="Target", value=self.intent.get("build_target", "unknown"))
+            embed.set_footer(text=f"Built by: {self.user}")
+            await logs_channel.send(embed=embed)
+
+        # Send to reports channel
+        reports_channel = bot.get_channel(DISCORD_REPORTS_CHANNEL_ID)
+        if reports_channel:
+            embed = discord.Embed(
+                title="📊 Build Report",
+                description=self.message.content,
+                color=color
+            )
+            embed.add_field(name="Status", value="Completed" if all(r.get("status") == "success" for r in results.values()) else "Failed")
+            embed.add_field(name="Target", value=self.intent.get("build_target", "unknown"))
+            await reports_channel.send(embed=embed)
+
+        # Reply to user
+        reply_msg = f"✅ Build completed!\n{status_text}" if color == discord.Color.green() else f"❌ Build failed\n{status_text}"
+        await interaction.followup.send(reply_msg)
+
+
 class TaskApprovalView(discord.ui.View):
     """Approval buttons for tasks."""
 
@@ -108,6 +213,18 @@ class TaskApprovalView(discord.ui.View):
         logger.info(f"Task {self.task_id} approved by {interaction.user}")
         memory.update_task(self.task_id, "approved", "User approved task")
         await self.message.add_reaction("✅")
+
+        # For build tasks, ask which targets to build
+        task_type = self.intent.get("task_type", "")
+        if task_type == "build" and self.intent.get("brand") == "nacpac":
+            view = BuildTargetView(self.task_id, self.agent_name, self.intent, self.message, interaction.user)
+            embed = discord.Embed(
+                title="🔨 Select Build Targets",
+                description="Which builds would you like to run?",
+                color=discord.Color.blue()
+            )
+            await interaction.followup.send(embed=embed, view=view)
+            return
 
         result = await self.execute_task()
 
