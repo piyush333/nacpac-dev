@@ -13,6 +13,7 @@ COPY agentic/ ./agentic/
 RUN ls -la ./agentic/agents/ && echo "Files copied successfully"
 RUN mkdir -p /tmp
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 CMD python -c "import os; os.getenv('DISCORD_TOKEN') or exit(1)" || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD python -c "import os; exit(0 if os.getenv('DISCORD_TOKEN') else 1)"
 
 CMD ["python", "-m", "agentic.main"]
