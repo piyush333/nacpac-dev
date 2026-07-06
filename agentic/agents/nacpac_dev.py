@@ -31,7 +31,13 @@ class NacPacDevAgent:
             local_path = "/tmp/nacpac-workspace"
             if not os.path.exists(local_path):
                 try:
-                    subprocess.run(["git", "clone", self.repo_path, local_path], check=True, capture_output=True, timeout=300)
+                    clone_url = self.repo_path
+                    github_token = os.getenv("GITHUB_TOKEN")
+                    if github_token and "github.com" in clone_url:
+                        clone_url = clone_url.replace("https://", f"https://{github_token}@")
+                        logger.info("Using GitHub token for private repo auth")
+
+                    subprocess.run(["git", "clone", clone_url, local_path], check=True, capture_output=True, timeout=300)
                     logger.info(f"✅ Cloned to {local_path}")
                 except Exception as e:
                     logger.error(f"Failed to clone repo: {e}")
