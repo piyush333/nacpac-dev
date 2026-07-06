@@ -39,14 +39,14 @@ class BuildTools:
             return False, "", str(e)
 
     @staticmethod
-    def build_apk(repo_path: str, profile: str = "preview") -> tuple[bool, str]:
+    def build_apk(repo_path: str, profile: str = "preview", branch: str = None) -> tuple[bool, str]:
         """Build NacPac APK using EAS or return pre-built version. Returns (success, output_path_or_url)."""
-        logger.info(f"Building APK with profile '{profile}'...")
+        logger.info(f"Building APK with profile '{profile}' from branch '{branch or 'main'}'...")
 
         if is_test_mode():
             logger.info("TEST MODE: Returning pre-built NacPac APK from R2...")
             apk_url = "https://pub-20409ad971be41a48b6e0042388c6da3.r2.dev/mobile/nacpac-production.apk"
-            logger.info(f"✅ APK ready: {apk_url}")
+            logger.info(f"✅ APK ready (from {branch or 'main'}): {apk_url}")
             return True, apk_url
 
         logger.warning(f"🟢 RUNNING REAL EAS BUILD (not test mode)")
