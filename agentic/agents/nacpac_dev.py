@@ -29,19 +29,37 @@ class NacPacDevAgent:
         if self.repo_path.startswith("http://") or self.repo_path.startswith("https://"):
             logger.info(f"Repo path is URL: {self.repo_path}, cloning to local...")
             local_path = "/tmp/nacpac-workspace"
-            if not os.path.exists(local_path):
-                try:
-                    clone_url = self.repo_path
-                    github_token = os.getenv("GITHUB_TOKEN")
-                    if github_token and "github.com" in clone_url:
-                        clone_url = clone_url.replace("https://", f"https://{github_token}@")
-                        logger.info("Using GitHub token for private repo auth")
 
-                    subprocess.run(["git", "clone", clone_url, local_path], check=True, capture_output=True, timeout=300)
+            # Check if we need to clone
+            if not os.path.exists(local_path):
+                clone_url = self.repo_path
+                github_token = os.getenv("GITHUB_TOKEN")
+
+                logger.info(f"GitHub token present: {bool(github_token)}")
+
+                if github_token and "github.com" in clone_url:
+                    clone_url = clone_url.replace("https://", f"https://{github_token}@")
+                    logger.info("Using GitHub token for private repo auth")
+
+                logger.info(f"Attempting to clone from: {clone_url}")
+                result = subprocess.run(
+                    ["git", "clone", clone_url, local_path],
+                    capture_output=True,
+                    text=True,
+                    timeout=300
+                )
+
+                if result.returncode != 0:
+                    logger.error(f"Git clone failed with exit code {result.returncode}")
+                    logger.error(f"Git stderr: {result.stderr}")
+                    logger.error(f"Git stdout: {result.stdout}")
+                    logger.warning(f"Clone failed, but continuing with local_path: {local_path}")
+                else:
                     logger.info(f"✅ Cloned to {local_path}")
-                except Exception as e:
-                    logger.error(f"Failed to clone repo: {e}")
-                    return
+            else:
+                logger.info(f"Directory {local_path} already exists, skipping clone")
+
+            # Always update to local path, whether clone succeeded or not
             self.repo_path = local_path
             logger.info(f"Updated repo_path to local: {self.repo_path}")
 
