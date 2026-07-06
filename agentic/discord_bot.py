@@ -16,16 +16,19 @@ from agentic.memory import memory
 orchestrator = None
 nacpac_dev_agent = None
 jico_life_dev_agent = None
+feature_agent = None
 
 def _load_agents():
-    global orchestrator, nacpac_dev_agent, jico_life_dev_agent
+    global orchestrator, nacpac_dev_agent, jico_life_dev_agent, feature_agent
     if orchestrator is None:
         from agentic.agents.orchestrator import orchestrator as orch
         from agentic.agents.nacpac_dev import nacpac_dev_agent as npac
         from agentic.agents.jico_life_dev import jico_life_dev_agent as jlife
+        from agentic.agents.feature_agent import get_nacpac_feature_agent
         orchestrator = orch
         nacpac_dev_agent = npac
         jico_life_dev_agent = jlife
+        feature_agent = get_nacpac_feature_agent()
 
 logger = logging.getLogger(__name__)
 
@@ -77,18 +80,126 @@ async def on_message(message: discord.Message):
     )
 
     agent_name = orchestrator.route_to_agent(intent)
+    task_type = intent.get("task_type", "unknown")
 
-    view = TaskApprovalView(task_id, agent_name, intent, message)
-    embed = discord.Embed(
-        title="📋 Task Approval",
-        description=f"**Message:** {message.content}\n**Agent:** {agent_name}",
-        color=discord.Color.blue()
-    )
-    embed.add_field(name="Brand", value=intent.get("brand", "unknown"))
-    embed.add_field(name="Task Type", value=intent.get("task_type", "unknown"))
-    embed.set_footer(text="Parsed by manager agent")
+    # Handle feature request (code changes) differently
+    if task_type == "code":
+        logger.info(f"Detected feature request: {intent}")
+        try:
+            # Propose code changes
+            await message.reply("🔍 Analyzing codebase and proposing changes...")
+            proposal = feature_agent.propose_changes(intent.get("details", message.content))
 
-    await message.reply(embed=embed, view=view)
+            # Format proposal for Discord
+            if proposal.get("raw_response"):
+                # If Claude returned raw text, show it
+                embed = discord.Embed(
+                    title="📝 Proposed Changes",
+                    description=proposal.get("raw_response", "")[:2000],
+                    color=discord.Color.blue()
+                )
+            else:
+                # Show structured proposal
+                summary = proposal.get("summary", "Feature implementation")
+                files_to_modify = proposal.get("files_to_modify", [])
+
+                file_list = "\n".join([
+                    f"• **{f.get('action').upper()}**: {f.get('path')}\n  {f.get('reason', '')}"
+                    for f in files_to_modify[:5]  # Limit to 5 files in preview
+                ])
+
+                embed = discord.Embed(
+                    title="📝 Proposed Changes",
+                    description=summary,
+                    color=discord.Color.blue()
+                )
+                if file_list:
+                    embed.add_field(name="Files to Modify", value=file_list, inline=False)
+
+                risks = proposal.get("risks", [])
+                if risks:
+                    embed.add_field(name="⚠️ Risks", value="\n".join(risks[:3]))
+
+            embed.set_footer(text="Review & Apply? Click buttons below")
+
+            # Show proposal with action buttons
+            view = ProposalView(task_id, proposal, message, message.author)
+            await message.reply(embed=embed, view=view)
+
+        except Exception as e:
+            logger.error(f"Feature proposal failed: {e}")
+            await message.reply(f"❌ Failed to propose changes: {str(e)[:200]}")
+    else:
+        # Handle build/deploy tasks with approval first
+        view = TaskApprovalView(task_id, agent_name, intent, message)
+        embed = discord.Embed(
+            title="📋 Task Approval",
+            description=f"**Message:** {message.content}\n**Agent:** {agent_name}",
+            color=discord.Color.blue()
+        )
+        embed.add_field(name="Brand", value=intent.get("brand", "unknown"))
+        embed.add_field(name="Task Type", value=intent.get("task_type", "unknown"))
+        embed.set_footer(text="Parsed by manager agent")
+
+        await message.reply(embed=embed, view=view)
+
+
+class ProposalView(discord.ui.View):
+    """View for reviewing and applying proposed code changes."""
+
+    def __init__(self, task_id: str, proposal: dict, message: discord.Message, user: discord.User):
+        super().__init__(timeout=3600)
+        self.task_id = task_id
+        self.proposal = proposal
+        self.message = message
+        self.user = user
+
+    @discord.ui.button(label="✅ Apply Changes", style=discord.ButtonStyle.success)
+    async def apply_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
+        _load_agents()
+
+        logger.info(f"Applying proposed changes for task {self.task_id}")
+
+        try:
+            # Apply changes to codebase
+            result = feature_agent.apply_changes(self.proposal, self.task_id)
+
+            if result.get("status") == "success":
+                embed = discord.Embed(
+                    title="✅ Changes Applied",
+                    description=f"✨ {result.get('message')}",
+                    color=discord.Color.green()
+                )
+                embed.add_field(name="Branch", value=result.get("branch", "unknown"))
+                embed.add_field(name="Files Modified", value=str(result.get("files_modified", 0)))
+                embed.set_footer(text="Next: Build & Deploy")
+                await interaction.followup.send(embed=embed)
+
+                # Now show build target selection
+                view = BuildTargetView(self.task_id, "nacpac_dev", {
+                    "brand": "nacpac",
+                    "task_type": "build",
+                    "build_target": "both"
+                }, self.message, self.user)
+                embed = discord.Embed(
+                    title="🔨 Build Updated Code",
+                    description="Select targets to build with new changes:",
+                    color=discord.Color.blue()
+                )
+                await interaction.followup.send(embed=embed, view=view)
+            else:
+                await interaction.followup.send(f"❌ Failed to apply changes: {result.get('message', 'Unknown error')}")
+
+        except Exception as e:
+            logger.error(f"Error applying changes: {e}")
+            await interaction.followup.send(f"❌ Error: {str(e)[:200]}")
+
+    @discord.ui.button(label="❌ Cancel", style=discord.ButtonStyle.danger)
+    async def cancel_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
+        await interaction.followup.send("❌ Proposal rejected. No changes applied.")
+        logger.info(f"Proposal for task {self.task_id} rejected")
 
 
 class BuildTargetView(discord.ui.View):
