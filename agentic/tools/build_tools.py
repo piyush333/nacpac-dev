@@ -12,8 +12,8 @@ logger = logging.getLogger(__name__)
 
 def is_test_mode() -> bool:
     """Check TEST_MODE from environment at runtime (not cached)."""
-    # Hardcoded to False for real builds
-    return False
+    test_mode = os.getenv("BUILD_TEST_MODE", "true").lower() == "true"
+    return test_mode
 
 
 class BuildTools:
