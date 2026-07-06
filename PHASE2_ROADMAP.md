@@ -1,10 +1,10 @@
 # Phase 2: Feature Implementation Roadmap
 
-**Status**: In Progress (Option A - Active)
+**Status**: In Progress (Option B - Next)
 
 ---
 
-## Current Phase: Option A ✅ (ACTIVE NOW)
+## Current Phase: Option A ✅ (COMPLETE)
 
 **Goal**: Wire Discord proposal UI for code change approval
 
@@ -12,13 +12,10 @@
 - ✅ Feature Agent created (`agentic/agents/feature_agent.py`)
 - ✅ Codebase analysis working
 - ✅ Claude proposes code changes
-- ✅ Test command responds positively
-
-**What's Needed:**
-- ⏳ Discord ProposalView (show proposed changes)
-- ⏳ Approval/Rejection buttons
-- ⏳ Apply execution flow
-- ⏳ End-to-end testing
+- ✅ Discord ProposalView wired (show proposed changes)
+- ✅ Approval/Rejection buttons functional
+- ✅ Apply execution flow (creates branch, commits, pushes)
+- ✅ End-to-end testing passed (feature request → proposal → apply → build)
 
 **Workflow (Option A Complete):**
 ```
@@ -41,17 +38,17 @@ Agent applies → builds → returns R2 links
 
 ---
 
-## Next Phase: Option B (DO NOT START YET)
+## Next Phase: Option B (ACTIVE NEXT)
 
 **Goal**: Enable real EAS/npm builds
 
 **Tasks:**
-- Set BUILD_TEST_MODE=false in DigitalOcean
-- Test real APK build via EAS
-- Test real EXE build via npm
-- Verify artifacts upload to R2
+- ⏳ Set BUILD_TEST_MODE=false in DigitalOcean
+- ⏳ Test real APK build via EAS
+- ⏳ Test real EXE build via npm
+- ⏳ Verify artifacts upload to R2
 
-**Why later**: Want proposal approval working first for safety
+**Why next**: Proposal approval now working, safe to enable real builds
 
 ---
 
@@ -78,6 +75,6 @@ Do NOT skip ahead!
 
 ---
 
-**Last Updated**: 2026-07-06
+**Last Updated**: 2026-07-06 (Option A ✅ Complete, B Ready)
 **Current Owner**: You (piyush)
-**Current Task**: Wire Discord ProposalView for Option A
+**Current Task**: Enable real EAS/npm builds for Option B
