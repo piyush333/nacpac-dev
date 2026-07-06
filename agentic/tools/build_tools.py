@@ -10,6 +10,9 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 TEST_MODE = os.getenv("BUILD_TEST_MODE", "true").lower() == "true"
+# Debug: log what env var is set to
+_build_test_mode_raw = os.getenv("BUILD_TEST_MODE", "NOT SET")
+logger.warning(f"🔍 BUILD_TEST_MODE env: '{_build_test_mode_raw}' (TEST_MODE={TEST_MODE})")
 
 
 class BuildTools:
