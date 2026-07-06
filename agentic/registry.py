@@ -16,7 +16,8 @@ class AgentRegistry:
     def _ensure_agents_loaded(self):
         """Load all agents."""
         try:
-            from agentic.agents import nacpac_dev_agent, jico_life_dev_agent
+            from agentic.agents.nacpac_dev import nacpac_dev_agent
+            from agentic.agents.jico_life_dev import jico_life_dev_agent
 
             self.agents = {
                 "nacpac_dev": {
