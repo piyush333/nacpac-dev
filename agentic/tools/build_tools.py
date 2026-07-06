@@ -9,10 +9,10 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
-TEST_MODE = os.getenv("BUILD_TEST_MODE", "true").lower() == "true"
-# Debug: log what env var is set to
-_build_test_mode_raw = os.getenv("BUILD_TEST_MODE", "NOT SET")
-logger.warning(f"🔍 BUILD_TEST_MODE env: '{_build_test_mode_raw}' (TEST_MODE={TEST_MODE})")
+
+def is_test_mode() -> bool:
+    """Check TEST_MODE from environment at runtime (not cached)."""
+    return os.getenv("BUILD_TEST_MODE", "true").lower() == "true"
 
 
 class BuildTools:
@@ -42,7 +42,7 @@ class BuildTools:
         """Build NacPac APK using EAS. Returns (success, output_path_or_error)."""
         logger.info(f"Building APK with profile '{profile}'...")
 
-        if TEST_MODE:
+        if is_test_mode():
             logger.info("TEST MODE: Simulating APK build...")
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             apk_path = f"nacpac_v2.1_{timestamp}.apk"
@@ -69,7 +69,7 @@ class BuildTools:
         """Build NacPac EXE for Windows. Returns (success, output_path_or_error)."""
         logger.info("Building EXE...")
 
-        if TEST_MODE:
+        if is_test_mode():
             logger.info("TEST MODE: Simulating EXE build...")
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             exe_path = f"nacpac_v2.1_{timestamp}.exe"
@@ -92,7 +92,7 @@ class BuildTools:
         """Build GLB 3D model from PNG render. Returns (success, output_path_or_error)."""
         logger.info(f"Building GLB from {render_path}...")
 
-        if TEST_MODE:
+        if is_test_mode():
             logger.info("TEST MODE: Simulating GLB build...")
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             glb_path = f"model_{timestamp}.glb"
