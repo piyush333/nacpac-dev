@@ -2,16 +2,27 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y git curl build-essential nodejs npm && rm -rf /var/lib/apt/lists/*
+# Install system dependencies including Node.js
+RUN apt-get update && apt-get install -y \
+    git curl build-essential ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js 18+ using NodeSource repository (more reliable than apt default)
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs && \
+    rm -rf /var/lib/apt/lists/*
+
+# Verify Node and npm are available
+RUN node --version && npm --version
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Install EAS CLI for mobile builds
-RUN npm install -g eas-cli
+# Install EAS CLI globally
+RUN npm install -g @expo/eas-cli && which eas
 
-# Cache bust: force fresh rebuild - 2026-07-06T14:45 (with eas-cli, use GITHUB_TOKEN for private repo auth)
-RUN echo "Build timestamp: $(date)"
+# Cache bust: force fresh rebuild - 2026-07-06T14:55Z (NodeSource Node.js + eas-cli)
+RUN echo "Build timestamp: $(date +%s)"
 COPY agentic/ ./agentic/
 RUN ls -la ./agentic/agents/ && echo "Files copied successfully"
 RUN mkdir -p /tmp
