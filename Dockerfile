@@ -19,7 +19,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Install EAS CLI globally
-RUN npm install -g @expo/eas-cli && which eas
+RUN npm install -g eas-cli && which eas
 
 # Cache bust: force fresh rebuild - 2026-07-06T14:55Z (NodeSource Node.js + eas-cli)
 RUN echo "Build timestamp: $(date +%s)"
