@@ -95,13 +95,58 @@ Append-only log of decisions made during agentic system build.
 
 ---
 
-## Pending Clarifications (before Phase 1 start)
+## Session 2 (2026-07-06) — Phase 1 Deployment
 
-Before Phase 1 starts, confirm with user:
-- **Jico Life repo location**: Same workspace (nacpac-workspace-main/) or separate repo?
-- **AR app build toolchain**: What tool/command builds the AR app?
-- **Approval flow preference**: Discord buttons (Y/N) or text confirmation?
-- **Model choice**: Haiku (fast, cheap, ~$0.80/M tokens) vs Sonnet (smarter, ~$3/M tokens) for dev agent reasoning?
+### Decision 14: DigitalOcean deployment (vs Oracle VM)
+**Date:** 2026-07-06  
+**Decision:** Deploy to DigitalOcean App Platform instead of Oracle VM. Auto-deploy from GitHub, managed infrastructure.  
+**Rationale:** User said "why are we complicating this... we need code which is scalable and can be debugged at times when needed." DO provides simpler setup, auto-scaling, and built-in monitoring. Moved away from Oracle VM complexity.  
+**Owner:** Piyush
+
+### Decision 15: Health check server (aiohttp)
+**Date:** 2026-07-06  
+**Decision:** Add HTTP health server (aiohttp on port 8080) running in parallel with Discord bot.  
+**Rationale:** DigitalOcean health probes expect HTTP responses. Discord bot is websocket-only. Needed aiohttp to respond to probes without changing bot architecture.  
+**Owner:** Piyush
+
+### Decision 16: Deferred imports for agent loading
+**Date:** 2026-07-06  
+**Decision:** Use lazy/deferred imports in discord_bot.py via _load_agents() function. No __init__.py magic imports.  
+**Rationale:** Avoids circular imports and __init__.py complexity. Agents loaded on first use, preventing import-time failures.  
+**Owner:** Piyush
+
+### Decision 17: Docker caching strategy
+**Date:** 2026-07-06  
+**Decision:** Add cache-bust comments with timestamps in Dockerfile and requirements.txt to force fresh builds.  
+**Rationale:** DigitalOcean caches Docker layers. Without cache-busting, old code is served even after push.  
+**Owner:** Piyush
+
+### Decision 18: Supabase as optional (graceful degradation)
+**Date:** 2026-07-06  
+**Decision:** Supabase is optional. System works without it. Memory layer degrades gracefully if SUPABASE_URL/KEY not set.  
+**Rationale:** User may not need persistent DB initially. System should be deployable without Supabase setup. Can add later.  
+**Owner:** Piyush
+
+### Decision 19: BUILD_TEST_MODE for safe testing
+**Date:** 2026-07-06  
+**Decision:** Keep BUILD_TEST_MODE=true by default in DigitalOcean. Switch to false only after confirming workflow.  
+**Rationale:** Real builds (EAS, npm) take time and cost money. Test mode simulates execution, allowing workflow validation without wasting resources. User can enable real builds after confirming intent parsing + approval flow works.  
+**Owner:** Piyush
+
+### Decision 20: Persistent memory backup to Google Drive
+**Date:** 2026-07-06  
+**Decision:** Create MEMORY.md, DECISIONS.md, SESSION_PROTOCOL.md files. Back up to Google Drive after each session.  
+**Rationale:** Previous sessions have failed due to lost context. These files serve as human-readable recovery points. Google Drive ensures backup is accessible across sessions and machines.  
+**Owner:** Piyush
+
+---
+
+## Pending Clarifications (before Phase 2 start)
+
+- **Real builds**: When to switch BUILD_TEST_MODE=false?
+- **Supabase persistence**: Enable full task/cost history tracking?
+- **Monitoring**: What alerts/dashboards needed?
+- **MCPO agents**: Timeline for adding marketing/customer success/product/ops agents?
 
 ---
 

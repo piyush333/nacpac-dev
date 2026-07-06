@@ -67,17 +67,25 @@ Rules for every session building the Jico agentic system.
 
 ---
 
-## Files to Touch This Session (Phase 0)
+## Current Phase Status (as of 2026-07-06)
 
-| File | Action | Why |
-|------|--------|-----|
-| MEMORY.md | Create | Session foundation |
-| DECISIONS.md | Create | Decision log |
-| SESSION_PROTOCOL.md | Create | How we work |
-| Supabase schema | Create | Persistent state layer |
-| .gitignore | Check | Ensure no .env committed |
+- ✅ **Phase 0 COMPLETE**: MEMORY.md, DECISIONS.md, SESSION_PROTOCOL.md created
+- ✅ **Phase 1 COMPLETE**: Agentic system built, tested, deployed to DigitalOcean
+- 🟡 **Phase 1.5**: Switch BUILD_TEST_MODE=false and test real builds (pending user approval)
+- ⏳ **Phase 2+**: MCPO agents, enhanced monitoring, Supabase persistence (future)
 
-**Files to NOT touch (yet):**
-- agentic/ (Phase 1)
-- jico-system/ (reference only)
+## Files Modified Each Session
+
+| File | Update Frequency | Why |
+|------|-----------------|-----|
+| MEMORY.md | End of session | Track progress, deployments, blockers |
+| DECISIONS.md | When decisions made | Append-only log |
+| agentic/ | Per-feature | Code changes, bug fixes, new agents |
+| Dockerfile | When deps change | Cache-busting, health checks |
+| requirements.txt | When adding packages | Keep runtime reproducible |
+
+**Files to NEVER modify:**
+- .env (secrets, keep local only)
+- jico-system/ (legacy reference only)
+- Previous DECISIONS.md entries (immutable)
 

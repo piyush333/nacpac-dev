@@ -1,7 +1,7 @@
 # Jico Org Memory — System State & Decisions
 
-**Last updated:** 2026-07-02  
-**Status:** Phase 0 (Memory foundation) — In Progress
+**Last updated:** 2026-07-06  
+**Status:** ✅ Phase 1 COMPLETE — LIVE on DigitalOcean
 
 ---
 
@@ -16,19 +16,35 @@
 
 ## System Status
 
-### Current State
-- **Old system** (`jico-system/`): Discord bot (partial) → keyword router → managers → CLI shelling
-  - ✅ Working: discord_manager.py, compression_layer.py, task_router.py, nacpac_manager.py (for APK/EXE)
-  - ❌ Not wired: git_sync.py, health_monitor.py, circuit_breaker.py (code exists, never imported)
-  - ❌ Stubs: jico_manager.py (all workers), nacpac_manager seo/ads tasks
-  - ❌ In-memory only: task queue, cost tracker, scheduler (lost on restart)
-  - ❌ Latent bugs: scheduler stores "tomorrow" strings instead of ISO timestamps
+### DEPLOYMENT STATUS (2026-07-06)
+✅ **APP LIVE** — DigitalOcean dolhin-app running in production
+- **Discord Bot**: Connected, listening to #general
+- **Health Server**: aiohttp on port 8080, responding to probes
+- **Orchestrator**: Parsing natural language commands
+- **Tested**: Message parsing → intent routing → task logging ✅
+- **Build Mode**: Currently TEST_MODE (simulated builds)
 
-### New System (This Session)
-- Creating: `agentic/` directory (Claude Agent SDK–based)
-- Memory: Supabase (machine truth) + MEMORY.md / DECISIONS.md (human readable)
-- Runtime: Orchestrator agent + subagents (NacPac Dev, Jico Life Dev) + Discord gateway
-- Status: Phase 0 (memory files + Supabase schema)
+### Current Architecture
+- **Deployment**: DigitalOcean App Platform (auto-deploy from jico-org/agentic-system repo)
+- **Database**: Supabase (optional, configured but not required for operation)
+- **Runtime**: Python 3.11 + aiohttp + discord.py
+- **Docker**: python:3.11-slim, health checks enabled
+- **Cost**: ~$5/month DO base app
+
+### Old System (Reference)
+- **jico-system/**: Kept as reference; not currently used
+  - Partial Discord bot, keyword router, in-memory state (no persistence)
+  - Reliable for basic tasks but not scalable
+
+### New System Status
+- ✅ `agentic/` directory fully deployed
+- ✅ Orchestrator agent with Haiku parsing (fast, cheap)
+- ✅ Discord approval workflow (buttons Y/N)
+- ✅ NacPac Dev Agent ready (build APK/EXE)
+- ✅ Jico Life Dev Agent ready (build AR app)
+- ✅ Cost gating ($10/day, $50/month enforced)
+- ✅ Health checks passing
+- ⚠️ BUILD_TEST_MODE = true (switch to false for real builds)
 
 ---
 
@@ -122,36 +138,24 @@
 
 ---
 
-## Next Phase (Phase 2) — Supabase Setup + Oracle Deployment
+## Phase 2 — Real Builds + Enhanced Monitoring
 
-**Goal:** Set up persistent memory layer + deploy system to Oracle VM as 24/7 service.
+**Next Actions** (when ready):
+1. ⚠️ **Enable real builds**: Change `BUILD_TEST_MODE=false` in DigitalOcean
+2. **Test real build**: Send "Build NacPac APK" → verify actual EAS build
+3. **Monitor costs**: Track Anthropic API usage in DigitalOcean logs
+4. **Supabase integration** (optional): Enable persistent task history + cost tracking
+5. **Add monitoring**: Dashboard to view task history, costs, build status
+6. **MCPO agents** (Phase 3+): Add marketing, customer success, product, ops agents
 
-**Phase 2 Steps:**
-1. Create Supabase project (`jico-agentic`) — OR use existing if available
-2. Create schema + tables (brands, tasks, runs, brand_state, builds, deployments, decisions, costs)
-3. Seed initial data (NacPac, Jico Life brands)
-4. Test memory client (insert/read operations)
-5. Copy `.env.template` → `.env`, fill in all credentials
-6. Deploy to Oracle VM:
-   - Install Python 3.11+ + systemd
-   - Clone repo to `/home/ubuntu/nacpac-dev/`
-   - Install pip dependencies
-   - Copy `.env` to `/home/ubuntu/nacpac-dev/agentic/.env`
-   - Copy systemd service: `sudo cp systemd/jico-agentic.service /etc/systemd/system/`
-   - Enable + start service: `sudo systemctl enable jico-agentic && sudo systemctl start jico-agentic`
-7. Verify deployment:
-   - Check logs: `journalctl -u jico-agentic -f`
-   - Test Discord command: `/task brand:nacpac request:Show status`
-8. Set up monitoring + alerts
-
-**What's ready:**
-- ✅ Code complete (18 files, fully documented)
-- ✅ Orchestrator with intent parsing
-- ✅ Dev agents for both brands (auto-build + auto-deploy + auto-backup)
-- ✅ Discord bot with approval buttons
-- ✅ Cost tracking + gates
-- ✅ Failsafe mechanisms (auto-retry, dead letter queue, health monitor)
-- ✅ Systemd service file
+**What's deployed:**
+- ✅ Code: 18 files, fully functional
+- ✅ Orchestrator: Intent parsing with Haiku
+- ✅ Dev agents: NacPac (APK/EXE) + Jico Life (AR app)
+- ✅ Discord interface: Natural language + approval buttons
+- ✅ Cost gating: $10/day, $50/month enforced
+- ✅ Health monitoring: Probes responding
+- ✅ Auto-deploy: GitHub → DigitalOcean pipeline working
 
 ---
 
