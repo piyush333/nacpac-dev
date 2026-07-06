@@ -10,10 +10,22 @@ from agentic.config import (
     DISCORD_GENERAL_CHANNEL_ID, DISCORD_NACPAC_DEV_CHANNEL_ID,
     DISCORD_JICO_DEV_CHANNEL_ID, DISCORD_LOGS_CHANNEL_ID, DISCORD_REPORTS_CHANNEL_ID
 )
-from agentic.agents.orchestrator import orchestrator
-from agentic.agents.nacpac_dev import nacpac_dev_agent
-from agentic.agents.jico_life_dev import jico_life_dev_agent
 from agentic.memory import memory
+
+# Defer imports to avoid __init__.py issues
+orchestrator = None
+nacpac_dev_agent = None
+jico_life_dev_agent = None
+
+def _load_agents():
+    global orchestrator, nacpac_dev_agent, jico_life_dev_agent
+    if orchestrator is None:
+        from agentic.agents.orchestrator import orchestrator as orch
+        from agentic.agents.nacpac_dev import nacpac_dev_agent as npac
+        from agentic.agents.jico_life_dev import jico_life_dev_agent as jlife
+        orchestrator = orch
+        nacpac_dev_agent = npac
+        jico_life_dev_agent = jlife
 
 logger = logging.getLogger(__name__)
 
@@ -24,12 +36,14 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 @bot.event
 async def on_ready():
+    _load_agents()
     logger.info(f"✅ Bot logged in as {bot.user}")
 
 
 @bot.event
 async def on_message(message: discord.Message):
     """Listen to messages in #general and route to orchestrator."""
+    _load_agents()
     if message.author == bot.user:
         await bot.process_commands(message)
         return
