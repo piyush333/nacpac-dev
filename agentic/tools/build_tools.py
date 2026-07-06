@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 def is_test_mode() -> bool:
     """Check TEST_MODE from environment at runtime (not cached)."""
-    test_mode = os.getenv("BUILD_TEST_MODE", "true").lower() == "true"
+    test_mode = os.getenv("BUILD_TEST_MODE", "false").lower() == "true"
     return test_mode
 
 
