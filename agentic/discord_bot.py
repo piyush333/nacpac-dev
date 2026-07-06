@@ -268,6 +268,7 @@ class BuildTargetView(discord.ui.View):
     async def _send_reports(self, interaction: discord.Interaction, results: dict):
         """Send build results to logs and reports channels."""
         status_text = ""
+        artifact_links = {}
         color = discord.Color.green()
 
         for target, result in results.items():
@@ -276,6 +277,14 @@ class BuildTargetView(discord.ui.View):
             status_text += f"\n**{target.upper()}**: {status}\n{message[:200]}"
             if status != "success":
                 color = discord.Color.red()
+
+            # Extract artifact links
+            if status == "success" and result.get("link"):
+                artifact_links[target] = result.get("link")
+            elif status == "success" and result.get("backups"):
+                backups = result.get("backups", {})
+                if backups.get("r2"):
+                    artifact_links[target] = backups["r2"]
 
         # Send to logs channel
         logs_channel = bot.get_channel(DISCORD_LOGS_CHANNEL_ID)
@@ -287,6 +296,12 @@ class BuildTargetView(discord.ui.View):
             )
             embed.add_field(name="Task ID", value=self.task_id)
             embed.add_field(name="Target", value=self.intent.get("build_target", "unknown"))
+
+            # Add artifact links
+            for artifact_type, link in artifact_links.items():
+                if link and link.startswith("http"):
+                    embed.add_field(name=f"🔗 {artifact_type.upper()} Link", value=link, inline=False)
+
             embed.set_footer(text=f"Built by: {self.user}")
             await logs_channel.send(embed=embed)
 
@@ -300,10 +315,21 @@ class BuildTargetView(discord.ui.View):
             )
             embed.add_field(name="Status", value="Completed" if all(r.get("status") == "success" for r in results.values()) else "Failed")
             embed.add_field(name="Target", value=self.intent.get("build_target", "unknown"))
+
+            # Add artifact links
+            for artifact_type, link in artifact_links.items():
+                if link and link.startswith("http"):
+                    embed.add_field(name=f"📥 {artifact_type.upper()} Download", value=link, inline=False)
+
             await reports_channel.send(embed=embed)
 
-        # Reply to user
-        reply_msg = f"✅ Build completed!\n{status_text}" if color == discord.Color.green() else f"❌ Build failed\n{status_text}"
+        # Reply to user with links
+        links_text = ""
+        for artifact_type, link in artifact_links.items():
+            if link and link.startswith("http"):
+                links_text += f"\n🔗 **{artifact_type.upper()}**: {link}"
+
+        reply_msg = f"✅ Build completed!{links_text}" if color == discord.Color.green() else f"❌ Build failed\n{status_text}"
         await interaction.followup.send(reply_msg)
 
 
