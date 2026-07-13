@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jico Agentic System Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            background: #0f172a;
+            border-right: 1px solid #1e293b;
+            padding: 20px;
+            position: fixed;
+            width: 250px;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .logo {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            color: #60a5fa;
+        }
+
+        .nav-section {
+            margin-bottom: 25px;
+        }
+
+        .nav-section-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #64748b;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .nav-item {
+            padding: 10px 12px;
+            margin-bottom: 5px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+            color: #cbd5e1;
+        }
+
+        .nav-item:hover {
+            background: #1e293b;
+            color: #e2e8f0;
+        }
+
+        .nav-item.active {
+            background: #1e40af;
+            color: #93c5fd;
+        }
+
+        .status-badge {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+            background: #22c55e;
+        }
+
+        /* MAIN CONTENT */
+        .main {
+            margin-left: 250px;
+            padding: 30px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 30px;
+        }
+
+        .stat {
+            text-align: right;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #60a5fa;
+            margin-top: 5px;
+        }
+
+        .stat-value.warning {
+            color: #f59e0b;
+        }
+
+        /* GRID */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.2s;
+        }
+
+        .card:hover {
+            border-color: #475569;
+            background: #243548;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+
+        .card-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            background: #065f46;
+            color: #86efac;
+        }
+
+        .agent-status {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: #0f172a;
+            border-radius: 6px;
+        }
+
+        .agent-name {
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 5px;
+            color: #93c5fd;
+        }
+
+        .agent-info {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #0f172a;
+            border-radius: 2px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #22c55e, #10b981);
+            transition: width 0.3s;
+        }
+
+        /* PROPOSALS */
+        .proposals-section {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pulse {
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .proposal-item {
+            background: #0f172a;
+            border-left: 3px solid #60a5fa;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+        }
+
+        .proposal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 10px;
+        }
+
+        .proposal-title {
+            font-weight: 600;
+            color: #93c5fd;
+            font-size: 14px;
+        }
+
+        .proposal-time {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        .proposal-details {
+            font-size: 12px;
+            color: #cbd5e1;
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .proposal-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-approve {
+            background: #065f46;
+            color: #86efac;
+        }
+
+        .btn-approve:hover {
+            background: #047857;
+            transform: translateY(-2px);
+        }
+
+        .btn-reject {
+            background: #7f1d1d;
+            color: #fca5a5;
+        }
+
+        .btn-reject:hover {
+            background: #991b1b;
+            transform: translateY(-2px);
+        }
+
+        .btn-view {
+            background: #1e40af;
+            color: #93c5fd;
+        }
+
+        .btn-view:hover {
+            background: #1e3a8a;
+            transform: translateY(-2px);
+        }
+
+        /* MEMORY PANEL */
+        .memory-panel {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .memory-item {
+            background: #0f172a;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            border-left: 3px solid #8b5cf6;
+        }
+
+        .memory-tag {
+            display: inline-block;
+            background: #312e81;
+            color: #c4b5fd;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 10px;
+            margin-right: 5px;
+            margin-top: 5px;
+        }
+
+        /* COST TRACKER */
+        .cost-tracker {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .cost-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #334155;
+            font-size: 13px;
+        }
+
+        .cost-item:last-child {
+            border-bottom: none;
+        }
+
+        .cost-label {
+            color: #cbd5e1;
+        }
+
+        .cost-value {
+            font-weight: 600;
+            color: #22c55e;
+        }
+
+        .cost-total {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            font-size: 14px;
+            color: #60a5fa;
+        }
+
+        /* LIVE LOG */
+        .live-log {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 11px;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            color: #94a3b8;
+            line-height: 1.4;
+        }
+
+        .log-entry.success {
+            color: #86efac;
+        }
+
+        .log-entry.error {
+            color: #fca5a5;
+        }
+
+        .log-entry.info {
+            color: #93c5fd;
+        }
+
+        .timestamp {
+            color: #64748b;
+            margin-right: 8px;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 1200px) {
+            .grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid #1e293b;
+                margin-bottom: 20px;
+            }
+
+            .main {
+                margin-left: 0;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .header-stats {
+                width: 100%;
+                justify-content: space-around;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 30px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #93c5fd;
+        }
+
+        .modal-close {
+            float: right;
+            font-size: 24px;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        .modal-close:hover {
+            color: #e2e8f0;
+        }
+
+        .code-block {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            padding: 15px;
+            font-family: 'Monaco', monospace;
+            font-size: 12px;
+            color: #86efac;
+            margin: 15px 0;
+            overflow-x: auto;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <div class="logo">🤖 Jico Agentic</div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">System</div>
+                <div class="nav-item active">
+                    <span class="status-badge"></span> Dashboard
+                </div>
+                <div class="nav-item">
+                    <span class="status-badge"></span> Agents
+                </div>
+                <div class="nav-item">Memory Bank</div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Agents</div>
+                <div class="nav-item">
+                    <span class="status-badge"></span> NacPac Dev
+                </div>
+                <div class="nav-item">
+                    <span class="status-badge"></span> Jico Life Dev
+                </div>
+                <div class="nav-item">Orchestrator</div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Tools</div>
+                <div class="nav-item">Task History</div>
+                <div class="nav-item">Build Logs</div>
+                <div class="nav-item">Cost Tracking</div>
+                <div class="nav-item">Settings</div>
+            </div>
+
+            <div class="nav-section" style="margin-top: 40px;">
+                <div class="nav-section-title">Session Info</div>
+                <div style="font-size: 12px; color: #94a3b8; line-height: 1.6;">
+                    <div>👤 User: piyush333</div>
+                    <div style="margin-top: 8px;">⏱️ Uptime: 7d 12h</div>
+                    <div style="margin-top: 8px;">📊 Tasks: 127</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main">
+            <!-- HEADER -->
+            <div class="header">
+                <h1>System Dashboard</h1>
+                <div class="header-stats">
+                    <div class="stat">
+                        <div class="stat-label">Monthly Spend</div>
+                        <div class="stat-value" id="spend">$38.42</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Daily Average</div>
+                        <div class="stat-value">$1.28</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Budget Left</div>
+                        <div class="stat-value warning" id="remaining">$21.58</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Agent Success</div>
+                        <div class="stat-value">94.2%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AGENT STATUS CARDS -->
+            <div class="grid">
+                <!-- NacPac Dev Agent -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">NacPac Dev Agent</div>
+                        <div class="card-badge">ACTIVE</div>
+                    </div>
+                    <div class="agent-status">
+                        <div class="agent-name">📱 APK Builder</div>
+                        <div class="agent-info">Last build: 2m ago</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 95%;"></div>
+                        </div>
+                    </div>
+                    <div class="agent-status">
+                        <div class="agent-name">💻 EXE Builder</div>
+                        <div class="agent-info">Idle • 47 builds total</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 85%;"></div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #334155; font-size: 12px;">
+                        <div style="color: #94a3b8;">Success Rate: <span style="color: #86efac; font-weight: 600;">96%</span></div>
+                        <div style="color: #94a3b8; margin-top: 5px;">Learned Patterns: <span style="color: #93c5fd; font-weight: 600;">23</span></div>
+                    </div>
+                </div>
+
+                <!-- Jico Life Dev Agent -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Jico Life Dev Agent</div>
+                        <div class="card-badge">ACTIVE</div>
+                    </div>
+                    <div class="agent-status">
+                        <div class="agent-name">🎨 AR Model Builder</div>
+                        <div class="agent-info">Last build: 1h ago</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 78%;"></div>
+                        </div>
+                    </div>
+                    <div class="agent-status">
+                        <div class="agent-name">📦 Asset Manager</div>
+                        <div class="agent-info">Idle • 12 deployments</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 92%;"></div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #334155; font-size: 12px;">
+                        <div style="color: #94a3b8;">Success Rate: <span style="color: #86efac; font-weight: 600;">88%</span></div>
+                        <div style="color: #94a3b8; margin-top: 5px;">Learned Patterns: <span style="color: #93c5fd; font-weight: 600;">17</span></div>
+                    </div>
+                </div>
+
+                <!-- Orchestrator Agent -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">Orchestrator Agent</div>
+                        <div class="card-badge">ACTIVE</div>
+                    </div>
+                    <div class="agent-status">
+                        <div class="agent-name">🎯 Intent Parser</div>
+                        <div class="agent-info">Processing requests</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 99%;"></div>
+                        </div>
+                    </div>
+                    <div class="agent-status">
+                        <div class="agent-name">🔀 Task Router</div>
+                        <div class="agent-info">Routing to best agent</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 98%;"></div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #334155; font-size: 12px;">
+                        <div style="color: #94a3b8;">Success Rate: <span style="color: #86efac; font-weight: 600;">99.1%</span></div>
+                        <div style="color: #94a3b8; margin-top: 5px;">Tasks Routed: <span style="color: #93c5fd; font-weight: 600;">127</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PENDING PROPOSALS -->
+            <div class="proposals-section">
+                <div class="section-title">
+                    <div class="pulse"></div>
+                    Pending Proposals (2)
+                </div>
+
+                <div class="proposal-item">
+                    <div class="proposal-header">
+                        <div class="proposal-title">✨ Add Dark Mode Toggle</div>
+                        <div class="proposal-time">5 minutes ago</div>
+                    </div>
+                    <div class="proposal-details">
+                        <strong>Brand:</strong> NacPac<br>
+                        <strong>Request:</strong> "Add a dark mode toggle button to the mobile app"<br>
+                        <strong>Files:</strong> App.tsx, theme.tsx, colors.json<br>
+                        <strong>Confidence:</strong> 94% (matches 3 past UI updates)
+                    </div>
+                    <div class="proposal-actions">
+                        <button class="btn btn-approve" onclick="approveProposal('dark-mode')">✅ Approve</button>
+                        <button class="btn btn-view" onclick="viewDiff('dark-mode')">View Diff</button>
+                        <button class="btn btn-reject" onclick="rejectProposal('dark-mode')">❌ Reject</button>
+                    </div>
+                </div>
+
+                <div class="proposal-item">
+                    <div class="proposal-header">
+                        <div class="proposal-title">🔐 Implement OAuth Login</div>
+                        <div class="proposal-time">22 minutes ago</div>
+                    </div>
+                    <div class="proposal-details">
+                        <strong>Brand:</strong> NacPac<br>
+                        <strong>Request:</strong> "Add Google OAuth to the app"<br>
+                        <strong>Files:</strong> auth/OAuth.ts, App.tsx, package.json, types.tsx<br>
+                        <strong>Confidence:</strong> 91% (matches past OAuth implementations)
+                    </div>
+                    <div class="proposal-actions">
+                        <button class="btn btn-approve" onclick="approveProposal('oauth')">✅ Approve</button>
+                        <button class="btn btn-view" onclick="viewDiff('oauth')">View Diff</button>
+                        <button class="btn btn-reject" onclick="rejectProposal('oauth')">❌ Reject</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AGENT MEMORY BANK -->
+            <div class="memory-panel">
+                <div class="section-title">
+                    🧠 Agent Memory Bank
+                </div>
+                <div class="memory-grid">
+                    <div class="memory-item">
+                        <strong>Pattern: OAuth Implementation</strong><br>
+                        Learned from 5 successful builds. Always requires: Redux store, types.tsx, package.json update
+                        <div class="memory-tag">OAuth</div>
+                        <div class="memory-tag">Security</div>
+                    </div>
+                    <div class="memory-item">
+                        <strong>Pattern: React Native UI Update</strong><br>
+                        UI components always match theme.tsx colors. Apply before App.tsx modifications.
+                        <div class="memory-tag">UI</div>
+                        <div class="memory-tag">React Native</div>
+                    </div>
+                    <div class="memory-item">
+                        <strong>Issue: EAS Build Timeout</strong><br>
+                        APKs >50MB timeout. Solution: Enable ProGuard minification in app.json
+                        <div class="memory-tag">EAS</div>
+                        <div class="memory-tag">Build Fix</div>
+                    </div>
+                    <div class="memory-item">
+                        <strong>Pattern: Cost Optimization</strong><br>
+                        Batching 3+ builds saves 15% on EAS costs. Run builds sequentially, not parallel.
+                        <div class="memory-tag">Cost</div>
+                        <div class="memory-tag">Optimization</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COST TRACKER -->
+            <div class="cost-tracker">
+                <div class="section-title">💰 Monthly Cost Breakdown</div>
+                <div class="cost-item">
+                    <span class="cost-label">Supabase (Database)</span>
+                    <span class="cost-value">$25.00</span>
+                </div>
+                <div class="cost-item">
+                    <span class="cost-label">Anthropic API (Claude)</span>
+                    <span class="cost-value">$9.82</span>
+                </div>
+                <div class="cost-item">
+                    <span class="cost-label">VPS Hosting (Linode)</span>
+                    <span class="cost-value">$7.50</span>
+                </div>
+                <div class="cost-item">
+                    <span class="cost-label">R2 + Google Drive</span>
+                    <span class="cost-value">$2.10</span>
+                </div>
+                <div class="cost-item">
+                    <span class="cost-label">Other Services</span>
+                    <span class="cost-value">$1.50</span>
+                </div>
+                <div class="cost-total">
+                    <span>Total This Month</span>
+                    <span id="cost-total">$38.42 / $60.00</span>
+                </div>
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #334155; font-size: 12px; color: #22c55e;">
+                    ✅ On budget • 36% remaining • 12 days left in month
+                </div>
+            </div>
+
+            <!-- LIVE LOG -->
+            <div>
+                <div class="section-title">📋 Live Activity Log</div>
+                <div class="live-log">
+                    <div class="log-entry info"><span class="timestamp">[14:32:05]</span> NacPac Dev: Starting APK build for checkout-v2</div>
+                    <div class="log-entry info"><span class="timestamp">[14:30:12]</span> Orchestrator: Routed "Add dark mode" to NacPac Dev Agent</div>
+                    <div class="log-entry success"><span class="timestamp">[14:28:45]</span> NacPac Dev: ✅ APK build completed • 47.3MB • 4m 23s</div>
+                    <div class="log-entry success"><span class="timestamp">[14:27:10]</span> NacPac Dev: ✅ Applied OAuth changes to feature/oauth-v3</div>
+                    <div class="log-entry info"><span class="timestamp">[14:25:33]</span> Orchestrator: Queried agent memory • Found 5 similar OAuth implementations</div>
+                    <div class="log-entry info"><span class="timestamp">[14:23:15]</span> User approved proposal: "Implement OAuth Login"</div>
+                    <div class="log-entry success"><span class="timestamp">[14:20:02]</span> Orchestrator: ✅ Intent parsed • Confidence: 96%</div>
+                    <div class="log-entry info"><span class="timestamp">[14:18:45]</span> Discord: User message in #general: "Add Google OAuth to the app"</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL FOR DIFFS -->
+    <div class="modal" id="diffModal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeDiff()">&times;</span>
+            <div class="modal-title" id="diffTitle">OAuth Implementation Changes</div>
+            <div class="code-block" id="diffContent">
+// auth/OAuth.ts
++import { GoogleLogin } from '@react-oauth/google';
++
++export const handleGoogleAuth = (credential) => {
++  const decoded = jwt_decode(credential);
++  // Store token in Redux
++  dispatch(setUserAuth(decoded));
++};
+
+// App.tsx (modified)
++import { GoogleOAuthProvider } from '@react-oauth/google';
++
+ function App() {
+   return (
++    &lt;GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}&gt;
+       &lt;AppRoutes /&gt;
++    &lt;/GoogleOAuthProvider&gt;
+   );
+ }
+
+// package.json (dependency added)
++ "@react-oauth/google": "^0.12.0",
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function approveProposal(id) {
+            alert(`✅ Approved proposal: ${id}\n\nIn a real system, this would:\n1. Call agent to apply changes\n2. Create feature branch\n3. Commit and push\n4. Trigger build\n5. Update dashboard in real-time`);
+        }
+
+        function rejectProposal(id) {
+            alert(`❌ Rejected proposal: ${id}\n\nProposal will not be applied.`);
+        }
+
+        function viewDiff(id) {
+            const diffs = {
+                'dark-mode': {
+                    title: 'Dark Mode Toggle Implementation',
+                    content: `// theme.tsx
++export const DARK_MODE_ENABLED = true;
++
++const darkTheme = {
++  background: '#0f172a',
++  text: '#e2e8f0',
++  primary: '#60a5fa'
++};
+
+// App.tsx
++import { useTheme } from './context/ThemeContext';
++
+ function App() {
++  const { isDark, toggleTheme } = useTheme();
+   return (
+     &lt;div style={{ theme: isDark ? darkTheme : lightTheme }}&gt;
++      &lt;button onClick={toggleTheme}&gt;🌙 Toggle Theme&lt;/button&gt;
+       &lt;AppRoutes /&gt;
+     &lt;/div&gt;
+   );
+ }`
+                },
+                'oauth': {
+                    title: 'OAuth Login Implementation',
+                    content: `// auth/OAuth.ts
++import { GoogleLogin } from '@react-oauth/google';
++
++export const handleGoogleAuth = (credential) => {
++  const decoded = jwt_decode(credential);
++  dispatch(setUserAuth(decoded));
++};
+
+// App.tsx
++import { GoogleOAuthProvider } from '@react-oauth/google';
++
+ function App() {
+   return (
++    &lt;GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}&gt;
+       &lt;AppRoutes /&gt;
++    &lt;/GoogleOAuthProvider&gt;
+   );
+ }
+
+// package.json
++ "@react-oauth/google": "^0.12.0",`
+                }
+            };
+
+            const diff = diffs[id];
+            document.getElementById('diffTitle').innerText = diff.title;
+            document.getElementById('diffContent').innerText = diff.content;
+            document.getElementById('diffModal').classList.add('active');
+        }
+
+        function closeDiff() {
+            document.getElementById('diffModal').classList.remove('active');
+        }
+
+        // Simulate live updates
+        let spend = 38.42;
+        setInterval(() => {
+            spend += 0.02;
+            const remaining = 60 - spend;
+            document.getElementById('spend').innerText = '$' + spend.toFixed(2);
+            document.getElementById('remaining').innerText = '$' + remaining.toFixed(2);
+            document.getElementById('cost-total').innerText = '$' + spend.toFixed(2) + ' / $60.00';
+        }, 5000);
+    </script>
+</body>
+</html>
