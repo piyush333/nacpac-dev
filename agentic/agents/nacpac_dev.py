@@ -11,6 +11,7 @@ from agentic.tools.backup_tools import backup_tools
 from agentic.memory import memory
 from agentic.cost_tracker import cost_tracker
 from agentic.learn_from_task import get_patterns_for_task, capture_pattern
+from agentic.agents.feature_agent import get_nacpac_feature_agent
 
 logger = logging.getLogger(__name__)
 
@@ -342,6 +343,149 @@ When executing tasks:
             "message": f"Deployed {artifact} to staging",
             "environment": "staging"
         }
+
+    def propose_feature_changes(self, task_id: str, feature_request: str) -> dict:
+        """Propose code changes for a feature request (Phase 4).
+
+        Uses feature_agent to analyze codebase and propose changes via Claude.
+        Returns proposal JSON for Discord approval flow.
+        """
+        logger.info(f"Task {task_id}: Proposing changes for: {feature_request}")
+
+        # Inject agent skillsets into context
+        skillsets_context = self.get_skillsets_context()
+        request_with_context = f"""Feature Request: {feature_request}
+
+Agent Skillsets Available:
+{skillsets_context}
+
+Learned Patterns:
+{self.get_learned_patterns_context(feature_request)}"""
+
+        try:
+            # Get feature agent and propose changes
+            feature_agent = get_nacpac_feature_agent()
+            proposal = feature_agent.propose_changes(request_with_context)
+
+            # Log proposal in task history
+            memory.update_nacpac_task(
+                task_id,
+                "in_progress",
+                f"Proposal ready: {len(proposal.get('files_to_modify', []))} files to modify"
+            )
+
+            logger.info(f"✅ Proposal generated for task {task_id}: {len(proposal.get('files_to_modify', []))} files")
+
+            return {
+                "status": "proposal_ready",
+                "task_id": task_id,
+                "feature_request": feature_request,
+                "proposal": proposal
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to propose changes: {e}")
+            memory.update_nacpac_task(task_id, "failed", f"Proposal generation failed: {str(e)[:200]}")
+
+            # Capture failure pattern
+            capture_pattern(
+                task_id=task_id,
+                outcome="failure",
+                pattern_type="failure",
+                pattern_description=f"Feature proposal failed: {str(e)[:100]}",
+                failure_reason=str(e)[:200],
+                agent_id=self.agent_id
+            )
+
+            return {
+                "status": "failed",
+                "message": f"Failed to generate proposal: {str(e)[:200]}"
+            }
+
+    def apply_feature_changes(self, task_id: str, proposal: dict) -> dict:
+        """Apply proposed code changes to codebase (Phase 4).
+
+        Applies changes from proposal, commits to feature branch, and logs the update.
+        """
+        logger.info(f"Task {task_id}: Applying feature changes")
+
+        memory.update_nacpac_task(task_id, "in_progress", "Applying code changes...")
+
+        try:
+            # Get feature agent and apply changes
+            feature_agent = get_nacpac_feature_agent()
+            apply_result = feature_agent.apply_changes(proposal, task_id)
+
+            if apply_result.get("status") != "success":
+                logger.error(f"Failed to apply changes: {apply_result.get('message')}")
+                memory.update_nacpac_task(
+                    task_id,
+                    "failed",
+                    f"Failed to apply changes: {apply_result.get('message', 'Unknown error')[:200]}"
+                )
+
+                # Capture failure pattern
+                capture_pattern(
+                    task_id=task_id,
+                    outcome="failure",
+                    pattern_type="failure",
+                    pattern_description="Failed to apply feature changes to codebase",
+                    failure_reason=apply_result.get("message", "Unknown error")[:200],
+                    agent_id=self.agent_id
+                )
+
+                return {
+                    "status": "failed",
+                    "message": apply_result.get("message", "Failed to apply changes")
+                }
+
+            # Success: log the applied changes
+            branch = apply_result.get("branch", "unknown-branch")
+            files_modified = apply_result.get("files_modified", 0)
+
+            result_msg = f"Applied {files_modified} file changes on branch {branch}"
+            memory.update_nacpac_task(task_id, "completed", result_msg)
+
+            # Log run execution (Phase 3 memory tracking)
+            memory.log_nacpac_run(task_id, self.model, tokens_in=0, tokens_out=0, cost_usd=0.0)
+
+            # Capture success pattern
+            capture_pattern(
+                task_id=task_id,
+                outcome="success",
+                pattern_type="success",
+                pattern_description=f"Successfully applied feature changes ({files_modified} files)",
+                example=f"Feature changes applied on branch {branch}",
+                agent_id=self.agent_id
+            )
+
+            logger.info(f"✅ Changes applied: {result_msg}")
+
+            return {
+                "status": "success",
+                "message": result_msg,
+                "branch": branch,
+                "files_modified": files_modified
+            }
+
+        except Exception as e:
+            logger.error(f"Exception applying changes: {e}")
+            memory.update_nacpac_task(task_id, "failed", f"Error: {str(e)[:200]}")
+
+            # Capture failure pattern
+            capture_pattern(
+                task_id=task_id,
+                outcome="failure",
+                pattern_type="failure",
+                pattern_description=f"Exception while applying feature: {str(e)[:100]}",
+                failure_reason=str(e)[:200],
+                agent_id=self.agent_id
+            )
+
+            return {
+                "status": "failed",
+                "message": f"Exception: {str(e)[:200]}"
+            }
 
 
 nacpac_dev_agent = NacPacDevAgent()
