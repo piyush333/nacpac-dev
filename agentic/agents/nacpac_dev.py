@@ -19,10 +19,37 @@ class NacPacDevAgent:
 
     def __init__(self):
         self.brand = "nacpac"
+        self.agent_id = "nacpac_dev"
         self.repo_path = NACPAC_REPO_PATH
         self.model = SONNET_MODEL
+        self.skillsets = {}
+        self._load_skillsets()
         self._ensure_repo_cloned()
-        logger.info(f"NacPac Dev Agent initialized (repo: {self.repo_path})")
+        logger.info(f"NacPac Dev Agent initialized (repo: {self.repo_path}, skillsets: {list(self.skillsets.keys())})")
+
+    def _load_skillsets(self):
+        """Load agent skillsets from Supabase."""
+        self.skillsets = memory.get_agent_skillsets(self.agent_id)
+        if self.skillsets:
+            logger.info(f"Loaded skillsets: {', '.join(self.skillsets.keys())}")
+        else:
+            logger.warning(f"No skillsets found for {self.agent_id} in Supabase")
+
+    def get_skillsets_context(self) -> str:
+        """Format skillsets as context string for Claude."""
+        if not self.skillsets:
+            return "No skillsets loaded."
+
+        context_lines = ["Your technical skillsets:", ""]
+        for name, details in self.skillsets.items():
+            context_lines.append(f"• {name.upper()}")
+            if details.get("description"):
+                context_lines.append(f"  Description: {details['description']}")
+            if details.get("documentation"):
+                context_lines.append(f"  Knowledge: {details['documentation'][:200]}...")  # Truncate for context
+            context_lines.append("")
+
+        return "\n".join(context_lines)
 
     def _ensure_repo_cloned(self):
         """If repo_path is a GitHub URL, clone it to local /tmp path."""

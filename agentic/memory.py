@@ -177,5 +177,31 @@ class MemoryClient:
             logger.error(f"Failed to get monthly cost: {e}")
             return 0.0
 
+    def get_agent_skillsets(self, agent_id: str) -> Dict[str, Dict]:
+        """Get all skillsets for an agent. Returns dict: {skillset_name: {description, documentation, version}}."""
+        if not self.client:
+            logger.warning("Memory unavailable; returning empty skillsets")
+            return {}
+
+        try:
+            result = self.client.table("agent_skillsets").select("*").eq("agent_id", agent_id).execute()
+            if not result.data:
+                logger.warning(f"No skillsets found for agent: {agent_id}")
+                return {}
+
+            skillsets = {}
+            for row in result.data:
+                skillsets[row["skillset_name"]] = {
+                    "description": row.get("description", ""),
+                    "documentation": row.get("documentation", ""),
+                    "version": row.get("version", "1.0")
+                }
+
+            logger.info(f"✅ Loaded {len(skillsets)} skillsets for {agent_id}")
+            return skillsets
+        except Exception as e:
+            logger.error(f"Failed to get agent skillsets: {e}")
+            return {}
+
 
 memory = MemoryClient()
