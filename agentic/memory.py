@@ -203,5 +203,149 @@ class MemoryClient:
             logger.error(f"Failed to get agent skillsets: {e}")
             return {}
 
+    def record_learned_pattern(self, agent_id: str, skillset_name: str, pattern_type: str,
+                             pattern_description: str, context: str = None,
+                             source_model: str = None, task_id: str = None) -> Optional[str]:
+        """Record a learned pattern (success, failure, optimization, best_practice).
+
+        Returns pattern_id if successful, None otherwise.
+        """
+        if not self.client:
+            logger.warning("Memory unavailable; skipping pattern recording")
+            return None
+
+        try:
+            result = self.client.table("learned_patterns").insert({
+                "agent_id": agent_id,
+                "skillset_name": skillset_name,
+                "pattern_type": pattern_type,
+                "pattern_description": pattern_description,
+                "context": context,
+                "source_model": source_model,
+                "related_task_id": task_id,
+                "confidence": 0.7,  # Start with moderate confidence
+            }).execute()
+
+            if result.data:
+                pattern_id = result.data[0]["id"]
+                logger.info(f"✅ Recorded {pattern_type} pattern for {agent_id}/{skillset_name}: {pattern_id[:8]}")
+                return pattern_id
+            return None
+        except Exception as e:
+            logger.error(f"Failed to record learned pattern: {e}")
+            return None
+
+    def get_learned_patterns(self, agent_id: str, skillset_name: str = None, pattern_type: str = None) -> list:
+        """Get learned patterns for an agent/skillset. Sorted by confidence (highest first)."""
+        if not self.client:
+            logger.warning("Memory unavailable; returning empty patterns")
+            return []
+
+        try:
+            query = self.client.table("learned_patterns").select("*").eq("agent_id", agent_id)
+
+            if skillset_name:
+                query = query.eq("skillset_name", skillset_name)
+            if pattern_type:
+                query = query.eq("pattern_type", pattern_type)
+
+            # Sort by confidence descending
+            result = query.order("confidence", desc=True).execute()
+
+            logger.info(f"✅ Loaded {len(result.data)} patterns for {agent_id}")
+            return result.data or []
+        except Exception as e:
+            logger.error(f"Failed to get learned patterns: {e}")
+            return []
+
+    def update_pattern_usage(self, pattern_id: str, success: bool):
+        """Update pattern usage count and success rate."""
+        if not self.client:
+            return
+
+        try:
+            # Get current pattern
+            result = self.client.table("learned_patterns").select("usage_count,success_rate").eq("id", pattern_id).execute()
+            if not result.data:
+                return
+
+            current = result.data[0]
+            usage_count = (current.get("usage_count") or 0) + 1
+            success_rate = current.get("success_rate") or 0.0
+
+            # Update success rate: (old_rate * old_count + success) / new_count
+            new_success_rate = (success_rate * (usage_count - 1) + (1 if success else 0)) / usage_count
+
+            # Increase confidence based on success rate
+            new_confidence = min(0.99, success_rate * 1.2)  # Cap at 0.99
+
+            self.client.table("learned_patterns").update({
+                "usage_count": usage_count,
+                "success_rate": new_success_rate,
+                "confidence": new_confidence,
+                "last_applied_at": datetime.utcnow().isoformat(),
+            }).eq("id", pattern_id).execute()
+
+            logger.info(f"Updated pattern {pattern_id[:8]}: usage={usage_count}, success_rate={new_success_rate:.2%}")
+        except Exception as e:
+            logger.error(f"Failed to update pattern usage: {e}")
+
+    def record_learning_feedback(self, agent_id: str, skillset_name: str, feedback_type: str,
+                                feedback_text: str, improvement_suggested: str = None,
+                                task_id: str = None) -> Optional[str]:
+        """Record feedback about agent learning/performance.
+
+        feedback_type: "positive", "negative", "edge_case", "optimization"
+        """
+        if not self.client:
+            logger.warning("Memory unavailable; skipping feedback recording")
+            return None
+
+        try:
+            result = self.client.table("learning_feedback").insert({
+                "agent_id": agent_id,
+                "skillset_name": skillset_name,
+                "task_id": task_id,
+                "feedback_type": feedback_type,
+                "feedback_text": feedback_text,
+                "improvement_suggested": improvement_suggested,
+            }).execute()
+
+            if result.data:
+                feedback_id = result.data[0]["id"]
+                logger.info(f"✅ Recorded {feedback_type} feedback for {agent_id}/{skillset_name}")
+                return feedback_id
+            return None
+        except Exception as e:
+            logger.error(f"Failed to record learning feedback: {e}")
+            return None
+
+    def get_learning_insights(self, agent_id: str, skillset_name: str) -> Dict[str, Any]:
+        """Get learning insights: most reliable patterns, common failures, improvement opportunities."""
+        if not self.client:
+            return {}
+
+        try:
+            # Get top patterns
+            patterns = self.get_learned_patterns(agent_id, skillset_name)
+
+            # Get pending feedback
+            feedback_result = self.client.table("learning_feedback").select("*").eq("agent_id", agent_id).eq("skillset_name", skillset_name).eq("applied", False).execute()
+            pending_feedback = feedback_result.data or []
+
+            insights = {
+                "top_patterns": [p for p in patterns if p.get("confidence", 0) > 0.7][:5],
+                "failure_patterns": [p for p in patterns if p.get("pattern_type") == "failure"][:3],
+                "optimizations": [p for p in patterns if p.get("pattern_type") == "optimization"][:3],
+                "pending_improvements": len(pending_feedback),
+                "success_feedback_count": len([f for f in pending_feedback if f.get("feedback_type") == "positive"]),
+            }
+
+            logger.info(f"Generated insights for {agent_id}/{skillset_name}")
+            return insights
+        except Exception as e:
+            logger.error(f"Failed to get learning insights: {e}")
+            return {}
+
 
 memory = MemoryClient()
