@@ -164,7 +164,7 @@ When executing tasks:
         if patterns_context:
             logger.info(f"Learned patterns:\n{patterns_context}")
 
-        memory.update_task(task_id, "in_progress", "Building APK...")
+        memory.update_nacpac_task(task_id, "in_progress", "Building APK...")
 
         git_tools.pull(self.repo_path)
 
@@ -172,7 +172,7 @@ When executing tasks:
 
         if not success:
             logger.error(f"APK build failed: {output}")
-            memory.update_task(task_id, "failed", f"APK build failed: {output[:200]}")
+            memory.update_nacpac_task(task_id, "failed", f"APK build failed: {output[:200]}")
 
             # Capture failure pattern
             capture_pattern(
@@ -199,7 +199,10 @@ When executing tasks:
         memory.update_brand_state(self.brand, current_branch=branch, last_commit=commit)
 
         result_msg = f"APK built (commit: {commit[:8]}). Backups: R2={backup_results['r2']}, GDrive={backup_results['gdrive']}"
-        memory.update_task(task_id, "completed", result_msg)
+        memory.update_nacpac_task(task_id, "completed", result_msg)
+
+        # Log run execution (Phase 3 memory tracking)
+        memory.log_nacpac_run(task_id, self.model, tokens_in=0, tokens_out=0, cost_usd=0.0)
 
         # Capture success pattern
         capture_pattern(
@@ -229,7 +232,7 @@ When executing tasks:
         if patterns_context:
             logger.info(f"Learned patterns:\n{patterns_context}")
 
-        memory.update_task(task_id, "in_progress", "Building EXE...")
+        memory.update_nacpac_task(task_id, "in_progress", "Building EXE...")
 
         git_tools.pull(self.repo_path)
 
@@ -237,7 +240,7 @@ When executing tasks:
 
         if not success:
             logger.error(f"EXE build failed: {output}")
-            memory.update_task(task_id, "failed", f"EXE build failed: {output[:200]}")
+            memory.update_nacpac_task(task_id, "failed", f"EXE build failed: {output[:200]}")
 
             # Capture failure pattern
             capture_pattern(
@@ -264,7 +267,10 @@ When executing tasks:
         memory.update_brand_state(self.brand, current_branch=branch, last_commit=commit)
 
         result_msg = f"EXE built (commit: {commit[:8]}). Backups: R2={backup_results['r2']}, GDrive={backup_results['gdrive']}"
-        memory.update_task(task_id, "completed", result_msg)
+        memory.update_nacpac_task(task_id, "completed", result_msg)
+
+        # Log run execution (Phase 3 memory tracking)
+        memory.log_nacpac_run(task_id, self.model, tokens_in=0, tokens_out=0, cost_usd=0.0)
 
         # Capture success pattern
         capture_pattern(
@@ -294,12 +300,12 @@ When executing tasks:
         if patterns_context:
             logger.info(f"Learned patterns:\n{patterns_context}")
 
-        memory.update_task(task_id, "in_progress", f"Deploying {artifact} to staging...")
+        memory.update_nacpac_task(task_id, "in_progress", f"Deploying {artifact} to staging...")
 
         result = deploy_tools.deploy_to_env(self.repo_path, "staging", artifact)
 
         if not result.get("success"):
-            memory.update_task(task_id, "failed", result.get("message", "Deploy failed"))
+            memory.update_nacpac_task(task_id, "failed", result.get("message", "Deploy failed"))
 
             # Capture failure pattern
             capture_pattern(
@@ -316,7 +322,10 @@ When executing tasks:
         commit = git_tools.get_last_commit(self.repo_path)
         memory.log_deployment(self.brand, "staging", commit)
         memory.update_brand_state(self.brand, last_deploy_env="staging")
-        memory.update_task(task_id, "completed", f"Deployed to staging")
+        memory.update_nacpac_task(task_id, "completed", f"Deployed to staging")
+
+        # Log run execution (Phase 3 memory tracking)
+        memory.log_nacpac_run(task_id, self.model, tokens_in=0, tokens_out=0, cost_usd=0.0)
 
         # Capture success pattern
         capture_pattern(
