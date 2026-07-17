@@ -6,11 +6,24 @@
 
 ## **Core Rules**
 
-### **1. Read on Startup**
+### **1. Read on Startup & Check Phase Assignment**
 Every session reads these in this order on startup:
 1. `ARCHITECTURE.md` (understand the system)
-2. `AGENT_{AGENT_ID}_CONTEXT.md` (your agent's current status)
-3. Run `python agentic/session_sync.py` (fetch latest from central coordination)
+2. `GOVERNANCE.md` (check if you have a new phase assignment)
+3. `AGENT_{AGENT_ID}_CONTEXT.md` (your agent's current status)
+4. Run: `python agentic/check_phase_assignment.py {agent_id}` (check for phase change)
+5. Run: `python agentic/session_sync.py` (fetch latest from central coordination)
+
+**Example for nacpac agent:**
+```bash
+# On startup, run:
+python agentic/check_phase_assignment.py nacpac_dev
+
+# If output says "🟢 New assignment: Phase 3", then:
+# - You should start Phase 3 work
+# - Update AGENT_NACPAC_CONTEXT.md to reflect new phase
+# - Follow NACPAC_DEV_PHASES.md (Phase 3 section)
+```
 
 ### **2. One Agent Per Session**
 - **nacpac agent** session → only works on nacpac_dev agent
@@ -99,6 +112,39 @@ Before pushing:
 python -m pytest agentic/test_*.py
 python agentic/agents/{agent_id}.py
 ```
+
+---
+
+## **How Central Governance Works**
+
+### **Phase Assignment Flow**
+```
+Central Session (nacpac-dev):
+1. Updates GOVERNANCE.md with new phase assignment
+2. Commits & pushes to git
+3. (Done — no need to message agent directly)
+
+Agent Session (nacpac_dev):
+1. On startup, runs: python agentic/check_phase_assignment.py nacpac_dev
+2. Sees: "🟢 New assignment: Phase 3"
+3. Updates AGENT_NACPAC_CONTEXT.md phase indicator
+4. Starts Phase 3 work per NACPAC_DEV_PHASES.md
+5. Commits work regularly
+6. When complete, pushes to git
+
+Central Session:
+1. Fetches latest commits
+2. Reads PHASE{N}_COMPLETION_CHECKLIST.md
+3. Updates GOVERNANCE.md with new status
+4. Assigns Phase {N+1}
+5. (Cycle repeats)
+```
+
+### **Key Points**
+- **No manual messages needed** — agents auto-detect assignments via git
+- **Git is source of truth** — GOVERNANCE.md is the single assignment record
+- **Async by design** — agent doesn't wait for central; reads file, acts independently
+- **Scalable** — add new agents by adding sections to GOVERNANCE.md
 
 ---
 
