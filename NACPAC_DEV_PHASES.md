@@ -28,8 +28,13 @@
 
 **Goal**: Agent learns from task outcomes and improves over time
 
+⚠️ **CRITICAL BEFORE STARTING: Read SUPABASE_SCHEMA.md**
+- Confirm table name: `nacpac_learned_patterns` (NOT `learned_patterns`)
+- Confirm agent_id column uses: `nacpac_dev`
+- This ensures data doesn't get polluted with wrong naming
+
 **Deliverables:**
-1. [ ] Create `learned_patterns` table in Supabase
+1. [ ] Create `nacpac_learned_patterns` table in Supabase (named correctly per SUPABASE_SCHEMA.md)
    - Columns: id, agent_id, pattern_type, pattern_description, successful_examples[], failure_cases[], success_rate, last_used, created_at
 
 2. [ ] Implement feedback loop in agent
