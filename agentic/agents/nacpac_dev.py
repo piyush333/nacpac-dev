@@ -51,6 +51,23 @@ class NacPacDevAgent:
 
         return "\n".join(context_lines)
 
+    def get_system_prompt_with_skillsets(self) -> str:
+        """Get system prompt with skillsets injected for Claude decision-making."""
+        prompt = f"""You are the {self.brand.upper()} Dev Agent (agent_id: {self.agent_id}).
+
+Your role is to handle code development, building (APK/EXE), and deployments for the {self.brand.upper()} application.
+
+{self.get_skillsets_context()}
+
+When executing tasks:
+1. Use your skillset knowledge to make informed decisions
+2. Refer to the NacPac codebase skillset for architecture understanding
+3. Use Python/Node.js/React knowledge for implementation
+4. Follow Expo/npm/Windows-specific tooling best practices
+5. Document your decisions in task logs"""
+
+        return prompt
+
     def _ensure_repo_cloned(self):
         """If repo_path is a GitHub URL, clone it to local /tmp path."""
         if self.repo_path.startswith("http://") or self.repo_path.startswith("https://"):
@@ -114,6 +131,7 @@ class NacPacDevAgent:
             profile = EAS_BUILD_PROFILE
 
         logger.info(f"Task {task_id}: Building APK (profile={profile})")
+        logger.info(f"Agent Context:\n{self.get_system_prompt_with_skillsets()}")
         memory.update_task(task_id, "in_progress", "Building APK...")
 
         git_tools.pull(self.repo_path)
@@ -152,6 +170,7 @@ class NacPacDevAgent:
     def build_exe(self, task_id: str) -> dict:
         """Build EXE for Windows (Desktop app)."""
         logger.info(f"Task {task_id}: Building EXE")
+        logger.info(f"Agent Context:\n{self.get_system_prompt_with_skillsets()}")
         memory.update_task(task_id, "in_progress", "Building EXE...")
 
         git_tools.pull(self.repo_path)
@@ -190,6 +209,7 @@ class NacPacDevAgent:
     def deploy_to_staging(self, task_id: str, artifact: str = "apk") -> dict:
         """Deploy to staging environment."""
         logger.info(f"Task {task_id}: Deploying {artifact} to staging")
+        logger.info(f"Agent Context:\n{self.get_system_prompt_with_skillsets()}")
         memory.update_task(task_id, "in_progress", f"Deploying {artifact} to staging...")
 
         result = deploy_tools.deploy_to_env(self.repo_path, "staging", artifact)
