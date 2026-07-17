@@ -10,6 +10,7 @@ from agentic.tools.deploy_tools import deploy_tools
 from agentic.tools.backup_tools import backup_tools
 from agentic.memory import memory
 from agentic.cost_tracker import cost_tracker
+from agentic.learn_from_task import get_patterns_for_task, capture_pattern
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +48,32 @@ class NacPacDevAgent:
                 context_lines.append(f"  Description: {details['description']}")
             if details.get("documentation"):
                 context_lines.append(f"  Knowledge: {details['documentation'][:200]}...")  # Truncate for context
+            context_lines.append("")
+
+        return "\n".join(context_lines)
+
+    def get_learned_patterns_context(self, task_description: str) -> str:
+        """Get learned patterns relevant to this task."""
+        patterns = get_patterns_for_task(task_description, self.agent_id)
+
+        if not patterns:
+            return "No learned patterns available for this task type."
+
+        # Show top 3 patterns with highest success rates
+        context_lines = ["Learned patterns from past tasks:", ""]
+        for pattern in patterns[:3]:
+            success_rate = pattern.get("success_rate", 0) or 0
+            ptype = pattern.get("pattern_type", "unknown")
+            desc = pattern.get("pattern_description", "")
+
+            context_lines.append(f"• [{ptype}] {desc}")
+            context_lines.append(f"  Success rate: {success_rate:.0%}")
+
+            # Show examples if available
+            examples = pattern.get("examples", []) or []
+            if examples:
+                context_lines.append(f"  Example: {examples[0].get('description', '')}")
+
             context_lines.append("")
 
         return "\n".join(context_lines)
@@ -131,7 +158,12 @@ When executing tasks:
             profile = EAS_BUILD_PROFILE
 
         logger.info(f"Task {task_id}: Building APK (profile={profile})")
-        logger.info(f"Agent Context:\n{self.get_system_prompt_with_skillsets()}")
+
+        # Inject learned patterns before execution
+        patterns_context = self.get_learned_patterns_context("build APK")
+        if patterns_context:
+            logger.info(f"Learned patterns:\n{patterns_context}")
+
         memory.update_task(task_id, "in_progress", "Building APK...")
 
         git_tools.pull(self.repo_path)
@@ -141,6 +173,17 @@ When executing tasks:
         if not success:
             logger.error(f"APK build failed: {output}")
             memory.update_task(task_id, "failed", f"APK build failed: {output[:200]}")
+
+            # Capture failure pattern
+            capture_pattern(
+                task_id=task_id,
+                outcome="failure",
+                pattern_type="failure",
+                pattern_description=f"APK build failed: {output[:100]}",
+                failure_reason=output[:200],
+                agent_id=self.agent_id
+            )
+
             return {"status": "failed", "message": f"APK build failed: {output[:200]}"}
 
         commit = git_tools.get_last_commit(self.repo_path) or "unknown-commit"
@@ -158,6 +201,16 @@ When executing tasks:
         result_msg = f"APK built (commit: {commit[:8]}). Backups: R2={backup_results['r2']}, GDrive={backup_results['gdrive']}"
         memory.update_task(task_id, "completed", result_msg)
 
+        # Capture success pattern
+        capture_pattern(
+            task_id=task_id,
+            outcome="success",
+            pattern_type="success",
+            pattern_description="APK build succeeded with valid package.json and profile configuration",
+            example=f"Built APK successfully with profile={profile}, commit={commit[:8]}",
+            agent_id=self.agent_id
+        )
+
         return {
             "status": "success",
             "message": result_msg,
@@ -170,7 +223,12 @@ When executing tasks:
     def build_exe(self, task_id: str) -> dict:
         """Build EXE for Windows (Desktop app)."""
         logger.info(f"Task {task_id}: Building EXE")
-        logger.info(f"Agent Context:\n{self.get_system_prompt_with_skillsets()}")
+
+        # Inject learned patterns before execution
+        patterns_context = self.get_learned_patterns_context("build EXE")
+        if patterns_context:
+            logger.info(f"Learned patterns:\n{patterns_context}")
+
         memory.update_task(task_id, "in_progress", "Building EXE...")
 
         git_tools.pull(self.repo_path)
@@ -180,6 +238,17 @@ When executing tasks:
         if not success:
             logger.error(f"EXE build failed: {output}")
             memory.update_task(task_id, "failed", f"EXE build failed: {output[:200]}")
+
+            # Capture failure pattern
+            capture_pattern(
+                task_id=task_id,
+                outcome="failure",
+                pattern_type="failure",
+                pattern_description=f"EXE build failed: {output[:100]}",
+                failure_reason=output[:200],
+                agent_id=self.agent_id
+            )
+
             return {"status": "failed", "message": f"EXE build failed: {output[:200]}"}
 
         commit = git_tools.get_last_commit(self.repo_path) or "unknown-commit"
@@ -197,6 +266,16 @@ When executing tasks:
         result_msg = f"EXE built (commit: {commit[:8]}). Backups: R2={backup_results['r2']}, GDrive={backup_results['gdrive']}"
         memory.update_task(task_id, "completed", result_msg)
 
+        # Capture success pattern
+        capture_pattern(
+            task_id=task_id,
+            outcome="success",
+            pattern_type="success",
+            pattern_description="EXE build succeeded with valid npm build configuration",
+            example=f"Built EXE successfully, commit={commit[:8]}",
+            agent_id=self.agent_id
+        )
+
         return {
             "status": "success",
             "message": result_msg,
@@ -209,19 +288,45 @@ When executing tasks:
     def deploy_to_staging(self, task_id: str, artifact: str = "apk") -> dict:
         """Deploy to staging environment."""
         logger.info(f"Task {task_id}: Deploying {artifact} to staging")
-        logger.info(f"Agent Context:\n{self.get_system_prompt_with_skillsets()}")
+
+        # Inject learned patterns before execution
+        patterns_context = self.get_learned_patterns_context(f"deploy {artifact}")
+        if patterns_context:
+            logger.info(f"Learned patterns:\n{patterns_context}")
+
         memory.update_task(task_id, "in_progress", f"Deploying {artifact} to staging...")
 
         result = deploy_tools.deploy_to_env(self.repo_path, "staging", artifact)
 
         if not result.get("success"):
             memory.update_task(task_id, "failed", result.get("message", "Deploy failed"))
+
+            # Capture failure pattern
+            capture_pattern(
+                task_id=task_id,
+                outcome="failure",
+                pattern_type="failure",
+                pattern_description=f"Deployment failed: {result.get('message', 'Unknown error')[:80]}",
+                failure_reason=result.get("message", "Deploy failed"),
+                agent_id=self.agent_id
+            )
+
             return {"status": "failed", "message": result.get("message", "Deploy failed")}
 
         commit = git_tools.get_last_commit(self.repo_path)
         memory.log_deployment(self.brand, "staging", commit)
         memory.update_brand_state(self.brand, last_deploy_env="staging")
         memory.update_task(task_id, "completed", f"Deployed to staging")
+
+        # Capture success pattern
+        capture_pattern(
+            task_id=task_id,
+            outcome="success",
+            pattern_type="success",
+            pattern_description=f"Deployment to staging succeeded for {artifact}",
+            example=f"Deployed {artifact} to staging successfully",
+            agent_id=self.agent_id
+        )
 
         return {
             "status": "success",
