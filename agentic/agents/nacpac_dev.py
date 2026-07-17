@@ -3,6 +3,8 @@
 import logging
 import os
 import subprocess
+import time
+from datetime import datetime
 from agentic.config import NACPAC_REPO_PATH, EAS_BUILD_PROFILE, SONNET_MODEL
 from agentic.tools.git_tools import git_tools
 from agentic.tools.build_tools import build_tools
@@ -486,6 +488,169 @@ Learned Patterns:
                 "status": "failed",
                 "message": f"Exception: {str(e)[:200]}"
             }
+
+    def build_with_progress_tracking(self, task_id: str, build_type: str, profile: str = None) -> dict:
+        """Build APK or EXE with progress tracking (Phase 5).
+
+        Tracks build start/end times, logs progress updates, handles retries on failure.
+        """
+        logger.info(f"Task {task_id}: Building {build_type.upper()} with progress tracking")
+
+        start_time = datetime.utcnow()
+        memory.update_nacpac_task(task_id, "in_progress", f"Starting {build_type} build...")
+
+        try:
+            if build_type.lower() == "apk":
+                result = self.build_apk(task_id, profile)
+            elif build_type.lower() == "exe":
+                result = self.build_exe(task_id)
+            else:
+                logger.error(f"Unknown build type: {build_type}")
+                memory.update_nacpac_task(task_id, "failed", f"Unknown build type: {build_type}")
+                return {"status": "failed", "message": f"Unknown build type: {build_type}"}
+
+            # Calculate build duration and cost
+            build_duration = (datetime.utcnow() - start_time).total_seconds()
+            estimated_cost = self._estimate_build_cost(build_type, build_duration)
+
+            if result.get("status") == "success":
+                logger.info(f"✅ {build_type.upper()} build completed in {build_duration:.0f}s (estimated cost: ${estimated_cost:.4f})")
+
+                # Update task with cost tracking
+                memory.update_nacpac_task(
+                    task_id,
+                    "completed",
+                    result.get("message"),
+                    cost_usd=estimated_cost
+                )
+
+                # Log run with cost
+                memory.log_nacpac_run(
+                    task_id,
+                    self.model,
+                    tokens_in=0,
+                    tokens_out=0,
+                    cost_usd=estimated_cost
+                )
+
+                return {
+                    "status": "success",
+                    "build_type": build_type,
+                    "duration_seconds": build_duration,
+                    "cost_usd": estimated_cost,
+                    "message": result.get("message"),
+                    "link": result.get("link"),
+                    "commit": result.get("commit"),
+                    "backups": result.get("backups")
+                }
+            else:
+                logger.error(f"❌ {build_type.upper()} build failed after {build_duration:.0f}s")
+                memory.update_nacpac_task(
+                    task_id,
+                    "failed",
+                    f"Build failed: {result.get('message', 'Unknown error')[:200]}"
+                )
+
+                return {
+                    "status": "failed",
+                    "build_type": build_type,
+                    "duration_seconds": build_duration,
+                    "message": result.get("message", "Build failed")
+                }
+
+        except Exception as e:
+            logger.error(f"Exception during build: {e}")
+            build_duration = (datetime.utcnow() - start_time).total_seconds()
+            memory.update_nacpac_task(task_id, "failed", f"Build exception: {str(e)[:200]}")
+
+            return {
+                "status": "failed",
+                "build_type": build_type,
+                "duration_seconds": build_duration,
+                "message": f"Build exception: {str(e)[:200]}"
+            }
+
+    def _estimate_build_cost(self, build_type: str, duration_seconds: float) -> float:
+        """Estimate build cost based on type and duration (Phase 5).
+
+        Estimates cost for EAS builds (pay per minute) and local builds (compute cost).
+        """
+        if build_type.lower() == "apk":
+            # EAS charges approximately $0.10 per build
+            # Additional estimate for tokens/compute: ~$0.01 per minute
+            base_cost = 0.10
+            duration_minutes = duration_seconds / 60
+            compute_cost = min(duration_minutes * 0.01, 0.50)  # Cap at $0.50
+            return base_cost + compute_cost
+
+        elif build_type.lower() == "exe":
+            # Local build on runner, compute cost only
+            # Estimate ~$0.001 per second of build time
+            return max(duration_seconds * 0.001, 0.05)  # Minimum $0.05
+
+        return 0.0
+
+    def retry_failed_build(self, task_id: str, build_type: str, profile: str = None, max_retries: int = 2) -> dict:
+        """Retry a failed build with exponential backoff (Phase 5).
+
+        Retries failed builds with increasing wait times between attempts.
+        Logs each retry attempt.
+        """
+        logger.info(f"Task {task_id}: Retrying {build_type} build (max {max_retries} attempts)")
+
+        for attempt in range(1, max_retries + 1):
+            logger.info(f"Build attempt {attempt}/{max_retries}")
+
+            result = self.build_with_progress_tracking(task_id, build_type, profile)
+
+            if result.get("status") == "success":
+                logger.info(f"✅ Build succeeded on attempt {attempt}")
+                return result
+
+            # Exponential backoff: 2s, 4s, 8s...
+            if attempt < max_retries:
+                wait_time = 2 ** attempt
+                logger.warning(f"Attempt {attempt} failed, waiting {wait_time}s before retry...")
+                time.sleep(wait_time)
+
+        logger.error(f"❌ All {max_retries} build attempts failed")
+        memory.update_nacpac_task(
+            task_id,
+            "failed",
+            f"Build failed after {max_retries} retry attempts"
+        )
+
+        return {
+            "status": "failed",
+            "build_type": build_type,
+            "message": f"Build failed after {max_retries} attempts"
+        }
+
+    def get_build_status(self, task_id: str) -> dict:
+        """Get current build status for a task (Phase 5).
+
+        Queries nacpac_tasks table for task status and completion info.
+        """
+        if not memory.client:
+            logger.warning("Memory unavailable; cannot get build status")
+            return {"status": "unknown"}
+
+        try:
+            result = memory.client.table("nacpac_tasks").select("*").eq("id", task_id).execute()
+            if result.data:
+                task = result.data[0]
+                return {
+                    "status": task.get("status"),
+                    "result_summary": task.get("result_summary", ""),
+                    "cost_usd": task.get("cost_usd", 0.0),
+                    "created_at": task.get("created_at"),
+                    "completed_at": task.get("completed_at"),
+                    "is_complete": task.get("status") in ["completed", "failed"]
+                }
+            return {"status": "not_found"}
+        except Exception as e:
+            logger.error(f"Failed to get build status: {e}")
+            return {"status": "error", "message": str(e)[:200]}
 
 
 nacpac_dev_agent = NacPacDevAgent()
