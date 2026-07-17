@@ -1,0 +1,19 @@
+2026-07-03 14:16:34,156 [INFO] __main__: ============================================================
+2026-07-03 14:16:34,161 [INFO] __main__: ============================================================
+2026-07-03 14:17:03,071 [INFO] __main__: ============================================================
+2026-07-03 14:17:03,075 [INFO] __main__: ============================================================
+2026-07-03 14:17:03,079 [INFO] __main__: Starting Discord bot...
+2026-07-03 14:17:03,080 [INFO] discord_bot: Starting Discord bot...
+2026-07-03 14:17:03,080 [INFO] discord.client: logging in using static token
+2026-07-03 14:17:05,993 [INFO] discord.gateway: Shard ID None has connected to Gateway (Session ID: 4becb808fedece3e737f8804ea3db2a0).
+2026-07-03 14:17:08,704 [INFO] discord_bot: Synced 1 command(s)
+2026-07-03 14:20:34,964 [INFO] discord_bot: Task submitted by piyush3333#0: brand=nacpac, request=test
+2026-07-03 14:20:34,966 [WARNING] memory: Memory unavailable; skipping task creation
+2026-07-03 14:20:34,967 [INFO] agents.orchestrator: Parsing intent: brand=nacpac; test
+2026-07-03 14:20:35,104 [ERROR] agents.orchestrator: Intent parsing failed: 'ascii' codec can't encode characters in position 8-107: ordinal not in range(128)
+2026-07-03 14:20:38,558 [INFO] discord_bot: Task None approved by piyush3333#0
+2026-07-03 14:20:38,559 [INFO] agents.nacpac_dev: Task None: Building APK (profile=preview)
+2026-07-03 14:20:38,627 [INFO] tools.build_tools: Building APK with profile 'preview'...
+2026-07-03 14:20:38,637 [ERROR] tools.build_tools: Command failed: [WinError 2] The system cannot find the file specified
+2026-07-03 14:20:38,637 [ERROR] tools.build_tools: APK build failed: [WinError 2] The system cannot find the file specified
+2026-07-03 14:20:38,638 [ERROR] agents.nacpac_dev: APK build failed: [WinError 2] The system cannot find the file specified
