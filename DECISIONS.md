@@ -141,12 +141,42 @@ Append-only log of decisions made during agentic system build.
 
 ---
 
-## Pending Clarifications (before Phase 2 start)
+## Session 3 (2026-07-17) — Phase 2a: Agent Learning System
+
+### Decision 21: Skillsets as agent capability foundation
+**Date:** 2026-07-17  
+**Decision:** Build agent learning on top of skillsets infrastructure. Skillsets define WHAT agents know; learned_patterns track HOW they improve.  
+**Rationale:** Skillsets provide the knowledge foundation; learning system tracks improvements based on that foundation. Decoupled: skillsets are curated knowledge, patterns are discovered knowledge.  
+**Owner:** Claude Agent (autonomous Phase 2 work)
+
+### Decision 22: Pattern confidence and success rate tracking
+**Date:** 2026-07-17  
+**Decision:** Confidence (0.0-1.0) initialized at 0.7, increased based on success_rate with formula: `new_confidence = min(0.99, success_rate * 1.2)`. Success rate updated via Bayesian averaging: `(old_rate * old_count + success) / new_count`.  
+**Rationale:** Moderate initial confidence allows patterns to prove themselves. Never reaches 1.0 (always room to learn). Bayesian averaging converges on true rate as usage increases.  
+**Owner:** Claude Agent
+
+### Decision 23: Pattern types for different learning scenarios
+**Date:** 2026-07-17  
+**Decision:** Four pattern types: "success" (what works), "failure" (what doesn't), "optimization" (faster/cheaper), "best_practice" (recommended approach).  
+**Rationale:** Different patterns serve different purposes. Agents prioritize success patterns early in execution, apply optimizations for efficiency, avoid failure patterns, follow best practices as guardrails.  
+**Owner:** Claude Agent
+
+### Decision 24: Learning feedback loop from agents and humans
+**Date:** 2026-07-17  
+**Decision:** learning_feedback table accepts feedback from agents (auto-generated) and humans (Discord commands). Tracks feedback_type, suggested improvements, and applied status.  
+**Rationale:** Hybrid approach: agents learn from their own outcomes; humans provide additional guidance and validation. Creates feedback loop without manual intervention.  
+**Owner:** Claude Agent
+
+---
+
+## Pending Clarifications (before Phase 2b start)
 
 - **Real builds**: When to switch BUILD_TEST_MODE=false?
 - **Supabase persistence**: Enable full task/cost history tracking?
 - **Monitoring**: What alerts/dashboards needed?
 - **MCPO agents**: Timeline for adding marketing/customer success/product/ops agents?
+- **Learning integration**: When to integrate pattern recording into agent task execution?
+- **Jico Life agent**: Add learning for AR/web deployment workflows?
 
 ---
 
