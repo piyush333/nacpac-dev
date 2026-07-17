@@ -176,11 +176,41 @@ Append-only log of decisions made during agentic system build.
 
 ---
 
+## Session 3 (2026-07-17) — Phase 2a: Agent Learning System
+
+### Decision 25: Skillsets as agent capability foundation
+**Date:** 2026-07-17  
+**Decision:** Build agent learning on top of skillsets infrastructure. Skillsets define WHAT agents know; learned_patterns track HOW they improve.  
+**Rationale:** Skillsets provide the knowledge foundation; learning system tracks improvements based on that foundation. Decoupled: skillsets are curated knowledge, patterns are discovered knowledge.  
+**Owner:** NacPac agent (Phase 2 work)
+
+### Decision 26: Pattern confidence and success rate tracking
+**Date:** 2026-07-17  
+**Decision:** Confidence (0.0-1.0) initialized at 0.7, increased based on success_rate with formula: `new_confidence = min(0.99, success_rate * 1.2)`. Success rate updated via Bayesian averaging: `(old_rate * old_count + success) / new_count`.  
+**Rationale:** Moderate initial confidence allows patterns to prove themselves. Never reaches 1.0 (always room to learn). Bayesian averaging converges on true rate as usage increases.  
+**Owner:** NacPac agent (Phase 2 work)
+
+### Decision 27: Pattern types for different learning scenarios
+**Date:** 2026-07-17  
+**Decision:** Four pattern types: "success" (what works), "failure" (what doesn't), "optimization" (faster/cheaper), "best_practice" (recommended approach).  
+**Rationale:** Different patterns serve different purposes. Agents prioritize success patterns early in execution, apply optimizations for efficiency, avoid failure patterns, follow best practices as guardrails.  
+**Owner:** NacPac agent (Phase 2 work)
+
+### Decision 28: Learning feedback loop from agents and humans
+**Date:** 2026-07-17  
+**Decision:** learning_feedback table accepts feedback from agents (auto-generated) and humans (Discord commands). Tracks feedback_type, suggested improvements, and applied status.  
+**Rationale:** Hybrid approach: agents learn from their own outcomes; humans provide additional guidance and validation. Creates feedback loop without manual intervention.  
+**Owner:** NacPac agent (Phase 2 work)
+
+---
+
 ## Pending Clarifications (after Phase 2)
 
 - **Phase 3 timing**: When does nacpac agent move from Phase 2 (learning) to Phase 3 (memory)?
 - **Jico agent start**: When do we add jico_life_dev agent (Phase 3, after nacpac validates)?
-- **MCPO agents**: Timeline for marketing/customer success/product/operations agents (Phase 6+)?
+- **Real builds**: When to switch BUILD_TEST_MODE=false?
+- **Supabase persistence**: Enable full task/cost history tracking?
+- **MCPO agents**: Timeline for marketing/customer success/product/ops agents (Phase 6+)?
 
 ---
 

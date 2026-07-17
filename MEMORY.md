@@ -138,9 +138,19 @@
 
 ---
 
-## Phase 2 — Real Builds + Enhanced Monitoring
+## Phase 2 — Agent Learning System + Real Builds + Enhanced Monitoring
 
-**Next Actions** (when ready):
+### Phase 2a: Agent Learning ✅ (COMPLETE — 2026-07-17)
+- ✅ **Skillsets Infrastructure**: Created agent_skillsets table + 7 NacPac Dev skillsets
+- ✅ **Skillset Seeding**: Script to populate and maintain skillsets
+- ✅ **Skillset Injection**: Skillsets injected into agent decision-making prompts
+- ✅ **Learning System**: 
+  - learned_patterns table for tracking agent discoveries
+  - learning_feedback table for human/system feedback
+  - Memory layer methods: record, retrieve, update, insights
+  - Full documentation in AGENT_LEARNING_SYSTEM.md
+
+### Phase 2b: Remaining Actions (when ready)
 1. ⚠️ **Enable real builds**: Change `BUILD_TEST_MODE=false` in DigitalOcean
 2. **Test real build**: Send "Build NacPac APK" → verify actual EAS build
 3. **Monitor costs**: Track Anthropic API usage in DigitalOcean logs
@@ -148,14 +158,17 @@
 5. **Add monitoring**: Dashboard to view task history, costs, build status
 6. **MCPO agents** (Phase 3+): Add marketing, customer success, product, ops agents
 
-**What's deployed:**
-- ✅ Code: 18 files, fully functional
+### Phase 2 Progress
+**Deployed:**
+- ✅ Code: 18+ files, fully functional
 - ✅ Orchestrator: Intent parsing with Haiku
 - ✅ Dev agents: NacPac (APK/EXE) + Jico Life (AR app)
 - ✅ Discord interface: Natural language + approval buttons
 - ✅ Cost gating: $10/day, $50/month enforced
 - ✅ Health monitoring: Probes responding
 - ✅ Auto-deploy: GitHub → DigitalOcean pipeline working
+- ✅ **Skillsets**: 7 core skillsets for NacPac Dev Agent
+- ✅ **Learning**: Pattern tracking, feedback loop, insights system
 
 ---
 
