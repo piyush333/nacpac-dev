@@ -141,12 +141,46 @@ Append-only log of decisions made during agentic system build.
 
 ---
 
-## Pending Clarifications (before Phase 2 start)
+## Session 3 (2026-07-17) — Phase 0 Architecture + Phase 2 Preparation
 
-- **Real builds**: When to switch BUILD_TEST_MODE=false?
-- **Supabase persistence**: Enable full task/cost history tracking?
-- **Monitoring**: What alerts/dashboards needed?
-- **MCPO agents**: Timeline for adding marketing/customer success/product/ops agents?
+### Decision 21: Supabase schema naming convention (LOCKED BEFORE Phase 2)
+**Date:** 2026-07-17  
+**Decision:** Lock Supabase table naming pattern: `{agent_id}_{table_type}`. Every agent gets exactly 4 tables: skillsets, learned_patterns, tasks, runs.  
+**Examples:**
+- nacpac_skillsets, nacpac_learned_patterns, nacpac_tasks, nacpac_runs
+- jico_skillsets, jico_learned_patterns, jico_tasks, jico_runs  
+- amazon_skillsets, amazon_learned_patterns, amazon_tasks, amazon_runs
+
+**Rationale:** Prevents data pollution. If Phase 2 creates table with wrong name, migration after data population is painful (1-2 hours). Locking schema BEFORE Phase 2 starts ensures clean setup. Total at full scale: 32 agent tables + 4 shared = 36 organized tables.  
+**Owner:** Central session (nacpac-dev)  
+**Enforcement:** SUPABASE_SCHEMA.md documents pattern. NACPAC_DEV_PHASES.md Phase 2 checklist includes verification step. nacpac agent MUST confirm table name before creating nacpac_learned_patterns.
+
+### Decision 22: Session coordination via Supabase + git
+**Date:** 2026-07-17  
+**Decision:** Multi-agent system stays in sync via: (1) Git (commits/pushes), (2) Supabase session_coordination table, (3) Persistent context files (AGENT_*_CONTEXT.md), (4) Cron jobs (every 30 min).  
+**Rationale:** No manual coordination needed. Each session reads AGENT_*_CONTEXT.md on startup. Supabase table tracks phase/status. Cron checks for updates. Sessions work independently but stay coordinated.  
+**Owner:** Central session (nacpac-dev)
+
+### Decision 23: One agent per session (strict boundary)
+**Date:** 2026-07-17  
+**Decision:** Each session focuses on ONE agent only. nacpac agent session = nacpac_dev only. jico agent session = jico_life_dev only. No cross-agent planning or work.  
+**Rationale:** Prevents context bloat. Each session has focused scope. Central session (nacpac-dev) makes decisions about adding agents.  
+**Enforcement:** SESSION_PROTOCOL.md Rule 2. Central session redirects agent sessions that ask about other agents.  
+**Owner:** Central session (nacpac-dev)
+
+### Decision 24: Phase 0-1 timing
+**Date:** 2026-07-17  
+**Decision:** Phase 0 (architecture) complete. Phase 1 (NacPac skillsets) complete. Phase 2 (learning) in progress (nacpac agent session). Phases 3-8 follow sequentially.  
+**Rationale:** Clear roadmap prevents ambiguity. NACPAC_DEV_PHASES.md documents each phase with deliverables, files, and success criteria.  
+**Owner:** Central session (nacpac-dev)
+
+---
+
+## Pending Clarifications (after Phase 2)
+
+- **Phase 3 timing**: When does nacpac agent move from Phase 2 (learning) to Phase 3 (memory)?
+- **Jico agent start**: When do we add jico_life_dev agent (Phase 3, after nacpac validates)?
+- **MCPO agents**: Timeline for marketing/customer success/product/operations agents (Phase 6+)?
 
 ---
 
