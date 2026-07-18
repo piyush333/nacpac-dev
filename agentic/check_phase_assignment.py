@@ -8,8 +8,10 @@ automatically transitions to next phase if assigned.
 Usage:
     python agentic/check_phase_assignment.py <agent_id>
 
-Example:
-    python agentic/check_phase_assignment.py nacpac_dev
+Examples:
+    python agentic/check_phase_assignment.py central           # Check central infrastructure
+    python agentic/check_phase_assignment.py nacpac_dev        # Check NacPac agent
+    python agentic/check_phase_assignment.py jico_life_dev     # Check Jico Life agent
 """
 
 import re
@@ -28,6 +30,22 @@ def read_governance() -> dict:
         content = f.read()
 
     assignments = {}
+
+    # Parse Central Infrastructure section
+    central_match = re.search(
+        r"## Central Infrastructure Phases.*?\n(.*?)(?=## Active Agent|## How Central|## Live Tracking|\Z)",
+        content,
+        re.DOTALL
+    )
+    if central_match:
+        section = central_match.group(1)
+        current = extract_phase(section, "Current Phase")
+        assigned = extract_phase(section, "Assigned Phase")
+        assignments["central"] = {
+            "current_phase": current,
+            "assigned_phase": assigned,
+            "name": "Central Infrastructure"
+        }
 
     # Parse NacPac Dev Agent section
     nacpac_match = re.search(
