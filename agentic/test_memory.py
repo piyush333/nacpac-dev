@@ -16,7 +16,7 @@ def test_nacpac_task_creation():
 
         if not memory.client:
             logger.warning("Supabase unavailable; skipping live test")
-            return True
+            return True, None
 
         # Create a test task
         task_input = "Test Phase 3: Build APK for production"
