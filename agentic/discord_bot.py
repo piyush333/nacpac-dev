@@ -11,6 +11,7 @@ from agentic.config import (
     DISCORD_JICO_DEV_CHANNEL_ID, DISCORD_LOGS_CHANNEL_ID, DISCORD_REPORTS_CHANNEL_ID
 )
 from agentic.memory import memory
+from agentic.secrets_manager import init_secrets
 
 # Defer imports to avoid __init__.py issues
 orchestrator = None
@@ -39,6 +40,14 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 @bot.event
 async def on_ready():
+    # Initialize secrets on first connection
+    if not hasattr(bot, '_secrets_initialized'):
+        if init_secrets():
+            logger.info("✅ Secrets initialized from Supabase")
+        else:
+            logger.warning("⚠️ Failed to initialize secrets; using environment variables")
+        bot._secrets_initialized = True
+
     _load_agents()
     logger.info(f"✅ Bot logged in as {bot.user}")
 
