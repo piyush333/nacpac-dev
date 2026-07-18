@@ -10,3 +10,4 @@ mobile-temp/
 .DS_Store
 techbot/__pycache__/
 techbot/last_build.json
+central-coordination/
